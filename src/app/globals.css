@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 html, body {
   height: 100%;
@@ -6,22 +8,20 @@ html, body {
   padding: 0;
 }
 
-@layer utilities {
-  .animate-first {
-    animation: moveFirst 30s ease infinite;
-  }
-  .animate-second {
-    animation: moveSecond 30s ease infinite;
-  }
-  .animate-third {
-    animation: moveThird 30s ease infinite;
-  }
-  .animate-fourth {
-    animation: moveFourth 30s ease infinite;
-  }
-  .animate-fifth {
-    animation: moveFifth 30s ease infinite;
-  }
+.animate-first {
+  animation: moveFirst 30s ease infinite;
+}
+.animate-second {
+  animation: moveSecond 30s ease infinite;
+}
+.animate-third {
+  animation: moveThird 30s ease infinite;
+}
+.animate-fourth {
+  animation: moveFourth 30s ease infinite;
+}
+.animate-fifth {
+  animation: moveFifth 30s ease infinite;
 }
 
 @keyframes moveFirst {

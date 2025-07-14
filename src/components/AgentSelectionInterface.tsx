@@ -81,12 +81,16 @@ function AgentCard({
       y: -8,
       filter: "blur(0px)",
       transition: { 
-        type: "spring", 
+        type: "spring" as const, 
         stiffness: 400, 
         damping: 28,
         mass: 0.6,
       }
-    } : {},
+    } : {
+      scale: 1,
+      y: 0,
+      filter: "blur(0px)",
+    },
   };
 
   const imageVariants = {
