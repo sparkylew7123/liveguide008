@@ -95,7 +95,11 @@ export default function LandingPage() {
   }
 
   const handleVoiceOnboarding = () => {
-    window.location.href = '/register?returnTo=/onboarding/voice'
+    window.location.href = '/onboarding/voice-guided'
+  }
+
+  const handleTalkToAgent = () => {
+    window.location.href = '/onboarding/voice-guided'
   }
 
   const handleVoiceDemo = () => {
@@ -280,12 +284,12 @@ export default function LandingPage() {
                         transition={{ delay: 0.2, duration: 0.3 }}
                       >
                         <Button
-                          onClick={handleVoiceOnboarding}
+                          onClick={handleTalkToAgent}
                           size="lg"
                           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg"
                         >
                           <Mic className="mr-2 h-5 w-5" />
-                          Start Voice Coaching
+                          Talk to Agent
                         </Button>
                       </motion.div>
                     </motion.div>
@@ -315,10 +319,10 @@ export default function LandingPage() {
                 <Button 
                   size="lg" 
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg"
-                  onClick={handleVoiceOnboarding}
+                  onClick={handleTalkToAgent}
                 >
                   <Mic className="mr-2 h-5 w-5" />
-                  Start Voice Coaching
+                  Talk to Agent
                 </Button>
                 
                 <Button 
@@ -471,7 +475,7 @@ export default function LandingPage() {
               <Button 
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
-                onClick={handleVoiceOnboarding}
+                onClick={handleTalkToAgent}
               >
                 <Mic className="mr-2 h-4 w-4" />
                 Start Coaching

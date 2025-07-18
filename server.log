@@ -1,0 +1,245 @@
+
+> liveguide008@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.3.5
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.30:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1159ms
+ ○ Compiling / ...
+ ✓ Compiled / in 506ms (723 modules)
+ GET / 200 in 656ms
+ ✓ Compiled /favicon.ico in 96ms (439 modules)
+ GET /favicon.ico 200 in 145ms
+ GET / 200 in 83ms
+ GET /favicon.ico 200 in 5ms
+ ✓ Compiled /onboarding/voice-guided in 458ms (952 modules)
+ GET /onboarding/voice-guided 200 in 647ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET / 200 in 31ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 570ms (1060 modules)
+ GET /login 200 in 680ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled /register in 258ms (1068 modules)
+ GET /register 200 in 311ms
+ ○ Compiling /agents ...
+ ✓ Compiled /agents in 1104ms (1863 modules)
+ GET /agents 200 in 1136ms
+ GET /onboarding/voice-guided 200 in 143ms
+ GET /favicon.ico 200 in 32ms
+ GET /onboarding/voice-guided 200 in 52ms
+ GET / 200 in 27ms
+ ✓ Compiled in 815ms (873 modules)
+ GET /onboarding/voice-guided 200 in 8ms
+ ✓ Compiled in 283ms (873 modules)
+ GET /onboarding/voice-guided 200 in 11ms
+ ✓ Compiled in 484ms (1861 modules)
+ GET /onboarding/voice-guided 200 in 66ms
+ ✓ Compiled in 370ms (1863 modules)
+ GET /onboarding/voice-guided 200 in 34ms
+ ✓ Compiled in 352ms (1863 modules)
+ GET /onboarding/voice-guided 200 in 24ms
+ ✓ Compiled in 410ms (1863 modules)
+ GET /onboarding/voice-guided 200 in 23ms
+ ✓ Compiled in 349ms (1863 modules)
+ GET /onboarding/voice-guided 200 in 37ms
+ ⨯ ./src/components/onboarding/GoalDiscoveryFlow.tsx
+Error:   [31mx[0m Unexpected token `Card`. Expected jsx identifier
+     ,-[[36;1;4m/Users/marklewis/CascadeProjects/liveguide008/src/components/onboarding/GoalDiscoveryFlow.tsx[0m:346:1]
+ [2m343[0m | 
+ [2m344[0m |   if (phase === 'conversation') {
+ [2m345[0m |     return (
+ [2m346[0m |       <Card className="max-w-2xl mx-auto">
+     : [35;1m       ^^^^[0m
+ [2m347[0m |         <CardHeader className="text-center">
+ [2m348[0m |           <CardTitle className="flex items-center justify-center gap-2">
+ [2m349[0m |             <Target className="w-5 h-5 text-blue-600" />
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/onboarding/GoalDiscoveryFlow.tsx
+./src/components/onboarding/VoiceGuidedOnboarding.tsx
+./src/app/onboarding/voice-guided/page.tsx
+ ✓ Compiled in 444ms (1865 modules)
+ GET /onboarding/voice-guided 200 in 50ms
+ ✓ Compiled in 248ms (875 modules)
+ GET /onboarding/voice-guided 200 in 20ms
+ ✓ Compiled in 369ms (1865 modules)
+ GET /onboarding/voice-guided 200 in 23ms
+ ✓ Compiled in 334ms (1867 modules)
+ GET /onboarding/voice-guided 200 in 24ms
+ GET /onboarding/voice-guided 200 in 131ms
+ ✓ Compiled /favicon.ico in 279ms (1007 modules)
+ GET /favicon.ico 200 in 331ms
+ ✓ Compiled in 445ms (1867 modules)
+ GET /onboarding/voice-guided 200 in 72ms
+ ✓ Compiled in 337ms (1867 modules)
+ GET /onboarding/voice-guided 200 in 49ms
+ ✓ Compiled in 270ms (1867 modules)
+ GET /onboarding/voice-guided 200 in 26ms
+ ✓ Compiled in 353ms (1867 modules)
+ GET /onboarding/voice-guided 200 in 27ms
+ ✓ Compiled in 199ms (876 modules)
+ GET /onboarding/voice-guided 200 in 14ms
+ ✓ Compiled in 183ms (876 modules)
+ GET /onboarding/voice-guided 200 in 22ms
+ ✓ Compiled in 158ms (876 modules)
+ GET /onboarding/voice-guided 200 in 9ms
+ ✓ Compiled in 340ms (1867 modules)
+ GET /onboarding/voice-guided 200 in 59ms
+ ✓ Compiled in 355ms (1867 modules)
+ GET /onboarding/voice-guided 200 in 22ms
+ GET /onboarding/voice-guided 200 in 164ms
+ ✓ Compiled /favicon.ico in 220ms (1007 modules)
+ GET /favicon.ico 200 in 278ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 634ms (1873 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 734ms
+ GET /onboarding/voice-guided 200 in 109ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 45ms
+ GET /favicon.ico 200 in 29ms
+ ✓ Compiled in 699ms (1867 modules)
+ GET /onboarding/voice-guided 200 in 69ms
+ ✓ Compiled /_not-found in 146ms (1857 modules)
+ GET /_next/static/css/app/layout.css?v=1752698473275 404 in 195ms
+ ✓ Compiled in 237ms (1871 modules)
+ GET /onboarding/voice-guided 200 in 26ms
+ GET /_next/static/css/app/layout.css?v=1752698477938 404 in 17ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1071ms (2192 modules)
+ GET /onboarding/voice-guided 200 in 495ms
+ GET /onboarding/voice-guided 200 in 8ms
+ GET /_next/static/css/app/layout.css?v=1752698672562 404 in 28ms
+ GET /onboarding/voice-guided 404 in 1476ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 24ms
+ ✓ Compiled /favicon.ico in 259ms (1096 modules)
+ GET /favicon.ico 200 in 309ms
+ GET /onboarding/voice-guided 200 in 148ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 38ms
+ GET /_next/static/css/app/layout.css?v=1752698680562 404 in 48ms
+ GET /_next/static/chunks/main-app.js?v=1752698680562 404 in 73ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 62ms
+ GET /_next/static/chunks/app/onboarding/voice-guided/page.js 404 in 61ms
+ GET / 200 in 51ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 37ms
+ GET /_next/static/css/app/layout.css?v=1752698692609 404 in 59ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 50ms
+ GET /_next/static/chunks/main-app.js?v=1752698692609 404 in 52ms
+ GET /onboarding/voice-guided 200 in 56ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 39ms
+ GET /_next/static/css/app/layout.css?v=1752698698296 404 in 61ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 77ms
+ GET /_next/static/chunks/main-app.js?v=1752698698296 404 in 78ms
+ GET /_next/static/chunks/app/onboarding/voice-guided/page.js 404 in 77ms
+ GET /onboarding/voice-guided 200 in 50ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 38ms
+ GET /_next/static/css/app/layout.css?v=1752698776176 404 in 69ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 90ms
+ GET /_next/static/chunks/main-app.js?v=1752698776176 404 in 93ms
+ GET /_next/static/chunks/app/onboarding/voice-guided/page.js 404 in 90ms
+ GET /favicon.ico 200 in 12ms
+ ⚠ ./src/app/layout.tsx
+Attempted import error: 'ElevenLabsProvider' is not exported from '@elevenlabs/react' (imported as 'ElevenLabsProvider').
+
+Import trace for requested module:
+./src/app/layout.tsx
+ ⚠ ./src/app/layout.tsx
+Attempted import error: 'ElevenLabsProvider' is not exported from '@elevenlabs/react' (imported as 'ElevenLabsProvider').
+
+Import trace for requested module:
+./src/app/layout.tsx
+ ✓ Compiled in 613ms (2202 modules)
+ ✓ Compiled in 205ms (1123 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/server-development/9.pack.gz_' -> '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/server-development/9.pack.gz'
+   Reload env: .env.local
+ ✓ Compiled in 4.5s (2202 modules)
+ ✓ Compiled in 665ms (2202 modules)
+ ✓ Compiled in 609ms (2202 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/server-development/1.pack.gz_' -> '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/server-development/1.pack.gz'
+ ✓ Compiled in 802ms (2202 modules)
+ ✓ Compiled in 413ms (2202 modules)
+ ✓ Compiled in 751ms (2202 modules)
+ ✓ Compiled in 759ms (2202 modules)
+ ✓ Compiled in 303ms (2202 modules)
+ ✓ Compiled in 309ms (2202 modules)
+ ✓ Compiled in 401ms (1123 modules)
+ ✓ Compiled in 387ms (2202 modules)
+ ✓ Compiled in 343ms (2204 modules)
+ ✓ Compiled in 757ms (2204 modules)
+ ✓ Compiled in 296ms (2204 modules)
+ GET /onboarding/voice-guided 200 in 285ms
+ ✓ Compiled /_not-found in 374ms (2194 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 430ms
+ GET / 200 in 27ms
+ ✓ Compiled in 554ms (2208 modules)
+ GET / 200 in 41ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /_next/static/webpack/3a05ab38138f551e.webpack.hot-update.json 404 in 33ms
+ GET / 200 in 25ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 28ms
+ ✓ Compiled /favicon.ico in 159ms (1097 modules)
+ GET /favicon.ico 200 in 221ms
+ ✓ Compiled in 321ms (2224 modules)
+ GET / 200 in 53ms
+ ✓ Compiled in 351ms (2222 modules)
+ GET / 200 in 27ms
+ ✓ Compiled in 423ms (2222 modules)
+ GET / 200 in 21ms
+ GET / 200 in 48ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 41ms
+ GET /favicon.ico 200 in 15ms
+ GET /login 200 in 86ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 25ms
+ GET /agents 200 in 24ms
+ GET /onboarding/voice-guided 200 in 97ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 29ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz_' -> '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz'
+ GET /onboarding/voice-guided 200 in 68ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 53ms
+ GET /favicon.ico 200 in 8ms
+ GET /onboarding/voice-guided 200 in 96ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 53ms
+ GET /favicon.ico 200 in 13ms
+ ✓ Compiled in 863ms (2208 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /_next/static/webpack/5215c5efaa20d9c7.webpack.hot-update.json 404 in 403ms
+ GET /onboarding/voice-guided 200 in 57ms
+ GET /onboarding/voice-guided 200 in 68ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 19ms
+ GET /favicon.ico 200 in 14ms
+ ✓ Compiled in 304ms (2222 modules)
+ GET /onboarding/voice-guided 200 in 23ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/server-development/0.pack.gz_' -> '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/server-development/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz_' -> '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz'
+ GET /onboarding/voice-guided 200 in 135ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 54ms
+ GET /favicon.ico 200 in 19ms
+ GET /onboarding/voice-guided 200 in 51ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 52ms
+ GET /favicon.ico 200 in 8ms
+ GET /onboarding/voice-guided 200 in 76ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 37ms
+ GET /favicon.ico 200 in 9ms
+ ✓ Compiled /_not-found in 1021ms (2192 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /_next/static/webpack/dd7319ff9ea3ddf6.webpack.hot-update.json 404 in 546ms
+ GET /onboarding/voice-guided 200 in 137ms
+ GET /onboarding/voice-guided 200 in 55ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 32ms
+ ✓ Compiled /favicon.ico in 132ms (1096 modules)
+ GET /favicon.ico 200 in 200ms
+ ✓ Compiled in 538ms (2222 modules)
+ GET /onboarding/voice-guided 200 in 120ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz_' -> '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz'
+ ✓ Compiled in 623ms (2188 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz_' -> '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz'
+ ✓ Compiled in 670ms (2188 modules)
+ ✓ Compiled in 302ms (2202 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz_' -> '/Users/marklewis/CascadeProjects/liveguide008/.next/cache/webpack/client-development/0.pack.gz'

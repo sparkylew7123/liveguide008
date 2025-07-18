@@ -27,7 +27,7 @@ interface SimpleVoiceOnboardingProps {
 }
 
 export function SimpleVoiceOnboarding({ 
-  agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'sAy4k9iMrBKKO6UyqYwV',
+  agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'SuIlXQ4S6dyjrNViOrQ8',
   agentDetails,
   loading = false,
   userName = 'User'
@@ -61,17 +61,9 @@ export function SimpleVoiceOnboarding({
       await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsPermissionGranted(true);
       
-      // Start conversation with ElevenLabs with custom variables
+      // Start conversation with ElevenLabs
       await conversation.startSession({
-        agentId: agentId,
-        customVariables: {
-          userName: userName,
-          agentName: agentDetails?.Name || 'Coach',
-          agentSpeciality: agentDetails?.Speciality || '',
-          sessionType: 'voice_onboarding',
-          timestamp: new Date().toISOString(),
-          // Add any other context you want the agent to have
-        }
+        agentId: agentId
       });
       
       setMessages(prev => [...prev, 'Starting conversation...']);

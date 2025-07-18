@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { signIn, signInWithProvider } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
@@ -20,6 +22,13 @@ export default function LoginForm() {
     setError(null);
     setSuccess(null);
     setLoading(true);
+
+    // Check if CAPTCHA is verified
+    if (!captchaToken) {
+      setError('Please complete the CAPTCHA verification');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { error } = await signIn(email, password);
@@ -32,7 +41,7 @@ export default function LoginForm() {
       const redirectMsg = returnTo ? 'Login successful! Continuing to voice coaching...' : 'Login successful! Redirecting...';
       setSuccess(redirectMsg);
       setTimeout(() => {
-        router.push(returnTo || '/lobby');
+        router.push(returnTo || '/agents');
       }, 1000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
@@ -113,9 +122,27 @@ export default function LoginForm() {
           </Link>
         </div>
         
+        {/* Cloudflare Turnstile CAPTCHA */}
+        <div className="mb-6 flex justify-center">
+          <Turnstile
+            siteKey="0x4AAAAAABleALMnB6QOyymu"
+            onSuccess={(token) => setCaptchaToken(token)}
+            onError={() => {
+              setCaptchaToken(null);
+              setError('CAPTCHA verification failed. Please try again.');
+            }}
+            onExpire={() => {
+              setCaptchaToken(null);
+              setError('CAPTCHA expired. Please verify again.');
+            }}
+            theme="dark"
+            size="normal"
+          />
+        </div>
+        
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !captchaToken}
           className="w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-md hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Signing in...' : 'Sign In'}

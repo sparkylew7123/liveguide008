@@ -63,7 +63,7 @@ export function Navbar() {
 
   const navItems: NavItem[] = [
     { label: 'Lobby', href: '/lobby', icon: Home },
-    { label: 'Voice Sessions', href: '/onboarding/voice', icon: Mic },
+    { label: 'Voice Sessions', href: '/agents', icon: Mic },
     { label: 'Schedule', href: '/schedule', icon: Calendar },
     { label: 'Progress', href: '/progress', icon: BarChart3 },
     { label: 'Settings', href: '/settings', icon: Settings },
