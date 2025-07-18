@@ -47,7 +47,7 @@ export default function Footer({ className = "" }: FooterProps) {
   const productLinks = [
     { name: 'Features', href: '/features' },
     { name: 'Pricing', href: '/pricing' },
-    { name: 'Voice Coaching', href: '/onboarding/voice' },
+    { name: 'Voice Coaching', href: '/agents' },
     { name: 'AI Coaches', href: '/coaches' },
     { name: 'Progress Analytics', href: '/analytics' },
     { name: 'Integrations', href: '/integrations' }

@@ -11,6 +11,13 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Custom webpack configuration if needed
+    // Example: Add custom loaders, plugins, or resolve settings
+    
+    // Important: always return the modified config
+    return config
+  },
 }
 
 module.exports = nextConfig

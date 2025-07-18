@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AgentSelection } from '@/components/AgentSelection';
+import { AgentSelectionInterface } from '@/components/AgentSelectionInterface';
 import { SimpleVoiceOnboarding } from '@/components/SimpleVoiceOnboarding';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -48,9 +48,9 @@ export default function AgentsPage() {
     getUserInfo();
   }, []);
 
-  const handleAgentSelect = async (agentId: string, agentName: string) => {
-    setSelectedAgentId(agentId);
-    setSelectedAgentName(agentName);
+  const handleAgentSelect = async (agentId: string, elevenLabsId: string) => {
+    setSelectedAgentId(elevenLabsId);
+    setSelectedAgentName('');
     setLoadingDetails(true);
     
     // Lazy load full agent details
@@ -61,13 +61,14 @@ export default function AgentsPage() {
       const { data, error } = await supabase
         .from('agent_personae')
         .select('uuid, Name, Speciality, "Key Features", Personality, Image, "11labs_agentID", availability_status, average_rating')
-        .eq('11labs_agentID', agentId)
+        .eq('11labs_agentID', elevenLabsId)
         .single();
       
       if (error) {
         console.error('Error loading agent details:', error);
       } else {
         setSelectedAgentDetails(data);
+        setSelectedAgentName(data.Name);
       }
     } catch (error) {
       console.error('Error loading agent details:', error);
@@ -105,8 +106,8 @@ export default function AgentsPage() {
         {/* Content */}
         {!showVoiceOnboarding ? (
           <div className="space-y-8">
-            <AgentSelection 
-              onSelectAgent={handleAgentSelect}
+            <AgentSelectionInterface
+              onAgentSelect={handleAgentSelect}
               selectedAgentId={selectedAgentId}
             />
             

@@ -6,6 +6,18 @@ html, body {
   padding: 0;
 }
 
+.test-bg {
+  background: #f0f0f0;
+  min-height: 100vh;
+}
+
+.test-text {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 40px;
+}
+
 .animate-first {
   animation: moveFirst 30s ease infinite;
 }
