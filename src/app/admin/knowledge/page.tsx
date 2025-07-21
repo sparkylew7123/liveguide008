@@ -114,13 +114,12 @@ export default function KnowledgeManagementPage() {
             <form onSubmit={handleFileUpload} className="space-y-4">
               <div>
                 <Label htmlFor="agent">Agent</Label>
-                <Select value={agentId} onValueChange={setAgentId}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SuIlXQ4S6dyjrNViOrQ8">Maya (Onboarding)</SelectItem>
-                  </SelectContent>
+                <Select 
+                  value={agentId} 
+                  onChange={(e) => setAgentId(e.target.value)}
+                  className="w-full"
+                >
+                  <option value="SuIlXQ4S6dyjrNViOrQ8">Maya (Onboarding)</option>
                 </Select>
               </div>
 
