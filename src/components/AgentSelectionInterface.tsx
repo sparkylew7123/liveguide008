@@ -113,7 +113,7 @@ function AgentCard({
       } : {}}
       className={cn(
         "relative overflow-hidden rounded-2xl border border-border/20 bg-card shadow-lg transition-all duration-300",
-        "hover:shadow-xl hover:border-border/40 group",
+        "hover:shadow-xl hover:border-border/40 group h-[720px]",
         isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
         className
       )}
@@ -124,7 +124,7 @@ function AgentCard({
       {/* Card content */}
       <div className="relative z-20 flex flex-col h-full">
         {/* Image section */}
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-72 overflow-hidden">
           <motion.img
             src={agent.Image || '/placeholder-avatar.png'}
             alt={agent.Name}
