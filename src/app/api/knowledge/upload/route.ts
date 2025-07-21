@@ -36,23 +36,59 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get knowledge base for agent
-    const { data: knowledgeBase, error: kbError } = await supabase
+    // Get or create knowledge base for agent
+    let { data: knowledgeBase, error: kbError } = await supabase
       .from('agent_knowledge_bases')
       .select('id')
       .eq('agent_id', agentId)
       .single()
 
     if (kbError || !knowledgeBase) {
-      return NextResponse.json(
-        { error: 'Knowledge base not found for agent' },
-        { status: 404 }
-      )
+      // Create knowledge base if it doesn't exist
+      const { data: newKb, error: createError } = await supabase
+        .from('agent_knowledge_bases')
+        .insert({
+          agent_id: agentId,
+          name: 'Maya Coaching Knowledge Base',
+          description: 'Knowledge base for Maya AI coach'
+        })
+        .select()
+        .single()
+      
+      if (createError) {
+        console.error('KB creation error:', createError)
+        return NextResponse.json(
+          { error: 'Failed to create knowledge base' },
+          { status: 500 }
+        )
+      }
+      
+      knowledgeBase = newKb
     }
 
     // Upload file to Supabase Storage
     const fileName = `${Date.now()}-${file.name}`
     const filePath = `knowledge/${agentId}/${fileName}`
+    
+    // First check if bucket exists
+    const { data: buckets } = await supabase.storage.listBuckets()
+    const bucketExists = buckets?.some(b => b.name === 'documents')
+    
+    if (!bucketExists) {
+      // Create bucket if it doesn't exist
+      const { error: bucketError } = await supabase.storage.createBucket('documents', {
+        public: false,
+        allowedMimeTypes: ['text/plain', 'text/markdown', 'application/pdf', 'text/html']
+      })
+      
+      if (bucketError) {
+        console.error('Bucket creation error:', bucketError)
+        return NextResponse.json(
+          { error: 'Failed to create storage bucket' },
+          { status: 500 }
+        )
+      }
+    }
     
     const { error: uploadError } = await supabase.storage
       .from('documents')
@@ -61,7 +97,7 @@ export async function POST(request: NextRequest) {
     if (uploadError) {
       console.error('Upload error:', uploadError)
       return NextResponse.json(
-        { error: 'Failed to upload file' },
+        { error: `Failed to upload file: ${uploadError.message}` },
         { status: 500 }
       )
     }
@@ -80,11 +116,14 @@ export async function POST(request: NextRequest) {
     const { data: document, error: docError } = await supabase
       .from('knowledge_documents')
       .insert({
-        kb_id: knowledgeBase.id,
+        knowledge_base_id: knowledgeBase.id,
         title: file.name,
         content: content,
-        content_type: file.type,
+        document_type: file.type === 'text/plain' ? 'text' : 
+                       file.type === 'text/markdown' ? 'markdown' :
+                       file.type === 'application/pdf' ? 'pdf' : 'html',
         source_url: filePath,
+        content_hash: `${file.name}-${Date.now()}`, // Simple hash for now
         metadata: metadata ? JSON.parse(metadata) : {}
       })
       .select()
@@ -103,8 +142,8 @@ export async function POST(request: NextRequest) {
       const { data: categoryData } = await supabase
         .from('knowledge_categories')
         .select('id')
-        .eq('kb_id', knowledgeBase.id)
-        .eq('category', category)
+        .eq('knowledge_base_id', knowledgeBase.id)
+        .eq('name', category)
         .single()
 
       if (categoryData) {
@@ -126,7 +165,7 @@ export async function POST(request: NextRequest) {
       document: {
         id: document.id,
         title: document.title,
-        kb_id: knowledgeBase.id
+        knowledge_base_id: knowledgeBase.id
       },
       message: 'Document uploaded successfully. Embeddings will be generated shortly.'
     })
