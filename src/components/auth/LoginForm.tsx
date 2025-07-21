@@ -31,6 +31,29 @@ export default function LoginForm() {
     }
 
     try {
+      // Verify CAPTCHA token on server
+      const captchaResponse = await fetch('/api/auth/verify-captcha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: captchaToken }),
+      });
+
+      const captchaResult = await captchaResponse.json();
+      
+      if (!captchaResponse.ok) {
+        const errorMessage = captchaResult.error || 'CAPTCHA verification failed';
+        
+        // Reset CAPTCHA on specific errors
+        if (captchaResult.code === 'timeout-or-duplicate' || 
+            captchaResult.code === 'invalid-input-response') {
+          setCaptchaToken(null);
+        }
+        
+        throw new Error(errorMessage);
+      }
+
       const { error } = await signIn(email, password);
       
       if (error) {
