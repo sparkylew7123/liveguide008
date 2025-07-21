@@ -61,9 +61,13 @@ export function SimpleVoiceOnboarding({
       await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsPermissionGranted(true);
       
-      // Start conversation with ElevenLabs
+      // Start conversation with ElevenLabs with user context
       await conversation.startSession({
-        agentId: agentId
+        agentId: agentId,
+        // Pass userName to resolve {{userName}} template in agent's first message
+        variables: {
+          userName: userName || 'there'
+        }
       });
       
       setMessages(prev => [...prev, 'Starting conversation...']);
