@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useConversation } from '@elevenlabs/react';
+import { useElevenLabsConversation } from '@/hooks/useElevenLabsConversation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -58,32 +58,44 @@ export function CoachingStyleDiscovery({
   // ElevenLabs agent for coaching style discovery
   const ELEVENLABS_AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'SuIlXQ4S6dyjrNViOrQ8';
 
-  const conversation = useConversation({
-    onConnect: () => {
-      console.log('🧠 Connected to Maya (Coaching Style Discovery)');
-      setMessages(prev => [...prev, 'Connected to Maya for coaching style discovery']);
+  const conversation = useElevenLabsConversation(
+    {
+      agentId: ELEVENLABS_AGENT_ID,
+      userId: user?.id,
+      customCallId: generateCallId(user?.id || 'anonymous', 'coaching_style'),
+      metadata: formatMetadata({
+        userName,
+        selectedGoals,
+        sessionType: 'coaching_style_discovery'
+      })
     },
-    onDisconnect: () => {
-      console.log('👋 Disconnected from Maya');
-      setMessages(prev => [...prev, 'Conversation ended']);
-    },
-    onMessage: (message) => {
-      console.log('💬 Maya:', message);
-      setMessages(prev => [...prev, `Maya: ${message.message}`]);
-      
-      // TODO: Parse message for coaching preference detection using MCP tool
-      handlePreferenceDetection(message.message);
-      
-      // Update progress based on conversation length
-      const progress = Math.min((messages.length / 20) * 100, 90);
-      setConversationProgress(progress);
-    },
-    onError: (error) => {
-      console.error('❌ Coaching Style Discovery Error:', error);
-      const errorMessage = typeof error === 'string' ? error : (error as Error)?.message || 'Connection failed';
-      setMessages(prev => [...prev, `Error: ${errorMessage}`]);
-    },
-  });
+    {
+      onConnect: () => {
+        console.log('🧠 Connected to Maya (Coaching Style Discovery)');
+        setMessages(prev => [...prev, 'Connected to Maya for coaching style discovery']);
+      },
+      onDisconnect: () => {
+        console.log('👋 Disconnected from Maya');
+        setMessages(prev => [...prev, 'Conversation ended']);
+      },
+      onMessage: (message) => {
+        console.log('💬 Maya:', message);
+        setMessages(prev => [...prev, `Maya: ${message.message}`]);
+        
+        // TODO: Parse message for coaching preference detection using MCP tool
+        handlePreferenceDetection(message.message);
+        
+        // Update progress based on conversation length
+        const progress = Math.min((messages.length / 20) * 100, 90);
+        setConversationProgress(progress);
+      },
+      onError: (error) => {
+        console.error('❌ Coaching Style Discovery Error:', error);
+        const errorMessage = typeof error === 'string' ? error : (error as Error)?.message || 'Connection failed';
+        setMessages(prev => [...prev, `Error: ${errorMessage}`]);
+      },
+    }
+  );
 
   const handlePreferenceDetection = async (agentMessage: string) => {
     // TODO: This would integrate with the MCP preference detection tool
@@ -198,7 +210,7 @@ export function CoachingStyleDiscovery({
         }
       };
       
-      await conversation.startSession(sessionConfig);
+      await conversation.startSession();
       
       // Store the call ID for tracking
       sessionStorage.setItem('current_call_id', customCallId);

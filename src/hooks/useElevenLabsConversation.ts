@@ -62,13 +62,7 @@ export function useElevenLabsConversation(
     try {
       // Start session with proper agent configuration
       await conversation.startSession({
-        agentId: config.agentId,
-        // Pass additional configuration for the conversation
-        conversationConfig: {
-          user_id: config.userId,
-          custom_call_id: config.customCallId,
-          metadata: config.metadata
-        }
+        agentId: config.agentId
       });
     } catch (error) {
       console.error('Failed to start ElevenLabs session:', error);
@@ -76,8 +70,26 @@ export function useElevenLabsConversation(
     }
   };
 
-  return {
+  // Safe endSession that checks connection state before closing
+  const endSession = async () => {
+    try {
+      if (conversation.status === 'connected') {
+        await conversation.endSession();
+      }
+    } catch (error) {
+      console.warn('Error ending ElevenLabs session:', error);
+      // Don't throw - session cleanup should be non-blocking
+    }
+  };
+
+  // Safe wrapper for any conversation methods that might send messages
+  const safeConversation = {
     ...conversation,
+    endSession
+  };
+
+  return {
+    ...safeConversation,
     startSession,
     websocketUrl: buildWebSocketUrl() // For debugging purposes
   };

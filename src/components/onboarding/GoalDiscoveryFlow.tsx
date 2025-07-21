@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useConversation } from '@elevenlabs/react';
+import { useElevenLabsConversation } from '@/hooks/useElevenLabsConversation';
 import { Conversation } from '@elevenlabs/client';
 import { useDirectElevenLabsConnection } from '@/hooks/useDirectElevenLabsConnection';
 import { Button } from '@/components/ui/button';
@@ -58,29 +58,40 @@ export function GoalDiscoveryFlow({
     enabled: phase === 'conversation'
   });
 
-  const conversation = useConversation({
-    onConnect: () => {
-      console.log('🎯 Connected to Maya (Goal Discovery Agent)');
-      setMessages(prev => [...prev, 'Connected to Maya, your goal discovery guide']);
+  const conversation = useElevenLabsConversation(
+    {
+      agentId: ELEVENLABS_AGENT_ID,
+      userId: user?.id,
+      customCallId: generateCallId(user?.id || 'anonymous', 'goal_discovery'),
+      metadata: formatMetadata({
+        userName,
+        sessionType: 'goal_discovery'
+      })
     },
-    onDisconnect: () => {
-      console.log('👋 Disconnected from Maya');
-      setMessages(prev => [...prev, 'Conversation ended']);
-    },
-    onMessage: (message) => {
-      console.log('💬 Maya:', message);
-      setMessages(prev => [...prev, `Maya: ${message.message}`]);
-      
-      // TODO: Parse message for goal detection using MCP tool
-      // This would integrate with the custom goal extraction tool
-      handleGoalDetection(message.message);
-    },
-    onError: (error) => {
-      console.error('❌ Goal Discovery Error:', error);
-      const errorMessage = typeof error === 'string' ? error : (error as Error)?.message || 'Connection failed';
-      setMessages(prev => [...prev, `Error: ${errorMessage}`]);
-    },
-  });
+    {
+      onConnect: () => {
+        console.log('🎯 Connected to Maya (Goal Discovery Agent)');
+        setMessages(prev => [...prev, 'Connected to Maya, your goal discovery guide']);
+      },
+      onDisconnect: () => {
+        console.log('👋 Disconnected from Maya');
+        setMessages(prev => [...prev, 'Conversation ended']);
+      },
+      onMessage: (message) => {
+        console.log('💬 Maya:', message);
+        setMessages(prev => [...prev, `Maya: ${message.message}`]);
+        
+        // TODO: Parse message for goal detection using MCP tool
+        // This would integrate with the custom goal extraction tool
+        handleGoalDetection(message.message);
+      },
+      onError: (error) => {
+        console.error('❌ Goal Discovery Error:', error);
+        const errorMessage = typeof error === 'string' ? error : (error as Error)?.message || 'Connection failed';
+        setMessages(prev => [...prev, `Error: ${errorMessage}`]);
+      },
+    }
+  );
 
   // Sync realtime goals with local state
   useEffect(() => {
@@ -205,12 +216,12 @@ export function GoalDiscoveryFlow({
       console.log('🚀 Starting ElevenLabs conversation with direct agent connection...');
       
       // Use the React hook approach with direct agent connection
-      const conversationId = await conversation.startSession(sessionConfig);
+      const conversationId = await conversation.startSession();
       
       console.log('✅ ElevenLabs conversation started successfully:', conversationId);
       
       // Store the call ID for tracking
-      sessionStorage.setItem('current_call_id', conversationId || customCallId);
+      sessionStorage.setItem('current_call_id', customCallId);
       
       // Fetch any existing goals for this conversation
       await fetchExistingGoals();
