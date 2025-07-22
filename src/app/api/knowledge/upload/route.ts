@@ -3,6 +3,8 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  
   try {
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
@@ -10,7 +12,11 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.error('Auth error:', authError)
+      return NextResponse.json({ 
+        error: 'Unauthorized',
+        details: isDevelopment ? authError?.message : undefined 
+      }, { status: 401 })
     }
 
     // Get form data
@@ -43,22 +49,40 @@ export async function POST(request: NextRequest) {
       .eq('agent_id', agentId)
       .single()
 
-    if (kbError || !knowledgeBase) {
+    if (kbError && kbError.code !== 'PGRST116') {
+      // PGRST116 is "no rows returned", which is expected if KB doesn't exist
+      console.error('KB lookup error:', {
+        error: kbError,
+        message: kbError.message,
+        code: kbError.code
+      })
+    }
+
+    if (!knowledgeBase) {
       // Create knowledge base if it doesn't exist
       const { data: newKb, error: createError } = await supabase
         .from('agent_knowledge_bases')
         .insert({
           agent_id: agentId,
           name: 'Maya Coaching Knowledge Base',
-          description: 'Knowledge base for Maya AI coach'
+          description: 'Knowledge base for Maya AI coach',
+          document_count: 0,
+          total_chunks: 0,
+          indexing_status: 'pending'
         })
         .select()
         .single()
       
       if (createError) {
-        console.error('KB creation error:', createError)
+        console.error('KB creation error:', {
+          error: createError,
+          message: createError.message,
+          details: createError.details,
+          hint: createError.hint,
+          code: createError.code
+        })
         return NextResponse.json(
-          { error: 'Failed to create knowledge base' },
+          { error: `Failed to create knowledge base: ${createError.message}` },
           { status: 500 }
         )
       }
@@ -124,15 +148,22 @@ export async function POST(request: NextRequest) {
                        file.type === 'application/pdf' ? 'pdf' : 'html',
         source_url: filePath,
         content_hash: `${file.name}-${Date.now()}`, // Simple hash for now
-        metadata: metadata ? JSON.parse(metadata) : {}
+        metadata: metadata ? JSON.parse(metadata) : {},
+        chunk_count: 0 // Initialize chunk count
       })
       .select()
       .single()
 
     if (docError) {
-      console.error('Document creation error:', docError)
+      console.error('Document creation error:', {
+        error: docError,
+        message: docError.message,
+        details: docError.details,
+        hint: docError.hint,
+        code: docError.code
+      })
       return NextResponse.json(
-        { error: 'Failed to create document record' },
+        { error: `Failed to create document record: ${docError.message}` },
         { status: 500 }
       )
     }
@@ -172,6 +203,25 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Knowledge upload error:', error)
+    
+    // More detailed error for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorDetails = {
+      message: errorMessage,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
+    }
+    
+    if (isDevelopment) {
+      return NextResponse.json(
+        { 
+          error: 'Internal server error',
+          details: errorDetails
+        },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
