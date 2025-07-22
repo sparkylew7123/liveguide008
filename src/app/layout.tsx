@@ -1,5 +1,6 @@
 import './globals.css'
 import { UserProvider } from '@/contexts/UserContext'
+import { Navbar } from '@/components/layout/Navbar'
 
 export const metadata = {
   title: 'LiveGuide - Voice-First AI Coaching',
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <UserProvider>
+          <Navbar />
           {children}
         </UserProvider>
       </body>

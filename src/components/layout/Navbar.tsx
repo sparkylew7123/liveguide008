@@ -74,10 +74,58 @@ export function Navbar() {
     router.push('/');
   };
 
-  // Don't show navbar on landing, login, or register pages
-  const hideNavbar = ['/', '/login', '/register'].includes(pathname);
+  // Don't show navbar on login or register pages
+  const hideNavbar = ['/login', '/register'].includes(pathname);
   
-  if (hideNavbar || isLoading || !isAuthenticated) {
+  if (hideNavbar || isLoading) {
+    return null;
+  }
+  
+  // Show different navbar for landing page when not authenticated
+  if (pathname === '/' && !isAuthenticated) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-md border-b border-gray-800">
+        <div className="w-full px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3">
+              <Image 
+                src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1750020672/liveguide-logo-clear.png" 
+                alt="LiveGuide" 
+                width={120} 
+                height={32} 
+                className="h-7 w-auto"
+                priority
+                unoptimized
+              />
+            </Link>
+
+            {/* Auth Buttons */}
+            <div className="flex items-center gap-4">
+              <Link href="/login">
+                <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white hover:bg-gray-800"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                >
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+  
+  // Don't show authenticated navbar on landing page
+  if (pathname === '/' || !isAuthenticated) {
     return null;
   }
 
