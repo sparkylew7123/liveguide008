@@ -179,28 +179,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Logo Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="absolute top-6 left-6 z-20"
-      >
-        <div 
-          className="h-8 w-auto cursor-pointer"
-          onClick={() => window.location.href = '/'}
-        >
-          <Image 
-            src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1750020672/liveguide-logo-clear.png" 
-            alt="LiveGuide" 
-            width={140} 
-            height={40} 
-            className="h-8 w-auto"
-            priority
-            unoptimized
-          />
-        </div>
-      </motion.div>
+      {/* Spacer for fixed navbar */}
+      <div className="h-16" />
+      
 
       {/* Hero Section */}
       <section className="relative overflow-hidden px-6 py-20 sm:py-32">
