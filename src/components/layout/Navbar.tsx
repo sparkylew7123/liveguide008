@@ -124,8 +124,8 @@ export function Navbar() {
     );
   }
   
-  // Don't show authenticated navbar on landing page
-  if (pathname === '/' || !isAuthenticated) {
+  // Don't show authenticated navbar if not authenticated (except on landing page which has its own navbar above)
+  if (!isAuthenticated) {
     return null;
   }
 
