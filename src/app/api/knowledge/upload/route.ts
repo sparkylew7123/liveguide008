@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 export async function POST(request: NextRequest) {
   const isDevelopment = process.env.NODE_ENV === 'development'
   
   try {
-    const cookieStore = await cookies()
-    const supabase = createClient(cookieStore)
+    // Use regular client for auth check
+    const authClient = await createClient()
+    
+    // Use service role client for database operations
+    const supabase = createServiceRoleClient()
 
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Check authentication using the auth client
+    const { data: { user }, error: authError } = await authClient.auth.getUser()
     if (authError || !user) {
       console.error('Auth error:', authError)
       return NextResponse.json({ 
@@ -33,11 +36,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate file type
-    const allowedTypes = ['text/plain', 'text/markdown', 'application/pdf', 'text/html']
-    if (!allowedTypes.includes(file.type)) {
+    // Validate file size (50MB limit as per Supabase settings)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
+    if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: 'Invalid file type. Allowed: txt, md, pdf, html' },
+        { error: 'File too large. Maximum size is 50MB' },
+        { status: 400 }
+      )
+    }
+
+    // Validate file type (including common markdown MIME types)
+    const allowedTypes = [
+      'text/plain', 
+      'text/markdown', 
+      'text/x-markdown',
+      'application/x-markdown',
+      'application/pdf', 
+      'text/html'
+    ]
+    
+    // Log file details for debugging
+    console.log('File upload attempt:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      sizeInMB: (file.size / (1024 * 1024)).toFixed(2) + 'MB'
+    })
+    
+    // Check file extension if MIME type is empty or generic
+    const fileExtension = file.name.split('.').pop()?.toLowerCase()
+    const isMarkdownFile = fileExtension === 'md' || fileExtension === 'markdown'
+    
+    if (!allowedTypes.includes(file.type) && !isMarkdownFile) {
+      return NextResponse.json(
+        { error: `Invalid file type: ${file.type}. Allowed: txt, md, pdf, html` },
         { status: 400 }
       )
     }
