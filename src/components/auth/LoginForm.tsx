@@ -13,6 +13,7 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [showCaptcha, setShowCaptcha] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
@@ -21,14 +22,20 @@ export default function LoginForm() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-    setLoading(true);
-
+    
+    // Show CAPTCHA on first submit if not already shown
+    if (!showCaptcha) {
+      setShowCaptcha(true);
+      return;
+    }
+    
     // Check if CAPTCHA is verified
     if (!captchaToken) {
       setError('Please complete the CAPTCHA verification');
-      setLoading(false);
       return;
     }
+    
+    setLoading(true);
 
     try {
       // Verify CAPTCHA token on server
@@ -77,6 +84,10 @@ export default function LoginForm() {
     setError(null);
     setSuccess(null);
     setLoading(true);
+    
+    // No CAPTCHA needed for OAuth providers
+    setShowCaptcha(false);
+    setCaptchaToken(null);
     
     try {
       // The callback in auth/callback/route.ts will handle the redirect to dashboard
@@ -145,30 +156,32 @@ export default function LoginForm() {
           </Link>
         </div>
         
-        {/* Cloudflare Turnstile CAPTCHA */}
-        <div className="mb-6 flex justify-center">
-          <Turnstile
-            siteKey="0x4AAAAAABleALMnB6QOyymu"
-            onSuccess={(token) => setCaptchaToken(token)}
-            onError={() => {
-              setCaptchaToken(null);
-              setError('CAPTCHA verification failed. Please try again.');
-            }}
-            onExpire={() => {
-              setCaptchaToken(null);
-              setError('CAPTCHA expired. Please verify again.');
-            }}
-            theme="dark"
-            size="normal"
-          />
-        </div>
+        {/* Cloudflare Turnstile CAPTCHA - Only show when form is being submitted */}
+        {showCaptcha && (
+          <div className="mb-6 flex justify-center">
+            <Turnstile
+              siteKey="0x4AAAAAABleALMnB6QOyymu"
+              onSuccess={(token) => setCaptchaToken(token)}
+              onError={() => {
+                setCaptchaToken(null);
+                setError('CAPTCHA verification failed. Please try again.');
+              }}
+              onExpire={() => {
+                setCaptchaToken(null);
+                setError('CAPTCHA expired. Please verify again.');
+              }}
+              theme="dark"
+              size="normal"
+            />
+          </div>
+        )}
         
         <button
           type="submit"
-          disabled={loading || !captchaToken}
+          disabled={loading || (showCaptcha && !captchaToken)}
           className="w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-md hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? 'Signing in...' : showCaptcha && !captchaToken ? 'Complete CAPTCHA' : 'Sign In'}
         </button>
       </form>
       
