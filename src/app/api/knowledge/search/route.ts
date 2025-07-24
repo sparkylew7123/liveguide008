@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
+import { generateEmbedding } from '@/services/embeddings'
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createClient(cookieStore)
+    // Use regular client for auth check
+    const authClient = await createClient()
+    
+    // Use service role client for database operations
+    const supabase = createServiceRoleClient()
 
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await authClient.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -49,8 +53,8 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabase
         .from('knowledge_documents')
         .select('id, title, content, metadata')
-        .eq('kb_id', knowledgeBase.id)
-        .textSearch('search_vector', query)
+        .eq('knowledge_base_id', knowledgeBase.id)
+        .textSearch('content', query)
         .limit(limit)
 
       if (error) {
@@ -61,18 +65,22 @@ export async function POST(request: NextRequest) {
         )
       }
       
-      results = data || []
+      results = data?.map(doc => ({
+        ...doc,
+        score: 1.0 // Default score for keyword search
+      })) || []
       
-    } else if (searchType === 'semantic') {
-      // Semantic search only (requires embedding)
-      // Generate query embedding first
-      const queryEmbedding = await generateQueryEmbedding(query)
+    } else {
+      // Semantic search (default) - search through chunks
+      // Generate query embedding
+      const queryEmbedding = await generateEmbedding(query)
       
-      // Use RPC function for vector similarity search
+      // Use the search_knowledge_chunks function
       const { data, error } = await supabase
-        .rpc('search_documents_by_similarity', {
+        .rpc('search_knowledge_chunks', {
           query_embedding: queryEmbedding,
-          kb_id_filter: knowledgeBase.id,
+          knowledge_base_id_param: knowledgeBase.id,
+          match_threshold: 0.7,
           match_count: limit
         })
 
@@ -84,31 +92,33 @@ export async function POST(request: NextRequest) {
         )
       }
       
-      results = data || []
+      // Group results by document
+      const documentMap = new Map()
       
-    } else {
-      // Hybrid search (default)
-      const queryEmbedding = await generateQueryEmbedding(query)
-      
-      // Use the hybrid_search function we created
-      const { data, error } = await supabase
-        .rpc('hybrid_search', {
-          query_embedding: queryEmbedding,
-          query_text: query,
-          kb_id_filter: knowledgeBase.id,
-          match_count: limit,
-          semantic_weight: semanticWeight
-        })
-
-      if (error) {
-        console.error('Hybrid search error:', error)
-        return NextResponse.json(
-          { error: 'Search failed' },
-          { status: 500 }
-        )
+      for (const chunk of data || []) {
+        if (!documentMap.has(chunk.document_id)) {
+          documentMap.set(chunk.document_id, {
+            id: chunk.document_id,
+            title: chunk.document_title,
+            content: chunk.content,
+            score: chunk.similarity,
+            chunks: [chunk]
+          })
+        } else {
+          const doc = documentMap.get(chunk.document_id)
+          doc.chunks.push(chunk)
+          // Use the highest similarity score
+          doc.score = Math.max(doc.score, chunk.similarity)
+          // Concatenate content from multiple chunks
+          if (doc.chunks.length <= 3) {
+            doc.content += '\n\n' + chunk.content
+          }
+        }
       }
       
-      results = data || []
+      results = Array.from(documentMap.values())
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
     }
 
     // Update access analytics for retrieved documents
@@ -124,7 +134,7 @@ export async function POST(request: NextRequest) {
       title: doc.title,
       content: doc.content,
       metadata: doc.metadata,
-      score: doc.combined_score || doc.similarity_score || doc.keyword_score || 0,
+      score: doc.score || 0,
       excerpt: getExcerpt(doc.content, query)
     }))
 
@@ -146,12 +156,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper function to generate query embeddings
-async function generateQueryEmbedding(query: string): Promise<number[]> {
-  // Placeholder: generate random 1536-dimensional vector
-  // In production: call OpenAI API with the same model used for documents
-  return Array.from({ length: 1536 }, () => Math.random() * 2 - 1)
-}
 
 // Helper function to update document access analytics
 async function updateDocumentAccess(supabase: any, documentIds: string[]) {
@@ -198,8 +202,7 @@ function getExcerpt(content: string, query: string, maxLength: number = 200): st
 // GET endpoint for retrieving document by ID
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient()
 
     const { searchParams } = new URL(request.url)
     const documentId = searchParams.get('id')
