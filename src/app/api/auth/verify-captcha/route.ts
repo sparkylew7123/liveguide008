@@ -26,21 +26,17 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    if (!process.env.TURNSTILE_SECRET_KEY) {
+    const secretKey = process.env.TURNSTILE_SECRET_KEY;
+    
+    // Debug logging
+    console.log('TURNSTILE_SECRET_KEY check:', {
+      exists: !!secretKey,
+      length: secretKey?.length || 0,
+      prefix: secretKey?.substring(0, 10) || 'not-set'
+    });
+    
+    if (!secretKey) {
       console.error('TURNSTILE_SECRET_KEY environment variable is not set');
-      
-      // TEMPORARY: Allow bypass in production until secret key is configured
-      // TODO: Remove this once TURNSTILE_SECRET_KEY is added to Netlify
-      if (process.env.NODE_ENV === 'production' && token) {
-        console.warn('BYPASSING CAPTCHA VERIFICATION - Secret key not configured');
-        return NextResponse.json({ 
-          success: true,
-          challengeTs: new Date().toISOString(),
-          hostname: 'liveguide.ai',
-          warning: 'CAPTCHA bypassed - configure TURNSTILE_SECRET_KEY'
-        });
-      }
-      
       return NextResponse.json({ 
         error: 'Server configuration error',
         code: 'missing-input-secret'
@@ -52,7 +48,7 @@ export async function POST(request: NextRequest) {
     
     // Prepare form data matching Cloudflare demo implementation
     const formData = new FormData();
-    formData.append('secret', process.env.TURNSTILE_SECRET_KEY);
+    formData.append('secret', secretKey);
     formData.append('response', token);
     formData.append('remoteip', clientIP);
 
@@ -69,7 +65,9 @@ export async function POST(request: NextRequest) {
       success: data.success,
       clientIP,
       errorCodes: data['error-codes'] || [],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      challenge_ts: data.challenge_ts,
+      hostname: data.hostname
     });
 
     if (data.success) {
