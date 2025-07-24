@@ -91,18 +91,32 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
           };
           setOnboardingData(updatedData);
           
-          // Save selected goals to database
+          // Save selected goals to user profile
           if (data.selectedGoals.length > 0) {
-            const goalInserts = data.selectedGoals.map((goalId: string) => ({
-              user_id: user.id,
-              profile_id: user.id,
-              goal_id: goalId,
-              selection_method: 'voice',
-              selection_context: data.context || {},
-              voice_confidence: data.confidence || 0.8
-            }));
-            
-            await supabase.from('user_goals').insert(goalInserts);
+            try {
+              // Extract goal information from the selected goals
+              const goalInfo = data.selectedGoals.map((goal: any) => ({
+                id: goal.id || goal,
+                title: goal.title || goal,
+                category: goal.category || 'Personal Growth',
+                timescale: goal.timescale || '3-months',
+                confidence: goal.confidence || 0.8
+              }));
+              
+              // Save goals to profile
+              await supabase
+                .from('profiles')
+                .update({
+                  selected_goals: goalInfo,
+                  goals_updated_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
+                
+              console.log('Goals saved to profile:', goalInfo);
+            } catch (error) {
+              console.error('Error saving goals:', error);
+              // Continue with onboarding even if goal saving fails
+            }
           }
           
           // Move to coaching style discovery
