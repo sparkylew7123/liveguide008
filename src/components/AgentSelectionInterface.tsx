@@ -18,6 +18,7 @@ interface AgentPersona {
   "11labs_agentID": string;
   availability_status: string;
   average_rating: number | null;
+  video_intro?: string;
 }
 
 interface AgentCardProps {
@@ -38,10 +39,23 @@ function AgentCard({
   const [rotation, setRotation] = React.useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = React.useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = React.useState(false);
+  const [showVideoIntro, setShowVideoIntro] = React.useState(false);
+  const [isVideoIntroLoaded, setIsVideoIntroLoaded] = React.useState(false);
   const cardRef = React.useRef<HTMLDivElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const videoIntroRef = React.useRef<HTMLVideoElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const shouldAnimate = enableAnimations && !shouldReduceMotion;
+
+  // Cleanup video intro when component unmounts or video changes
+  React.useEffect(() => {
+    return () => {
+      if (videoIntroRef.current) {
+        videoIntroRef.current.pause();
+        videoIntroRef.current.src = '';
+      }
+    };
+  }, [agent.video_intro]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!shouldAnimate || !cardRef.current) return;
@@ -132,7 +146,53 @@ function AgentCard({
       {/* Card content */}
       <div className="relative z-20 flex flex-col h-full">
         {/* Image/Video section */}
-        <div className="relative h-72 overflow-hidden">
+        <div className="relative h-72 overflow-hidden group">
+          {/* Video Intro (shown when play button is clicked) */}
+          {showVideoIntro && agent.video_intro && (
+            <div className="absolute inset-0 z-30 bg-black">
+              <video
+                ref={videoIntroRef}
+                src={agent.video_intro}
+                className="w-full h-full object-cover"
+                autoPlay
+                controls
+                onLoadedData={() => setIsVideoIntroLoaded(true)}
+                onEnded={() => setShowVideoIntro(false)}
+                onError={() => {
+                  console.error('Failed to load video intro');
+                  setShowVideoIntro(false);
+                }}
+              />
+              {/* Close button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowVideoIntro(false);
+                }}
+                className="absolute top-2 right-2 z-40 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+              >
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Play Button Overlay (shown when video_intro exists) */}
+          {agent.video_intro && !showVideoIntro && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowVideoIntro(true);
+              }}
+              className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            >
+              <div className="bg-white/90 rounded-full p-4 shadow-lg transform transition-transform group-hover:scale-110">
+                <Play className="w-8 h-8 text-gray-900" fill="currentColor" />
+              </div>
+            </button>
+          )}
+
           {agent.Image && agent.Image.toLowerCase().endsWith('.mp4') ? (
             <>
               {/* Show placeholder while video loads */}
@@ -208,7 +268,7 @@ function AgentCard({
             >
               {agent.availability_status}
             </Badge>
-            {/* Video indicator */}
+            {/* Video indicators */}
             {agent.Image?.toLowerCase().endsWith('.mp4') && (
               <Badge 
                 variant="secondary" 
@@ -216,6 +276,15 @@ function AgentCard({
               >
                 <Play className="w-3 h-3 mr-1" />
                 Video
+              </Badge>
+            )}
+            {agent.video_intro && (
+              <Badge 
+                variant="secondary" 
+                className="bg-purple-900/80 text-purple-100 backdrop-blur-sm"
+              >
+                <Play className="w-3 h-3 mr-1" />
+                Intro Available
               </Badge>
             )}
           </div>
@@ -339,7 +408,8 @@ export function AgentSelectionInterface({
           "Image",
           "11labs_agentID",
           availability_status,
-          average_rating
+          average_rating,
+          video_intro
         `)
         .not('11labs_agentID', 'is', null)
         .eq('availability_status', 'available')

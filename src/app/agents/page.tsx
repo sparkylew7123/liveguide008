@@ -18,6 +18,7 @@ interface AgentDetails {
   '11labs_agentID': string;
   availability_status: string;
   average_rating: number | null;
+  video_intro?: string;
 }
 
 export default function AgentsPage() {
@@ -60,7 +61,7 @@ export default function AgentsPage() {
       
       const { data, error } = await supabase
         .from('agent_personae')
-        .select('uuid, Name, Speciality, "Key Features", Personality, Image, "11labs_agentID", availability_status, average_rating')
+        .select('uuid, Name, Speciality, "Key Features", Personality, Image, "11labs_agentID", availability_status, average_rating, video_intro')
         .eq('11labs_agentID', elevenLabsId)
         .single();
       
