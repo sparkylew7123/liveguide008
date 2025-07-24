@@ -91,7 +91,7 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
           };
           setOnboardingData(updatedData);
           
-          // Save selected goals to user profile
+          // Save selected goals to both profile and user_goals table
           if (data.selectedGoals.length > 0) {
             try {
               // Extract goal information from the selected goals
@@ -103,7 +103,7 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
                 confidence: goal.confidence || 0.8
               }));
               
-              // Save goals to profile
+              // Save goals to profile (for backward compatibility)
               await supabase
                 .from('profiles')
                 .update({
@@ -111,8 +111,33 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
                   goals_updated_at: new Date().toISOString()
                 })
                 .eq('id', user.id);
+              
+              // Save goals to user_goals table for the app to use
+              const goalInserts = data.selectedGoals.map((goal: any) => ({
+                user_id: user.id,
+                profile_id: user.id,
+                title: goal.title || goal,
+                category: goal.category || 'Personal Growth',
+                selection_method: 'voice',
+                voice_confidence: goal.confidence || 0.8,
+                selection_context: {
+                  timescale: goal.timescale || '3-months',
+                  original_id: goal.id || '',
+                  onboarding_phase: 'voice_guided',
+                  selected_at: new Date().toISOString()
+                }
+              }));
+              
+              const { error: insertError } = await supabase
+                .from('user_goals')
+                .insert(goalInserts);
+              
+              if (insertError) {
+                console.error('Error inserting goals to user_goals:', insertError);
+              } else {
+                console.log('Goals saved to user_goals table:', goalInserts);
+              }
                 
-              console.log('Goals saved to profile:', goalInfo);
             } catch (error) {
               console.error('Error saving goals:', error);
               // Continue with onboarding even if goal saving fails
