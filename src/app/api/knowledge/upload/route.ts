@@ -219,19 +219,48 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Queue document for embedding generation
-    // In production, this would trigger an async job
-    // For now, we'll just return success
-    
-    return NextResponse.json({
-      success: true,
-      document: {
-        id: document.id,
-        title: document.title,
-        knowledge_base_id: knowledgeBase.id
-      },
-      message: 'Document uploaded successfully. Embeddings will be generated shortly.'
-    })
+    // Automatically trigger processing for embeddings
+    try {
+      const processUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/knowledge/process`
+      
+      // Fire and forget - don't wait for processing to complete
+      fetch(processUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Forward auth cookies for the process endpoint
+          'Cookie': request.headers.get('cookie') || ''
+        },
+        body: JSON.stringify({ documentId: document.id })
+      }).catch(err => {
+        console.error('Failed to trigger processing:', err)
+      })
+      
+      return NextResponse.json({
+        success: true,
+        document: {
+          id: document.id,
+          title: document.title,
+          knowledge_base_id: knowledgeBase.id
+        },
+        message: 'Document uploaded successfully. Processing embeddings...',
+        processing: true
+      })
+    } catch (error) {
+      // If processing trigger fails, still return success for upload
+      console.error('Processing trigger error:', error)
+      
+      return NextResponse.json({
+        success: true,
+        document: {
+          id: document.id,
+          title: document.title,
+          knowledge_base_id: knowledgeBase.id
+        },
+        message: 'Document uploaded successfully. Please process manually.',
+        processing: false
+      })
+    }
 
   } catch (error) {
     console.error('Knowledge upload error:', error)
