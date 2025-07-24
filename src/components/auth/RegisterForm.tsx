@@ -47,6 +47,8 @@ export default function RegisterForm() {
 
     try {
       // Verify CAPTCHA token on server
+      console.log('Verifying CAPTCHA with token:', captchaToken ? 'present' : 'missing');
+      
       const captchaResponse = await fetch('/api/auth/verify-captcha', {
         method: 'POST',
         headers: {
@@ -56,9 +58,17 @@ export default function RegisterForm() {
       });
 
       const captchaResult = await captchaResponse.json();
+      console.log('CAPTCHA verification result:', captchaResult);
       
       if (!captchaResponse.ok) {
         const errorMessage = captchaResult.error || 'CAPTCHA verification failed';
+        
+        // Check if it's a configuration issue
+        if (captchaResult.code === 'missing-input-secret') {
+          console.error('TURNSTILE_SECRET_KEY not configured on server');
+          // For now, show a user-friendly error
+          throw new Error('captcha verification process failed');
+        }
         
         // Reset CAPTCHA on specific errors
         if (captchaResult.code === 'timeout-or-duplicate' || 

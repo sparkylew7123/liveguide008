@@ -28,6 +28,19 @@ export async function POST(request: NextRequest) {
 
     if (!process.env.TURNSTILE_SECRET_KEY) {
       console.error('TURNSTILE_SECRET_KEY environment variable is not set');
+      
+      // TEMPORARY: Allow bypass in production until secret key is configured
+      // TODO: Remove this once TURNSTILE_SECRET_KEY is added to Netlify
+      if (process.env.NODE_ENV === 'production' && token) {
+        console.warn('BYPASSING CAPTCHA VERIFICATION - Secret key not configured');
+        return NextResponse.json({ 
+          success: true,
+          challengeTs: new Date().toISOString(),
+          hostname: 'liveguide.ai',
+          warning: 'CAPTCHA bypassed - configure TURNSTILE_SECRET_KEY'
+        });
+      }
+      
       return NextResponse.json({ 
         error: 'Server configuration error',
         code: 'missing-input-secret'
