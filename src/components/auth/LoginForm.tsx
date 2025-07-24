@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn, signInWithProvider } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -18,21 +18,33 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  
+  // Show CAPTCHA when all fields are filled
+  useEffect(() => {
+    if (email && password && !showCaptcha) {
+      setShowCaptcha(true);
+    }
+  }, [email, password, showCaptcha]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
     
-    // Show CAPTCHA on first submit if not already shown
+    // CAPTCHA should already be shown when fields are filled
     if (!showCaptcha) {
-      setShowCaptcha(true);
+      setError('Please fill all fields');
       return;
     }
     
     // Check if CAPTCHA is verified
     if (!captchaToken) {
       setError('Please complete the CAPTCHA verification');
+      return;
+    }
+    
+    // Prevent double submission
+    if (loading) {
       return;
     }
     
