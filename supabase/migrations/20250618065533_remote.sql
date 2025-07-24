@@ -1,0 +1,1 @@
+-- Remote migration 20250618065533 (already applied)
