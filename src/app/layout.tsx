@@ -1,5 +1,6 @@
 import './globals.css'
 import { UserProvider } from '@/contexts/UserContext'
+import { ToastProvider } from '@/contexts/ToastContext'
 import { Navbar } from '@/components/layout/Navbar'
 
 export const metadata = {
@@ -15,10 +16,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <UserProvider>
-          <Navbar />
-          {children}
-        </UserProvider>
+        <ToastProvider>
+          <UserProvider>
+            <Navbar />
+            {children}
+          </UserProvider>
+        </ToastProvider>
       </body>
     </html>
   )
