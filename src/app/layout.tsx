@@ -1,7 +1,6 @@
 import './globals.css'
 import { UserProvider } from '@/contexts/UserContext'
 import { ToastProvider } from '@/contexts/ToastContext'
-import { ElevenLabsProvider } from '@/providers/ElevenLabsProvider'
 import { Navbar } from '@/components/layout/Navbar'
 
 export const metadata = {
@@ -18,12 +17,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ToastProvider>
-          <ElevenLabsProvider>
-            <UserProvider>
-              <Navbar />
-              {children}
-            </UserProvider>
-          </ElevenLabsProvider>
+          <UserProvider>
+            <Navbar />
+            {children}
+          </UserProvider>
         </ToastProvider>
       </body>
     </html>
