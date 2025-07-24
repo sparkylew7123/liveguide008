@@ -27,7 +27,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
   const [voicePreference, setVoicePreference] = useState<'male' | 'female' | 'no-preference'>('no-preference')
   const [microphoneWorking, setMicrophoneWorking] = useState(false)
   const [listening, setListening] = useState(false)
-  const totalSteps = 3
+  const totalSteps = 2
 
   const {
     microphoneState,
@@ -120,23 +120,20 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
   const status = getMicStatus()
 
   const nextStep = () => {
-    if (currentStep < totalSteps) {
-      const newStep = currentStep + 1
-      setCurrentStep(newStep)
+    if (currentStep === 1) {
+      // Skip step 2, go directly to step 3
+      setCurrentStep(3)
       
-      // Auto-start listening on step 3 (name input)
-      if (newStep === 3) {
-        // Stop any existing listening first
-        if (microphoneState.isListening) {
-          stopListening()
-        }
-        
-        setTimeout(() => {
-          console.log('🎤 Auto-starting microphone for name input')
-          setListening(true)
-          startListening()
-        }, 800) // Longer delay to prevent conflicts
+      // Auto-start listening for name input
+      if (microphoneState.isListening) {
+        stopListening()
       }
+      
+      setTimeout(() => {
+        console.log('🎤 Auto-starting microphone for name input')
+        setListening(true)
+        startListening()
+      }, 800) // Longer delay to prevent conflicts
     } else {
       handleContinue()
     }
@@ -422,7 +419,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-gray-400">
-              Step {currentStep} of {totalSteps}
+              Step {currentStep === 3 ? 2 : currentStep} of {totalSteps}
             </span>
             <span className="text-sm text-gray-400">
               Before We Begin
@@ -431,7 +428,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
           <div className="w-full bg-slate-700/50 rounded-full h-2">
             <div 
               className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              style={{ width: `${((currentStep === 3 ? 2 : currentStep) / totalSteps) * 100}%` }}
             />
           </div>
         </div>
