@@ -5,6 +5,7 @@ import { signUp, signInWithProvider } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { TURNSTILE_SITE_KEY } from '@/config/turnstile';
 
 export default function RegisterForm() {
   const [email, setEmail] = useState('');
@@ -172,24 +173,20 @@ export default function RegisterForm() {
         {/* Cloudflare Turnstile CAPTCHA - Only show when form is being submitted */}
         {showCaptcha && (
           <div className="mb-6 flex justify-center">
-            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
-              <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                onSuccess={(token) => setCaptchaToken(token)}
-                onError={() => {
-                  setCaptchaToken(null);
-                  setError('CAPTCHA verification failed. Please try again.');
-                }}
-                onExpire={() => {
-                  setCaptchaToken(null);
-                  setError('CAPTCHA expired. Please verify again.');
-                }}
-                theme="dark"
-                size="normal"
-              />
-            ) : (
-              <div className="text-red-400 text-sm">CAPTCHA not configured. Please check environment variables.</div>
-            )}
+            <Turnstile
+              siteKey={TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onError={() => {
+                setCaptchaToken(null);
+                setError('CAPTCHA verification failed. Please try again.');
+              }}
+              onExpire={() => {
+                setCaptchaToken(null);
+                setError('CAPTCHA expired. Please verify again.');
+              }}
+              theme="dark"
+              size="normal"
+            />
           </div>
         )}
         
