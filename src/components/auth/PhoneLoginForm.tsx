@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/contexts/ToastContext';
 
-export default function PhoneLoginForm() {
+function PhoneLoginFormContent() {
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -201,5 +201,23 @@ export default function PhoneLoginForm() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PhoneLoginForm() {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-md p-8 bg-gray-900/80 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-800">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-10 bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <PhoneLoginFormContent />
+    </Suspense>
   );
 }

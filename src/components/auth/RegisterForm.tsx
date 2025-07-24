@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signUp, signInWithProvider } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/contexts/ToastContext';
 
-export default function RegisterForm() {
+function RegisterFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -194,5 +194,25 @@ export default function RegisterForm() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function RegisterForm() {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-md p-8 bg-gray-900/80 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-800">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-10 bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <RegisterFormContent />
+    </Suspense>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signIn, signInWithProvider } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginForm() {
+function LoginFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -183,5 +183,24 @@ export default function LoginForm() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-md p-8 bg-gray-900/80 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-800">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-700 rounded w-1/2 mx-auto mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-10 bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginFormContent />
+    </Suspense>
   );
 }
