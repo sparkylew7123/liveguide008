@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
+import { generateEmbedding, chunkText, generateChunkEmbeddings } from '@/services/embeddings'
 
 // This endpoint processes documents to generate embeddings
 // In production, this would be called by a queue worker
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createClient(cookieStore)
+    // Use regular client for auth check
+    const authClient = await createClient()
+    
+    // Use service role client for database operations
+    const supabase = createServiceRoleClient()
 
-    // Check authentication - in production, use service role
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Check authentication
+    const { data: { user }, error: authError } = await authClient.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -38,50 +42,86 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if embeddings already exist
-    if (document.embedding) {
+    // Check if document already has chunks
+    const { data: existingChunks } = await supabase
+      .from('knowledge_chunks')
+      .select('id')
+      .eq('document_id', documentId)
+      .limit(1)
+
+    if (existingChunks && existingChunks.length > 0) {
       return NextResponse.json({
         success: true,
         message: 'Document already has embeddings'
       })
     }
 
-    // Generate embeddings using OpenAI API
-    // For now, we'll use a placeholder
-    // In production, use OpenAI's text-embedding-ada-002 or similar
+    // Chunk the document
+    const chunks = chunkText(document.content, 1500, 200)
     
-    const generateEmbedding = async (text: string): Promise<number[]> => {
-      // Placeholder: generate random 1536-dimensional vector
-      // In production: call OpenAI API
-      return Array.from({ length: 1536 }, () => Math.random() * 2 - 1)
-    }
+    // Generate embeddings for each chunk
+    const chunkEmbeddings = await generateChunkEmbeddings(chunks)
 
-    // Chunk the document if it's too long
-    const MAX_CHUNK_SIZE = 1000 // characters
-    const chunks = []
-    
-    if (document.content.length > MAX_CHUNK_SIZE) {
-      // Simple chunking - in production, use better strategies
-      for (let i = 0; i < document.content.length; i += MAX_CHUNK_SIZE) {
-        chunks.push(document.content.slice(i, i + MAX_CHUNK_SIZE))
+    // Store chunks with their embeddings
+    const chunkRecords = chunkEmbeddings.map((chunk, index) => ({
+      document_id: documentId,
+      content: chunk.text,
+      embedding: chunk.embedding,
+      chunk_index: index,
+      metadata: {
+        title: document.title,
+        chunk_number: index + 1,
+        total_chunks: chunks.length
       }
-    } else {
-      chunks.push(document.content)
+    }))
+
+    // Insert chunks in batches to avoid timeout
+    const BATCH_SIZE = 10
+    for (let i = 0; i < chunkRecords.length; i += BATCH_SIZE) {
+      const batch = chunkRecords.slice(i, i + BATCH_SIZE)
+      const { error: chunkError } = await supabase
+        .from('knowledge_chunks')
+        .insert(batch)
+
+      if (chunkError) {
+        console.error('Chunk insertion error:', chunkError)
+        throw new Error(`Failed to insert chunks: ${chunkError.message}`)
+      }
     }
 
-    // For simplicity, we'll just embed the whole document
-    // In production, embed chunks separately
-    const combinedText = `${document.title}\n\n${document.content}`
-    const embedding = await generateEmbedding(combinedText)
-
-    // Update document with embedding
+    // Update document with chunk count and processing status
     const { error: updateError } = await supabase
       .from('knowledge_documents')
       .update({ 
-        embedding: `[${embedding.join(',')}]`,
+        chunk_count: chunks.length,
         updated_at: new Date().toISOString()
       })
       .eq('id', documentId)
+
+    // Update knowledge base stats
+    const { data: kb } = await supabase
+      .from('knowledge_documents')
+      .select('knowledge_base_id')
+      .eq('id', documentId)
+      .single()
+
+    if (kb) {
+      const { data: stats } = await supabase
+        .from('knowledge_documents')
+        .select('chunk_count')
+        .eq('knowledge_base_id', kb.knowledge_base_id)
+
+      const totalChunks = stats?.reduce((sum, doc) => sum + (doc.chunk_count || 0), 0) || 0
+      
+      await supabase
+        .from('agent_knowledge_bases')
+        .update({
+          document_count: stats?.length || 0,
+          total_chunks: totalChunks,
+          indexing_status: 'indexed'
+        })
+        .eq('id', kb.knowledge_base_id)
+    }
 
     if (updateError) {
       console.error('Update error:', updateError)
@@ -94,7 +134,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Embeddings generated successfully',
-      documentId: documentId
+      documentId: documentId,
+      chunksCreated: chunks.length
     })
 
   } catch (error) {
@@ -109,8 +150,7 @@ export async function POST(request: NextRequest) {
 // GET endpoint to check processing status
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient()
 
     const { searchParams } = new URL(request.url)
     const documentId = searchParams.get('documentId')
@@ -124,7 +164,7 @@ export async function GET(request: NextRequest) {
 
     const { data: document, error } = await supabase
       .from('knowledge_documents')
-      .select('id, title, embedding')
+      .select('id, title, chunk_count')
       .eq('id', documentId)
       .single()
 
@@ -135,11 +175,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Check if chunks exist
+    const { data: chunks } = await supabase
+      .from('knowledge_chunks')
+      .select('id')
+      .eq('document_id', documentId)
+      .limit(1)
+
     return NextResponse.json({
       documentId: document.id,
       title: document.title,
-      hasEmbedding: !!document.embedding,
-      status: document.embedding ? 'completed' : 'pending'
+      chunkCount: document.chunk_count || 0,
+      hasEmbeddings: chunks && chunks.length > 0,
+      status: chunks && chunks.length > 0 ? 'completed' : 'pending'
     })
 
   } catch (error) {
