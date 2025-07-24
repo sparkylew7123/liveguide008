@@ -19,6 +19,13 @@ export default function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  
+  // Show CAPTCHA when all fields are filled
+  useEffect(() => {
+    if (email && password && confirmPassword && password === confirmPassword && !showCaptcha) {
+      setShowCaptcha(true);
+    }
+  }, [email, password, confirmPassword, showCaptcha]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,15 +38,21 @@ export default function RegisterForm() {
       return;
     }
     
-    // Show CAPTCHA on first submit if not already shown
+    // CAPTCHA should already be shown when fields are filled
+    // Just verify it's completed
     if (!showCaptcha) {
-      setShowCaptcha(true);
+      setError('Please fill all fields correctly');
       return;
     }
     
     // Check if CAPTCHA is verified
     if (!captchaToken) {
       setError('Please complete the CAPTCHA verification');
+      return;
+    }
+    
+    // Prevent double submission
+    if (loading) {
       return;
     }
     
