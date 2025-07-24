@@ -6,7 +6,7 @@ import { createClient as createSSRClient } from '@/utils/supabase/client';
 // For backwards compatibility
 export const supabase = createSSRClient();
 
-export async function signUp(email: string, password: string) {
+export async function signUp(email: string, password: string, captchaToken?: string) {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -15,7 +15,8 @@ export async function signUp(email: string, password: string) {
         emailRedirectTo: `${window.location.origin}/verify-email`,
         data: {
           // Add any additional user metadata here if needed
-        }
+        },
+        captchaToken // Pass the CAPTCHA token to Supabase
       },
     });
     
@@ -33,10 +34,13 @@ export async function signUp(email: string, password: string) {
   }
 }
 
-export async function signIn(email: string, password: string) {
+export async function signIn(email: string, password: string, captchaToken?: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
+    options: {
+      captchaToken // Pass the CAPTCHA token to Supabase
+    }
   });
   return { data, error };
 }
