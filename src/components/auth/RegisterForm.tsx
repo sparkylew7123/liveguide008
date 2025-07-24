@@ -92,9 +92,15 @@ export default function RegisterForm() {
         throw new Error(errorMessage);
       }
 
-      const { error: signUpError } = await signUp(email, password);
+      const { error: signUpError } = await signUp(email, password, captchaToken!);
       
       if (signUpError) {
+        // Check if it's a CAPTCHA error from Supabase
+        if (signUpError.message?.includes('captcha')) {
+          setCaptchaToken(null); // Reset CAPTCHA
+          setShowCaptcha(false); // Hide and re-show CAPTCHA
+          setTimeout(() => setShowCaptcha(true), 100);
+        }
         throw signUpError;
       }
       
