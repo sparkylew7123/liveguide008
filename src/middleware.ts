@@ -3,10 +3,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  let supabaseResponse = NextResponse.next({
+    request,
   })
 
   const supabase = createServerClient(
@@ -14,74 +12,19 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          const cookie = request.cookies.get(name)
-          // Handle chunked cookies
-          if (!cookie && name === 'sb-auth-token') {
-            const chunks: string[] = []
-            let i = 0
-            while (true) {
-              const chunk = request.cookies.get(`sb-auth-token.${i}`)
-              if (!chunk) break
-              chunks.push(chunk.value)
-              i++
-            }
-            if (chunks.length > 0) {
-              return chunks.join('')
-            }
-          }
-          return cookie?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: any) {
-          // Handle chunked cookies for large values
-          if (value && value.length > 3180) {
-            const chunkSize = 3180
-            const chunks = Math.ceil(value.length / chunkSize)
-            
-            for (let i = 0; i < chunks; i++) {
-              const chunkValue = value.slice(i * chunkSize, (i + 1) * chunkSize)
-              request.cookies.set({
-                name: `${name}.${i}`,
-                value: chunkValue,
-                ...options,
-              })
-              response.cookies.set({
-                name: `${name}.${i}`,
-                value: chunkValue,
-                ...options,
-              })
-            }
-          } else {
-            request.cookies.set({
-              name,
-              value,
-              ...options,
-            })
-            response = NextResponse.next({
-              request: {
-                headers: request.headers,
-              },
-            })
-            response.cookies.set({
-              name,
-              value,
-              ...options,
-            })
-          }
-        },
-        remove(name: string, options: any) {
-          // Remove all possible cookie variations
-          request.cookies.delete(name)
-          response.cookies.delete(name)
-          
-          // Also remove chunked versions
-          for (let i = 0; i < 10; i++) {
-            const chunkName = `${name}.${i}`
-            if (request.cookies.has(chunkName)) {
-              request.cookies.delete(chunkName)
-              response.cookies.delete(chunkName)
-            }
-          }
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value)
+          })
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options)
+          })
         },
       },
     }
@@ -97,14 +40,14 @@ export async function middleware(request: NextRequest) {
         path: request.nextUrl.pathname,
         authenticated: !!user,
         error: error?.message,
-        cookies: request.cookies.getAll().filter(c => c.name.startsWith('sb-')).map(c => c.name)
+        cookies: request.cookies.getAll().map(c => ({ name: c.name, length: c.value?.length || 0 }))
       })
     }
   } catch (error) {
     console.error('Middleware auth error:', error)
   }
 
-  return response
+  return supabaseResponse
 }
 
 export const config = {
