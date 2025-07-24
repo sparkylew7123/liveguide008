@@ -74,9 +74,15 @@ export default function LoginForm() {
         throw new Error(errorMessage);
       }
 
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(email, password, captchaToken!);
       
       if (error) {
+        // Check if it's a CAPTCHA error from Supabase
+        if (error.message?.includes('captcha') || error.message?.includes('timeout-or-duplicate')) {
+          setCaptchaToken(null); // Reset CAPTCHA
+          setShowCaptcha(false); // Hide and re-show CAPTCHA
+          setTimeout(() => setShowCaptcha(true), 100);
+        }
         throw error;
       }
       

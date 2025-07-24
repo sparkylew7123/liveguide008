@@ -59,39 +59,9 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
-      // Verify CAPTCHA token on server
-      console.log('Verifying CAPTCHA with token:', captchaToken ? 'present' : 'missing');
+      // Pass CAPTCHA token directly to Supabase - no separate verification needed
+      console.log('Signing up with CAPTCHA token');
       
-      const captchaResponse = await fetch('/api/auth/verify-captcha', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: captchaToken }),
-      });
-
-      const captchaResult = await captchaResponse.json();
-      console.log('CAPTCHA verification result:', captchaResult);
-      
-      if (!captchaResponse.ok) {
-        const errorMessage = captchaResult.error || 'CAPTCHA verification failed';
-        
-        // Check if it's a configuration issue
-        if (captchaResult.code === 'missing-input-secret') {
-          console.error('TURNSTILE_SECRET_KEY not configured on server');
-          // For now, show a user-friendly error
-          throw new Error('captcha verification process failed');
-        }
-        
-        // Reset CAPTCHA on specific errors
-        if (captchaResult.code === 'timeout-or-duplicate' || 
-            captchaResult.code === 'invalid-input-response') {
-          setCaptchaToken(null);
-        }
-        
-        throw new Error(errorMessage);
-      }
-
       const { error: signUpError } = await signUp(email, password, captchaToken!);
       
       if (signUpError) {
