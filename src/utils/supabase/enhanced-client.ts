@@ -23,7 +23,7 @@ function createBaseClient(): SupabaseClient {
         detectSessionInUrl: true
       },
       cookieOptions: {
-        name: 'sb-auth',
+        name: 'sb-auth-token',
         path: '/',
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production'
