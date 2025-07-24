@@ -5,19 +5,26 @@ export async function GET() {
   const cookieStore = await cookies()
   const allCookies = cookieStore.getAll()
   
-  // Look for Supabase auth cookies
-  const authCookies = allCookies.filter(cookie => 
-    cookie.name.includes('supabase') || 
-    cookie.name.includes('auth-token')
-  )
+  // Group cookies by prefix
+  const sbCookies = allCookies.filter(c => c.name.startsWith('sb-'))
+  const authCookies = allCookies.filter(c => c.name.includes('auth'))
   
   return NextResponse.json({
     totalCookies: allCookies.length,
-    authCookies: authCookies.map(c => ({
+    cookieNames: allCookies.map(c => c.name),
+    cookieDetails: allCookies.map(c => ({
       name: c.name,
-      hasValue: !!c.value,
-      valueLength: c.value?.length || 0
+      valueLength: c.value?.length || 0,
+      firstChars: c.value?.substring(0, 50) + (c.value?.length > 50 ? '...' : '')
     })),
-    allCookieNames: allCookies.map(c => c.name)
+    groups: {
+      sbPrefixed: sbCookies.map(c => c.name),
+      authRelated: authCookies.map(c => c.name)
+    },
+    environment: {
+      projectRef: process.env.NEXT_PUBLIC_SUPABASE_PROJECT_REF || 'NOT_SET',
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    }
   })
 }
