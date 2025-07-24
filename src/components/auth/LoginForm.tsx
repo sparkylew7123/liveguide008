@@ -159,20 +159,24 @@ export default function LoginForm() {
         {/* Cloudflare Turnstile CAPTCHA - Only show when form is being submitted */}
         {showCaptcha && (
           <div className="mb-6 flex justify-center">
-            <Turnstile
-              siteKey="0x4AAAAAABleALMnB6QOyymu"
-              onSuccess={(token) => setCaptchaToken(token)}
-              onError={() => {
-                setCaptchaToken(null);
-                setError('CAPTCHA verification failed. Please try again.');
-              }}
-              onExpire={() => {
-                setCaptchaToken(null);
-                setError('CAPTCHA expired. Please verify again.');
-              }}
-              theme="dark"
-              size="normal"
-            />
+            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setCaptchaToken(token)}
+                onError={() => {
+                  setCaptchaToken(null);
+                  setError('CAPTCHA verification failed. Please try again.');
+                }}
+                onExpire={() => {
+                  setCaptchaToken(null);
+                  setError('CAPTCHA expired. Please verify again.');
+                }}
+                theme="dark"
+                size="normal"
+              />
+            ) : (
+              <div className="text-red-400 text-sm">CAPTCHA not configured. Please check environment variables.</div>
+            )}
           </div>
         )}
         
