@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { Star, Sparkles, ChevronRight, Loader2, Brain, Heart } from "lucide-react";
+import { Star, Sparkles, ChevronRight, Loader2, Brain, Heart, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +37,9 @@ function AgentCard({
 }: AgentCardProps) {
   const [rotation, setRotation] = React.useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = React.useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = React.useState(false);
   const cardRef = React.useRef<HTMLDivElement>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const shouldAnimate = enableAnimations && !shouldReduceMotion;
 
@@ -63,6 +65,12 @@ function AgentCard({
 
   const handleMouseEnter = () => {
     setIsHovered(true);
+    // Resume video playback on hover if it's a video
+    if (videoRef.current && agent.Image?.toLowerCase().endsWith('.mp4')) {
+      videoRef.current.play().catch(() => {
+        // Ignore autoplay errors
+      });
+    }
   };
 
   // Parse key features from the string format
@@ -123,19 +131,56 @@ function AgentCard({
       
       {/* Card content */}
       <div className="relative z-20 flex flex-col h-full">
-        {/* Image section */}
+        {/* Image/Video section */}
         <div className="relative h-72 overflow-hidden">
-          <motion.img
-            src={agent.Image || '/placeholder-avatar.png'}
-            alt={agent.Name}
-            className="w-full h-full object-cover"
-            variants={imageVariants}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = '/placeholder-avatar.png';
-            }}
-          />
+          {agent.Image && agent.Image.toLowerCase().endsWith('.mp4') ? (
+            <>
+              {/* Show placeholder while video loads */}
+              {!isVideoLoaded && (
+                <img
+                  src="/placeholder-avatar.png"
+                  alt={agent.Name}
+                  className="w-full h-full object-cover absolute inset-0"
+                />
+              )}
+              <motion.video
+                ref={videoRef}
+                src={agent.Image}
+                className={cn(
+                  "w-full h-full object-cover",
+                  !isVideoLoaded && "opacity-0"
+                )}
+                variants={imageVariants}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                onLoadedData={() => setIsVideoLoaded(true)}
+                onError={(e) => {
+                  const target = e.target as HTMLVideoElement;
+                  // Replace video with placeholder image on error
+                  const img = document.createElement('img');
+                  img.src = '/placeholder-avatar.png';
+                  img.className = 'w-full h-full object-cover';
+                  target.parentNode?.replaceChild(img, target);
+                }}
+              />
+            </>
+          ) : (
+            <motion.img
+              src={agent.Image || '/placeholder-avatar.png'}
+              alt={agent.Name}
+              className="w-full h-full object-cover"
+              variants={imageVariants}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/placeholder-avatar.png';
+              }}
+            />
+          )}
           
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
@@ -151,7 +196,7 @@ function AgentCard({
           )}
           
           {/* Status badge */}
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 flex flex-col gap-2">
             <Badge 
               variant="outline" 
               className={cn(
@@ -163,6 +208,16 @@ function AgentCard({
             >
               {agent.availability_status}
             </Badge>
+            {/* Video indicator */}
+            {agent.Image?.toLowerCase().endsWith('.mp4') && (
+              <Badge 
+                variant="secondary" 
+                className="bg-background/80 backdrop-blur-sm"
+              >
+                <Play className="w-3 h-3 mr-1" />
+                Video
+              </Badge>
+            )}
           </div>
         </div>
 
