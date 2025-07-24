@@ -49,3 +49,5 @@ export const TurnstileComponent = forwardRef<TurnstileRef, TurnstileProps>(
 )
 
 TurnstileComponent.displayName = 'TurnstileComponent'
+
+export default TurnstileComponent
