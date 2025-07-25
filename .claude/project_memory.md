@@ -35,6 +35,13 @@ LiveGuide AI - A voice-enabled AI coaching platform using Next.js, Supabase, and
    - Enables knowledge base embeddings and RAG functionality
    - Resolves build errors related to missing API key
 
+5. **Cleaned Up Duplicate .env.local Files**
+   - Synchronized ElevenLabs API keys between root and supabase directories
+   - Added explanatory comments to both .env.local files
+   - Created .env.example files for both locations
+   - Removed unnecessary NEXT_PUBLIC_ prefixed variables from supabase/.env.local
+   - Created supabase/README.md documenting edge functions setup
+
 ### Pending Tasks
 
 1. **Verify Security Warnings Resolved in Production**
