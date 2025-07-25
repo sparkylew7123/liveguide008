@@ -88,8 +88,8 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
         .replace(/[^a-zA-Z\s]/g, '') // Remove non-letter characters except spaces
         .trim()
         .split(' ')
-        .slice(0, 2) // Max 2 words (first and last name)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize
+        .filter(word => word.length > 0) // Remove empty strings
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
         .join(' ')
       
       if (extractedName && extractedName.length > 1) {
@@ -365,9 +365,9 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
               </Button>
               
               {microphoneState.transcript && (
-                <div className="text-blue-300 text-lg bg-slate-700/30 rounded-lg p-3">
-                  <div className="text-xs text-blue-400 mb-1">You said:</div>
-                  "{microphoneState.transcript}"
+                <div className="text-blue-300 bg-slate-700/30 rounded-lg p-4">
+                  <div className="text-sm text-blue-400 mb-2">You said:</div>
+                  <div className="text-3xl font-semibold">"{microphoneState.transcript}"</div>
                 </div>
               )}
               
