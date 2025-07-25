@@ -332,6 +332,11 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
     {
       onConnect: () => {
         console.log('🤖 CONNECTED TO ELEVENLABS - Real WebSocket')
+        // Cancel any browser speech synthesis immediately
+        if ('speechSynthesis' in window) {
+          console.log('🔇 Cancelling browser TTS - ElevenLabs is now connected')
+          speechSynthesis.cancel()
+        }
         setConversationConnected(true)
         setConversationError(null)
       },
@@ -385,7 +390,12 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
   useEffect(() => {
     const initializeSession = async () => {
       console.log('🎬 Initializing ElevenLabs session...')
-      await conversation.startSession()
+      try {
+        await conversation.startSession()
+        console.log('✅ ElevenLabs session started successfully')
+      } catch (error) {
+        console.error('❌ Failed to start ElevenLabs session:', error)
+      }
     }
     
     initializeSession()
@@ -402,20 +412,37 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
       return
     }
     
+    // Add a delay for the first phase to let ElevenLabs finish any initial greeting
+    const phaseDelay = currentPhase === 0 ? 1500 : 0
+    
     const startPhase = async () => {
+      // Wait for the phase delay if needed
+      if (phaseDelay > 0) {
+        console.log(`⏳ Waiting ${phaseDelay}ms before starting phase ${currentPhase}...`)
+        await new Promise(resolve => setTimeout(resolve, phaseDelay))
+      }
+      
       console.log('🎬 Starting NEW phase:', currentPhaseData?.id, 'Phase key:', phaseKey)
       console.log('🔗 ElevenLabs connected:', conversationConnected)
+      console.log('🔗 ElevenLabs status:', conversation.status)
       
       // Mark this phase as spoken IMMEDIATELY to prevent repeats
       setHasSpokenPhase(phaseKey)
+      
+      // Small delay to ensure ElevenLabs is fully ready
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       // With real WebSocket connection, the agent speaks automatically when connected
       if (conversationConnected) {
         console.log(`🎤 ${getVoiceConfig().agentName} connected via WebSocket`)
         // The agent will speak automatically through the WebSocket connection
+        // Do NOT use speechSynthesis here - ElevenLabs handles it
+        setAgentSpeaking(true)
+        
         // Auto-activate microphone after a delay to let agent speak first
         setTimeout(() => {
           console.log(`🎤 Auto-activating microphone...`)
+          setAgentSpeaking(false)
           // Ensure clean start
           stopMicListening()
           setTimeout(() => {
@@ -424,13 +451,24 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
         }, 3000) // Give agent time to speak
       } else {
         console.log('⚠️ No ElevenLabs connection, using fallback...')
+        console.log('⚠️ FALLBACK SPEECH - Phase:', currentPhaseData?.id, 'Question:', currentPhaseData?.question?.substring(0, 50) + '...')
         setAgentSpeaking(true)
-        // Use browser speech synthesis as fallback
+        // Use browser speech synthesis as fallback ONLY when ElevenLabs is NOT connected
         if ('speechSynthesis' in window && currentPhaseData?.question) {
+          // Double-check ElevenLabs is not connected before speaking
+          if (conversationConnected || conversation.status === 'connected') {
+            console.log('🚫 PREVENTING FALLBACK - ElevenLabs is actually connected!')
+            return
+          }
+          
+          // Cancel any ongoing speech first
+          speechSynthesis.cancel()
+          
           const utterance = new SpeechSynthesisUtterance(currentPhaseData.question)
           utterance.rate = 0.9
           utterance.pitch = 1
           utterance.onend = () => {
+            console.log('⚠️ FALLBACK SPEECH ENDED')
             setAgentSpeaking(false)
             // Auto-activate microphone after fallback speech
             startMicListening()
@@ -486,7 +524,6 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
         currentAudioRef.current = null
       }
       
-      
       // Reset speaking flag
       isSpeakingRef.current = false
       
@@ -494,8 +531,13 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
       if ('speechSynthesis' in window) {
         speechSynthesis.cancel()
       }
+      
+      // Disconnect ElevenLabs if connected
+      if (conversation && conversation.status === 'connected') {
+        conversation.endSession()
+      }
     }
-  }, [])
+  }, [conversation])
 
   const handleStartConversation = async () => {
     setConversationStarted(true)
@@ -506,17 +548,18 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
       startGoalListening(conversationSessionId.current)
     }
     
-    // Now that user has interacted, play the welcome message
+    // Now that user has interacted, handle the welcome message
     const userName = userPreferences?.userName || 'there'
     const { agentName } = getVoiceConfig()
     const welcomeText = `Hello ${userName}! I'm ${agentName}. Let's have a natural conversation to discover your personal goals and aspirations. I'll ask you some questions about your goals. You can respond by speaking or using the buttons. I'll help identify goals that match your interests.`
     
-    // With WebSocket connection, we need to handle welcome message differently
-    console.log('🎙️ Playing welcome message after user interaction...')
+    console.log('🎙️ Starting conversation, ElevenLabs connected:', conversationConnected)
     setCurrentTranscript(welcomeText) // Set transcript for welcome message
     
-    // Use browser speech synthesis for welcome message
-    if ('speechSynthesis' in window) {
+    // IMPORTANT: Do NOT use browser speech synthesis here if ElevenLabs is connected
+    // The welcome message is handled by the conversation flow in the useEffect below
+    if (!conversationConnected && 'speechSynthesis' in window) {
+      console.log('🔊 Using browser TTS for welcome message (ElevenLabs not connected)')
       const utterance = new SpeechSynthesisUtterance(welcomeText)
       utterance.rate = 0.9
       utterance.pitch = 1
@@ -532,9 +575,20 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
         }, 500)
       }
       speechSynthesis.speak(utterance)
+    } else if (conversationConnected) {
+      console.log('🎤 ElevenLabs connected - will handle speech through conversation flow')
+      // The welcome message will be spoken by ElevenLabs through the phase system
+      // Just prepare the microphone activation
+      setTimeout(() => {
+        console.log('🎤 Preparing microphone for ElevenLabs conversation...')
+        stopMicListening()
+        setTimeout(() => {
+          startMicListening()
+        }, 200)
+      }, 3000) // Give agent time to speak
     }
     
-    console.log('✅ Starting conversation flow with existing ElevenLabs session')
+    console.log('✅ Starting conversation flow')
   }
 
   const handleVoiceToggle = () => {
@@ -663,19 +717,22 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
   const speakQuestion = async () => {
     console.log('🔊 speakQuestion called - conversation connected:', conversationConnected)
     if (!isMuted) {
-      // Always use browser synthesis for replay since WebSocket doesn't have speakText
+      // For replay functionality, we need to use browser synthesis
+      // since WebSocket doesn't support replaying previous messages
       console.log('🔊 Using browser synthesis for replay')
-        // Use browser speech synthesis for replay functionality
-        if ('speechSynthesis' in window) {
-          const question = currentPhaseData?.question || ''
-          if (question) {
-            const utterance = new SpeechSynthesisUtterance(question)
-            utterance.rate = 0.9
-            utterance.pitch = 1
-            setCurrentTranscript(question)
-            speechSynthesis.speak(utterance)
-          }
+      if ('speechSynthesis' in window) {
+        const question = currentPhaseData?.question || ''
+        if (question) {
+          // Cancel any ongoing speech first to avoid overlaps
+          speechSynthesis.cancel()
+          
+          const utterance = new SpeechSynthesisUtterance(question)
+          utterance.rate = 0.9
+          utterance.pitch = 1
+          setCurrentTranscript(question)
+          speechSynthesis.speak(utterance)
         }
+      }
     }
   }
 
