@@ -36,13 +36,13 @@ export default function LobbyPage() {
   const [emotionalJourney, setEmotionalJourney] = useState<any[]>([])
 
   useEffect(() => {
-    // Redirect to login if not authenticated (since anonymous users are disabled)
-    if (!isLoading && !user) {
+    // Only redirect if we're done loading and there's no user
+    if (!isLoading && !user && !anonymousUser) {
       router.push('/login')
       return
     }
 
-    if (!effectiveUserId || !user) {
+    if (!effectiveUserId) {
       // For non-authenticated users, set empty data and stop loading
       setUserGoals([])
       setRecentSessions([])
@@ -55,7 +55,22 @@ export default function LobbyPage() {
       try {
         // Load goals with progress
         const goals = await graphGoalService.getUserGoalsWithProgress(effectiveUserId)
-        setUserGoals(goals)
+        
+        // Deduplicate goals by title
+        const uniqueGoals = goals.reduce((acc, goal) => {
+          const existingGoal = acc.find(g => g.goal_title === goal.goal_title)
+          if (!existingGoal) {
+            acc.push(goal)
+          } else if ((goal.session_count || 0) > (existingGoal.session_count || 0)) {
+            // Keep the goal with more sessions
+            const index = acc.indexOf(existingGoal)
+            acc[index] = goal
+          }
+          return acc
+        }, [] as GraphGoal[])
+        
+        console.log(`Deduplicated ${goals.length} goals to ${uniqueGoals.length} unique goals`)
+        setUserGoals(uniqueGoals)
 
         // Load recent sessions
         const sessions = await graphGoalService.getRecentSessions(effectiveUserId, 5)
@@ -135,48 +150,15 @@ export default function LobbyPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center">
-              <Image 
-                src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1750020672/liveguide-logo-clear.png" 
-                alt="LiveGuide" 
-                width={140} 
-                height={40} 
-                className="h-8 w-auto"
-                priority
-                unoptimized
-              />
-            </Link>
-            
-            <div className="flex items-center gap-4">
-              {isAnonymous ? (
-                <>
-                  <Badge variant="outline" className="text-amber-400 border-amber-400">
-                    Anonymous Session
-                  </Badge>
-                  <Button asChild size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                    <Link href="/register">Create Account</Link>
-                  </Button>
-                </>
-              ) : (
-                <Button variant="outline" size="sm" className="border-gray-400 text-gray-300">
-                  {user?.email}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
+      {/* Spacer for fixed navbar */}
+      <div className="h-16" />
+      
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back{isAnonymous ? '' : `, ${user?.email?.split('@')[0]}`}!
+            Welcome back{user?.email ? `, ${user.email.split('@')[0]}` : ''}!
           </h1>
           <p className="text-gray-300">
             {isAnonymous 

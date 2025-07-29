@@ -30,8 +30,32 @@ export default function LandingPage() {
   const videoRef = useRef<HTMLDivElement>(null)
   const videoElementRef = useRef<HTMLVideoElement>(null)
   const [showOverlay, setShowOverlay] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
+  const [isPaused, setIsPaused] = useState(true)
   const [hasEnded, setHasEnded] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
+  const [showButtonPulse, setShowButtonPulse] = useState(false)
+
+  useEffect(() => {
+    // Parallax scroll effect
+    const handleScroll = () => {
+      setScrollY(window.scrollY)
+    }
+    
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Start button pulse animation after 8 seconds
+    const timer = setTimeout(() => {
+      setShowButtonPulse(true)
+    }, 8000)
+    
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     // Initialize video event listeners
@@ -184,8 +208,35 @@ export default function LandingPage() {
       
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden px-6 py-20 sm:py-32">
-        <div className="mx-auto max-w-7xl">
+      <section className="relative overflow-hidden px-6 pt-2 pb-7 sm:pt-4 sm:pb-11">
+        {/* Hero Backdrop Image */}
+        <motion.div 
+          className="absolute inset-0 z-0"
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ 
+            scale: 1, 
+            opacity: 1,
+            y: scrollY * 0.3 
+          }}
+          transition={{ 
+            scale: { duration: 1.5, ease: "easeOut" },
+            opacity: { duration: 1 }
+          }}
+        >
+          <Image
+            src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1753786361/Screenshot_2025-07-29_at_11.45.49_o6h11t.jpg"
+            alt="Hero backdrop"
+            fill
+            priority
+            quality={90}
+            className="object-cover object-center opacity-65 scale-110"
+            sizes="100vw"
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJalwtBu1FQaE6ooBEiUUwUURQD//Z"
+          />
+        </motion.div>
+        
+        <div className="relative z-10 mx-auto max-w-7xl">
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-8">
             {/* Hero Content */}
             <motion.div
@@ -200,10 +251,42 @@ export default function LandingPage() {
               
               <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
                 Your Personal
+                <br />
                 <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  {" "}Voice Coach
+                  Voice 1st <span style={{ fontSize: '115%' }}>AI Coach</span>
                 </span>
               </h1>
+              
+              {/* Description text in gradient box */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="mt-6 p-6 rounded-2xl bg-gradient-to-br from-slate-900/95 via-blue-900/90 to-purple-900/95 backdrop-blur-sm border border-white/10 shadow-2xl"
+              >
+                <p className="text-lg leading-relaxed sm:text-xl" style={{ color: 'white' }}>
+                  Experience the future of personal development with AI coaches powered by ElevenLabs. 
+                  Choose from 12 specialized coaches for career, wellness, mindfulness, and emotional growth. 
+                  Start speaking, start growing.
+                </p>
+              </motion.div>
+              
+              {/* Talk to Agent button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="mt-6 flex justify-end"
+              >
+                <Button 
+                  size="lg" 
+                  className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg transition-transform ${showButtonPulse ? 'button-pulse' : ''}`}
+                  onClick={handleTalkToAgent}
+                >
+                  <Mic className="mr-2 h-5 w-5" />
+                  Talk to Agent
+                </Button>
+              </motion.div>
             </motion.div>
 
             {/* Video Section - Appears after title on mobile, side-by-side on desktop */}
@@ -213,7 +296,7 @@ export default function LandingPage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative order-2 lg:order-2 mt-8 lg:mt-0"
             >
-              <div className="relative overflow-hidden rounded-2xl bg-gray-900 shadow-2xl max-w-md mx-auto lg:max-w-none">
+              <div className={`relative overflow-hidden rounded-2xl bg-gray-900 shadow-2xl max-w-sm mx-auto lg:max-w-lg transition-opacity duration-500 ${!isPaused && !hasEnded ? 'opacity-100' : 'opacity-75'}`}>
                 <div 
                   ref={videoRef}
                   className="aspect-square w-full relative"
@@ -252,7 +335,7 @@ export default function LandingPage() {
                           onClick={handlePlayAction}
                           size="lg"
                           variant="outline"
-                          className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 text-lg"
+                          className="bg-white/20 border-white/50 text-white hover:bg-white/30 backdrop-blur-md px-8 py-4 text-lg font-medium shadow-lg"
                         >
                           {getPlayButtonProps().icon}
                           {getPlayButtonProps().text}
@@ -267,7 +350,7 @@ export default function LandingPage() {
                         <Button
                           onClick={handleTalkToAgent}
                           size="lg"
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg"
+                          className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg transition-transform ${showButtonPulse ? 'button-pulse' : ''}`}
                         >
                           <Mic className="mr-2 h-5 w-5" />
                           Talk to Agent
@@ -283,41 +366,14 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Rest of Hero Content - Appears after video on mobile */}
+            {/* Features checkmarks - Appears after video on mobile */}
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
               className="order-3 lg:col-span-2 mt-8 lg:mt-6"
             >              
-              <p className="text-lg leading-8 text-gray-300 sm:text-xl lg:max-w-3xl">
-                Experience the future of personal development with AI coaches powered by ElevenLabs. 
-                Choose from 12 specialized coaches for career, wellness, mindfulness, and emotional growth. 
-                Start speaking, start growing.
-              </p>
-              
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-6">
-                <Button 
-                  size="lg" 
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg"
-                  onClick={handleTalkToAgent}
-                >
-                  <Mic className="mr-2 h-5 w-5" />
-                  Talk to Agent
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="border-gray-400 text-gray-300 hover:bg-gray-800 px-8 py-4 text-lg"
-                  onClick={handleVoiceDemo}
-                >
-                  <PlayCircle className="mr-2 h-5 w-5" />
-                  Try Voice Demo
-                </Button>
-              </div>
-              
-              <div className="mt-8 flex items-center gap-6 text-sm text-gray-400">
+              <div className="flex items-center gap-6 text-sm text-gray-400">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-400" />
                   Free voice demo

@@ -1,0 +1,82 @@
+/* Simple Theme System */
+
+/* Dark Theme (Default) */
+:root,
+.dark-theme {
+  color-scheme: dark;
+}
+
+.dark-theme body {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+/* Light Theme */
+.light-theme {
+  color-scheme: light;
+}
+
+.light-theme body {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Dark theme colors remain default */
+
+/* Light theme overrides with !important */
+.light-theme .bg-gray-900 { 
+  background-color: #ffffff !important; 
+}
+.light-theme .bg-gray-800 { 
+  background-color: #f9fafb !important; 
+}
+.light-theme .bg-gray-700 { 
+  background-color: #f3f4f6 !important; 
+}
+.light-theme .bg-gray-600 { 
+  background-color: #e5e7eb !important; 
+}
+
+/* Text colors */
+.light-theme .text-white { 
+  color: #111827 !important; 
+}
+.light-theme .text-gray-300 { 
+  color: #4b5563 !important; 
+}
+.light-theme .text-gray-400 { 
+  color: #6b7280 !important; 
+}
+.light-theme .text-gray-500 { 
+  color: #9ca3af !important; 
+}
+
+/* Borders */
+.light-theme .border-gray-800 { 
+  border-color: #e5e7eb !important; 
+}
+.light-theme .border-gray-700 { 
+  border-color: #d1d5db !important; 
+}
+.light-theme .border-gray-600 { 
+  border-color: #9ca3af !important; 
+}
+
+/* Hover states */
+.light-theme .hover\:bg-gray-800:hover { 
+  background-color: #f3f4f6 !important; 
+}
+.light-theme .hover\:bg-gray-700:hover { 
+  background-color: #e5e7eb !important; 
+}
+.light-theme .hover\:text-white:hover { 
+  color: #111827 !important; 
+}
+
+/* Special cases */
+.light-theme .bg-gray-900\/80 { 
+  background-color: rgba(255, 255, 255, 0.8) !important; 
+}
+.light-theme .bg-gray-900\/95 { 
+  background-color: rgba(255, 255, 255, 0.95) !important; 
+}

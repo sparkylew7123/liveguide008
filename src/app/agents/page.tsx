@@ -90,7 +90,7 @@ export default function AgentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-100 p-4">
+    <div className="min-h-screen p-4 rose-quartz-theme theme-gradient-bg">
       <div className="max-w-7xl mx-auto">
         {/* Navigation */}
         <div className="mb-8">

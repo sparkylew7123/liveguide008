@@ -37,8 +37,8 @@ export default function AuthCallbackPage() {
         const { data: { session } } = await supabase.auth.getSession()
         
         if (session) {
-          // Successfully authenticated, redirect to agents or requested page
-          const next = params.get('next') || '/agents'
+          // Successfully authenticated, redirect to lobby or requested page
+          const next = params.get('next') || '/lobby'
           router.push(next)
         } else {
           router.push('/login?error=Failed to establish session')

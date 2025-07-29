@@ -1,18 +1,92 @@
 
 > liveguide008@0.1.0 dev
-> next dev --turbopack
+> next dev
 
-   ▲ Next.js 15.3.5 (Turbopack)
+   ▲ Next.js 15.3.5
    - Local:        http://localhost:3000
    - Network:      http://192.168.1.30:3000
    - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 551ms
+ ✓ Ready in 1068ms
+ ✓ Compiled /middleware in 369ms (224 modules)
  ○ Compiling / ...
- ✓ Compiled / in 837ms
- GET / 200 in 948ms
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled / in 2.8s (2018 modules)
+ GET / 200 in 3052ms
+ GET / 200 in 58ms
+ ✓ Compiled /favicon.ico in 193ms (1062 modules)
+ GET /favicon.ico 200 in 250ms
+ ✓ Compiled /theme-test in 345ms (2028 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /theme-test 200 in 466ms
+ GET / 200 in 88ms
+ GET / 200 in 69ms
+ GET /theme-test 200 in 43ms
+ ✓ Compiled in 452ms (2012 modules)
+ GET / 200 in 67ms
+ GET /theme-test 200 in 66ms
+ ✓ Compiled in 300ms (2012 modules)
+ GET / 200 in 56ms
+ GET /theme-test 200 in 57ms
+ GET / 200 in 143ms
+ ✓ Compiled /favicon.ico in 92ms (1067 modules)
+ GET /favicon.ico 200 in 150ms
+ GET / 200 in 136ms
+ GET /favicon.ico 200 in 3ms
+ GET / 200 in 58ms
+ GET /favicon.ico 200 in 3ms
+ GET / 200 in 75ms
+ GET /favicon.ico 200 in 3ms
+ ✓ Compiled in 477ms (2028 modules)
+ GET /theme-test 200 in 44ms
+ GET / 200 in 44ms
+ GET / 200 in 112ms
+ GET /favicon.ico 200 in 8ms
+ GET / 200 in 56ms
+ GET /favicon.ico 200 in 4ms
+ GET / 200 in 53ms
+ GET /favicon.ico 200 in 4ms
+ GET / 200 in 15ms
+ GET / 200 in 11ms
+ GET / 200 in 17ms
+ ✓ Compiled /login in 390ms (2036 modules)
+ GET /login 200 in 442ms
+ ✓ Compiled in 434ms (2034 modules)
+ GET /theme-test 200 in 73ms
+ GET / 200 in 72ms
+ GET / 200 in 146ms
+ ✓ Compiled /favicon.ico in 101ms (1086 modules)
+ GET /favicon.ico 200 in 149ms
+ GET /favicon.ico 200 in 14ms
+ ✓ Compiled in 698ms (2034 modules)
+ GET /theme-test 200 in 98ms
+ GET / 200 in 97ms
+ GET / 200 in 146ms
+ ✓ Compiled /favicon.ico in 104ms (1086 modules)
+ GET /favicon.ico 200 in 153ms
+ GET / 200 in 148ms
+ GET /favicon.ico 200 in 5ms
+ ✓ Compiled in 449ms (2034 modules)
+ GET /theme-test 200 in 70ms
+ GET / 200 in 71ms
+ GET / 200 in 112ms
+ ✓ Compiled /favicon.ico in 91ms (1086 modules)
+ GET /favicon.ico 200 in 134ms
+ GET / 200 in 115ms
+ GET /favicon.ico 200 in 4ms
+ ✓ Compiled in 384ms (2050 modules)
+ GET /theme-test 200 in 28ms
+ GET / 200 in 28ms
+ ✓ Compiled in 396ms (2034 modules)
+ GET /theme-test 200 in 72ms
  GET / 200 in 73ms
- ✓ Compiled /favicon.ico in 154ms
- GET /favicon.ico?favicon.45db1c09.ico 200 in 418ms
-[?25h
+ ✓ Compiled in 411ms (2034 modules)
+ GET / 200 in 50ms
+ GET /theme-test 200 in 50ms
+ ✓ Compiled in 162ms (964 modules)
+ GET / 200 in 10ms
+ GET /theme-test 200 in 11ms
+ GET / 200 in 233ms
+ ✓ Compiled /favicon.ico in 154ms (1086 modules)
+ GET /favicon.ico 200 in 208ms

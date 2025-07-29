@@ -83,7 +83,7 @@ function PhoneLoginFormContent() {
 
       // Redirect to appropriate destination
       setTimeout(() => {
-        router.push(returnTo || '/agents');
+        router.push(returnTo || '/lobby');
       }, 1000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Invalid verification code';

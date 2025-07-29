@@ -79,9 +79,9 @@ export default function PhoneRegisterForm() {
         duration: 5000
       });
 
-      // Redirect to dashboard
+      // Redirect to lobby
       setTimeout(() => {
-        router.push('/agents');
+        router.push('/lobby');
       }, 1500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Invalid verification code';

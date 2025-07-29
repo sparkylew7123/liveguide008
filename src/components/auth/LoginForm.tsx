@@ -35,10 +35,10 @@ function LoginFormContent() {
       }
       
       // Show success message and redirect to appropriate destination
-      const redirectMsg = returnTo ? 'Login successful! Continuing to voice coaching...' : 'Login successful! Redirecting...';
+      const redirectMsg = returnTo ? 'Login successful! Continuing to voice coaching...' : 'Login successful! Redirecting to lobby...';
       setSuccess(redirectMsg);
       setTimeout(() => {
-        router.push(returnTo || '/agents');
+        router.push(returnTo || '/lobby');
       }, 1000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';

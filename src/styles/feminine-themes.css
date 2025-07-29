@@ -80,6 +80,31 @@
   --card-hover-shadow: 0 20px 40px -15px rgba(147, 51, 234, 0.25);
 }
 
+/* Theme-aware gradient backgrounds */
+.rose-quartz-theme.theme-gradient-bg {
+  background: linear-gradient(to bottom right, var(--background-gradient-start), var(--background-gradient-middle), var(--background-gradient-end));
+}
+
+.lavender-theme.theme-gradient-bg {
+  background: linear-gradient(to bottom right, var(--background-gradient-start), var(--background-gradient-middle), var(--background-gradient-end));
+}
+
+.peachy-theme.theme-gradient-bg {
+  background: linear-gradient(to bottom right, var(--background-gradient-start), var(--background-gradient-middle), var(--background-gradient-end));
+}
+
+.mauve-theme.theme-gradient-bg {
+  background: linear-gradient(to bottom right, var(--background-gradient-start), var(--background-gradient-middle), var(--background-gradient-end));
+}
+
+/* Dark theme overrides for feminine themes */
+.dark-theme .rose-quartz-theme.theme-gradient-bg,
+.dark-theme .lavender-theme.theme-gradient-bg,
+.dark-theme .peachy-theme.theme-gradient-bg,
+.dark-theme .mauve-theme.theme-gradient-bg {
+  background: #111827; /* gray-900 for dark mode */
+}
+
 /* Additional Feminine Design Elements */
 .feminine-glow {
   box-shadow: 

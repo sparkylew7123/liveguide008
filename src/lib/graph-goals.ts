@@ -43,18 +43,22 @@ export class GraphGoalService {
   async getUserGoalsWithProgress(userId: string): Promise<GraphGoal[]> {
     // Return empty array for anonymous users or if no userId
     if (!userId) {
-      console.log('No userId provided, returning empty goals')
+      console.log('No userId provided to getUserGoalsWithProgress, returning empty goals')
       return []
     }
+    
+    console.log('Fetching goals for userId:', userId)
 
     const { data, error } = await this.supabase
       .rpc('get_user_goals_with_progress', { p_user_id: userId })
 
     if (error) {
-      console.error('Error fetching user goals with progress:', error)
+      console.error('Error fetching user goals with progress:', error.message || error)
+      console.error('Full error details:', JSON.stringify(error, null, 2))
       return []
     }
 
+    console.log('Goals fetched successfully:', data?.length || 0, 'goals')
     return data || []
   }
 
@@ -151,9 +155,11 @@ export class GraphGoalService {
   async getRecentSessions(userId: string, limit: number = 5): Promise<GraphNode[]> {
     // Return empty array for anonymous users or if no userId
     if (!userId) {
-      console.log('No userId provided, returning empty sessions')
+      console.log('No userId provided to getRecentSessions, returning empty sessions')
       return []
     }
+
+    console.log('Fetching recent sessions for userId:', userId)
 
     const { data, error } = await this.supabase
       .from('graph_nodes')

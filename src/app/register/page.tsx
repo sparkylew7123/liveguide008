@@ -12,9 +12,9 @@ export default function RegisterPage() {
           <Image 
             src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1750020672/liveguide-logo-clear.png" 
             alt="LiveGuide" 
-            width={140} 
-            height={40} 
-            className="h-8 w-auto"
+            width={232} 
+            height={66} 
+            className="h-14 w-auto"
             priority
             unoptimized
           />
