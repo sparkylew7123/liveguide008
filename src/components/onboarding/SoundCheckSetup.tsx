@@ -27,6 +27,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
   const [voicePreference, setVoicePreference] = useState<'male' | 'female' | 'no-preference'>('no-preference')
   const [microphoneWorking, setMicrophoneWorking] = useState(false)
   const [listening, setListening] = useState(false)
+  const [hasDetectedSound, setHasDetectedSound] = useState(false)
   const totalSteps = 2
 
   const {
@@ -45,16 +46,26 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
     }
   }, [])
 
-  // Monitor microphone levels (throttled)
+  // Monitor microphone levels and auto-advance
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (microphoneState.audioLevel > 0.01) {
         setMicrophoneWorking(true)
+        
+        // If on step 1 and we haven't detected sound yet
+        if (currentStep === 1 && !hasDetectedSound && microphoneState.audioLevel > 0.05) {
+          setHasDetectedSound(true)
+          
+          // Auto advance after 1.5 seconds of detecting good volume
+          setTimeout(() => {
+            setCurrentStep(2)
+          }, 1500)
+        }
       }
     }, 100) // Debounce updates
     
     return () => clearTimeout(timeoutId)
-  }, [microphoneState.audioLevel])
+  }, [microphoneState.audioLevel, currentStep, hasDetectedSound])
 
   // Handle voice input
   useEffect(() => {
@@ -202,6 +213,15 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
               {status.text}
             </div>
             
+            {hasDetectedSound && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-green-400 text-lg font-medium"
+              >
+                Great! Moving to the next step...
+              </motion.div>
+            )}
             
             {!microphoneWorking && (
               <div className="space-y-2">
@@ -228,14 +248,16 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
               </div>
             )}
             
-            <Button
-              onClick={nextStep}
-              disabled={!microphoneWorking}
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
-            >
-              Continue <ChevronRight className="ml-2 h-5 w-5" />
-            </Button>
+            {!hasDetectedSound && (
+              <Button
+                onClick={nextStep}
+                disabled={!microphoneWorking}
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+              >
+                Continue <ChevronRight className="ml-2 h-5 w-5" />
+              </Button>
+            )}
           </motion.div>
         )
         
@@ -434,7 +456,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
         </div>
         
         {/* Main Content */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-8 min-h-[500px] flex items-center justify-center">
+        <div className="bg-slate-800/50 border border-slate-700 rounded-lg pt-1.5 pb-8 px-8 min-h-[500px] flex items-center justify-center">
           <AnimatePresence mode="wait">
             {renderStep()}
           </AnimatePresence>
