@@ -24,11 +24,10 @@ interface UserPreferences {
 export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [userName, setUserName] = useState('')
-  const [voicePreference, setVoicePreference] = useState<'male' | 'female' | 'no-preference'>('no-preference')
   const [microphoneWorking, setMicrophoneWorking] = useState(false)
   const [listening, setListening] = useState(false)
   const [hasDetectedSound, setHasDetectedSound] = useState(false)
-  const totalSteps = 2
+  const totalSteps = 1
 
   const {
     microphoneState,
@@ -58,7 +57,10 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
           
           // Auto advance after 1.5 seconds of detecting good volume
           setTimeout(() => {
+            // Skip voice preference and go to name input
             setCurrentStep(2)
+            setListening(true)
+            startListening()
           }, 1500)
         }
       }
@@ -74,8 +76,8 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
     const transcript = microphoneState.transcript.toLowerCase().trim()
     console.log('🎤 Processing transcript:', transcript)
     
-    // Only process name extraction on step 3
-    if (currentStep === 3 && transcript.length > 1) {
+    // Only process name extraction on step 2 (name input)
+    if (currentStep === 2 && transcript.length > 1) {
       let extractedName = ''
       
       // Try various name extraction patterns
@@ -115,7 +117,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
   const handleContinue = () => {
     onComplete({
       userName: userName.trim() || 'there',
-      voicePreference,
+      voicePreference: 'no-preference', // Default to no preference
       microphoneWorking
     })
   }
@@ -132,8 +134,8 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
 
   const nextStep = () => {
     if (currentStep === 1) {
-      // Skip step 2, go directly to step 3
-      setCurrentStep(3)
+      // Go to name input step
+      setCurrentStep(2)
       
       // Auto-start listening for name input
       if (microphoneState.isListening) {
@@ -271,82 +273,6 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
             className="text-center space-y-8"
           >
             <div>
-              <h2 className="text-4xl font-bold text-white mb-4">Choose your voice preference</h2>
-              <p className="text-xl text-gray-300">Which voice would you prefer to hear?</p>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4 max-w-md mx-auto">
-              <Button
-                onClick={() => setVoicePreference('female')}
-                variant={voicePreference === 'female' ? 'default' : 'outline'}
-                size="lg"
-                className={`h-16 text-lg ${
-                  voicePreference === 'female'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                    : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600'
-                }`}
-              >
-                <Volume2 className="mr-3 h-5 w-5" />
-                Female Voice
-              </Button>
-              <Button
-                onClick={() => setVoicePreference('male')}
-                variant={voicePreference === 'male' ? 'default' : 'outline'}
-                size="lg"
-                className={`h-16 text-lg ${
-                  voicePreference === 'male'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                    : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600'
-                }`}
-              >
-                <Volume2 className="mr-3 h-5 w-5" />
-                Male Voice
-              </Button>
-              <Button
-                onClick={() => setVoicePreference('no-preference')}
-                variant={voicePreference === 'no-preference' ? 'default' : 'outline'}
-                size="lg"
-                className={`h-16 text-lg ${
-                  voicePreference === 'no-preference'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                    : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600'
-                }`}
-              >
-                <Volume2 className="mr-3 h-5 w-5" />
-                No Preference
-              </Button>
-            </div>
-            
-            <div className="flex gap-4 justify-center">
-              <Button
-                onClick={prevStep}
-                variant="outline"
-                size="lg"
-                className="bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={nextStep}
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
-              >
-                Continue <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-          </motion.div>
-        )
-        
-      case 3:
-        return (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            className="text-center space-y-8"
-          >
-            <div>
               <h2 className="text-4xl font-bold text-white mb-4">What should I call you?</h2>
               <p className="text-xl text-gray-300">Enter your name or say it out loud</p>
             </div>
@@ -437,26 +363,28 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-400">
-              Step {currentStep === 3 ? 2 : currentStep} of {totalSteps}
-            </span>
-            <span className="text-sm text-gray-400">
-              Before We Begin
-            </span>
+        {/* Progress Bar - Hidden when only 1 step */}
+        {totalSteps > 1 && (
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-sm text-gray-400">
+                Step {currentStep} of {totalSteps}
+              </span>
+              <span className="text-sm text-gray-400">
+                Before We Begin
+              </span>
+            </div>
+            <div className="w-full bg-slate-700/50 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              />
+            </div>
           </div>
-          <div className="w-full bg-slate-700/50 rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${((currentStep === 3 ? 2 : currentStep) / totalSteps) * 100}%` }}
-            />
-          </div>
-        </div>
+        )}
         
         {/* Main Content */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-lg pt-1.5 pb-8 px-8 min-h-[500px] flex items-center justify-center">
+        <div className="bg-slate-800/50 border border-slate-700 rounded-lg pt-1.5 pb-6 px-6 min-h-[400px] flex items-center justify-center">
           <AnimatePresence mode="wait">
             {renderStep()}
           </AnimatePresence>
