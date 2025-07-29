@@ -21,7 +21,14 @@ interface AgentDetails {
   video_intro?: string;
 }
 
-export default function AgentsPage() {
+// Lavender Dreams Theme
+// Psychological Principles:
+// - Lavender reduces anxiety and promotes mental clarity
+// - Purple hues stimulate creativity and imagination
+// - Soft pink accents add warmth without overwhelming
+// - Creates a calming, therapeutic environment ideal for learning
+
+export default function AgentsPageLavender() {
   const router = useRouter();
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
   const [selectedAgentName, setSelectedAgentName] = useState<string>('');
@@ -90,14 +97,14 @@ export default function AgentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-violet-50 to-pink-50 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Navigation */}
         <div className="mb-8">
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="flex items-center gap-2 hover:bg-rose-100/50 text-rose-700"
+            className="flex items-center gap-2 hover:bg-purple-100/50 text-purple-700"
           >
             <ArrowLeft className="w-4 h-4" />
             {showVoiceOnboarding ? 'Back to Agent Selection' : 'Back to Home'}
@@ -110,15 +117,15 @@ export default function AgentsPage() {
             <AgentSelectionInterfaceFeminine
               onAgentSelect={handleAgentSelect}
               selectedAgentId={selectedAgentId}
-              theme="rose-quartz"
+              theme="lavender"
             />
             
           </div>
         ) : (
           <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2 text-rose-900">Voice Onboarding</h2>
-              <p className="text-rose-700">
+              <h2 className="text-2xl font-bold mb-2 text-purple-900">Voice Onboarding</h2>
+              <p className="text-purple-700">
                 You&apos;re now connected with {selectedAgentName}
               </p>
             </div>

@@ -9,10 +9,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AlertCircle, FileText, Upload, Search, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { createClient } from '@/utils/supabase/client'
+
+interface Agent {
+  uuid: string;
+  Name: string;
+  '11labs_agentID': string;
+  availability_status: string;
+}
 
 export default function KnowledgeManagementPage() {
   const [file, setFile] = useState<File | null>(null)
-  const [agentId, setAgentId] = useState('SuIlXQ4S6dyjrNViOrQ8') // Maya's agent ID
+  const [agentId, setAgentId] = useState('') // Will be set to first available agent
   const [category, setCategory] = useState('')
   const [metadata, setMetadata] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -20,6 +28,42 @@ export default function KnowledgeManagementPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [loadingAgents, setLoadingAgents] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    fetchAgents()
+  }, [])
+
+  const fetchAgents = async () => {
+    try {
+      setLoadingAgents(true)
+      const supabase = createClient()
+      
+      const { data, error } = await supabase
+        .from('agent_personae')
+        .select('uuid, Name, "11labs_agentID", availability_status')
+        .not('11labs_agentID', 'is', null)
+        .order('Name')
+      
+      if (error) {
+        console.error('Error fetching agents:', error)
+      } else {
+        setAgents(data || [])
+        // Set default agent to first available agent
+        if (data && data.length > 0) {
+          const defaultAgent = data.find(a => a['11labs_agentID']) || data[0]
+          setAgentId(defaultAgent['11labs_agentID'])
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching agents:', error)
+    } finally {
+      setLoadingAgents(false)
+    }
+  }
 
   const handleFileUpload = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -114,13 +158,32 @@ export default function KnowledgeManagementPage() {
             <form onSubmit={handleFileUpload} className="space-y-4">
               <div>
                 <Label htmlFor="agent">Agent</Label>
-                <Select 
-                  value={agentId} 
-                  onChange={(e) => setAgentId(e.target.value)}
-                  className="w-full"
-                >
-                  <option value="SuIlXQ4S6dyjrNViOrQ8">Maya (Onboarding)</option>
-                </Select>
+                {mounted ? (
+                  <Select 
+                    value={agentId} 
+                    onValueChange={setAgentId}
+                    disabled={loadingAgents || agents.length === 0}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={loadingAgents ? "Loading agents..." : "Select an agent"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {agents.map((agent) => (
+                        <SelectItem 
+                          key={agent.uuid} 
+                          value={agent['11labs_agentID']}
+                        >
+                          {agent.Name}
+                          {agent.availability_status !== 'available' && ' (Unavailable)'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    Loading agents...
+                  </div>
+                )}
               </div>
 
               <div>

@@ -21,7 +21,14 @@ interface AgentDetails {
   video_intro?: string;
 }
 
-export default function AgentsPage() {
+// Rose Quartz & Serenity Theme
+// Psychological Principles:
+// - Rose tones evoke warmth, compassion, and nurturing feelings
+// - Soft pink gradients reduce stress and promote emotional healing
+// - Purple accents add a touch of creativity and spiritual connection
+// - Overall palette creates a safe, supportive environment for voice coaching
+
+export default function AgentsPageRoseQuartz() {
   const router = useRouter();
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
   const [selectedAgentName, setSelectedAgentName] = useState<string>('');

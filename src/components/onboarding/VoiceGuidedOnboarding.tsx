@@ -70,6 +70,11 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
     try {
       const supabase = createClient();
       
+      // This function now integrates with both the traditional tables and the new graph model:
+      // 1. goal_discovery: Creates Goal nodes and tracks initial confidence as Emotion nodes
+      // 2. coaching_style: Tracks emotional state based on preferences (confident, motivated, anxious, uncertain)
+      // 3. Maintains backward compatibility with existing profile and user_goals tables
+      
       switch (phase) {
         case 'setup':
           // Update onboarding data with user preferences
@@ -128,15 +133,64 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
                 }
               }));
               
-              const { error: insertError } = await supabase
-                .from('user_goals')
-                .insert(goalInserts);
+              // Skip the old user_goals table insert since we're using graph database now
+              // The old table doesn't exist in the new schema
+              console.log('Skipping old user_goals table insert, using graph database instead');
               
-              if (insertError) {
-                console.error('Error inserting goals to user_goals:', insertError);
-              } else {
-                console.log('Goals saved to user_goals table:', goalInserts);
-              }
+              // NEW: Create Goal nodes in graph model
+              const goalNodePromises = data.selectedGoals.map(async (goal: any) => {
+                try {
+                  // Create goal node using the database function
+                  const { data: goalNode, error: goalNodeError } = await supabase
+                    .rpc('create_goal_node', {
+                      p_user_id: user.id,
+                      p_title: goal.title || goal,
+                      p_category: goal.category || 'Personal Growth',
+                      p_properties: {
+                        description: `Goal selected during voice-guided onboarding${goal.timescale ? ` with ${goal.timescale} timeline` : ''}`,
+                        target_date: goal.timescale === '3-months' 
+                          ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                          : goal.timescale === '6-months'
+                          ? new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                          : goal.timescale === '1-year'
+                          ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                          : null,
+                        priority: 'high' // Goals selected during onboarding are high priority
+                      }
+                    });
+                  
+                  if (goalNodeError) {
+                    console.error('Error creating goal node:', goalNodeError);
+                    return null;
+                  }
+                  
+                  // Track initial confidence as emotion
+                  const confidence = goal.confidence || 0.8;
+                  const emotionType = confidence >= 0.7 ? 'confident' : confidence >= 0.4 ? 'motivated' : 'uncertain';
+                  const emotionIntensity = confidence >= 0.7 ? confidence : confidence >= 0.4 ? 0.6 : 0.4;
+                  
+                  const { error: emotionError } = await supabase
+                    .rpc('track_emotion', {
+                      p_user_id: user.id,
+                      p_emotion: emotionType,
+                      p_intensity: emotionIntensity,
+                      p_context: `Initial confidence for goal: ${goal.title || goal}`
+                    });
+                  
+                  if (emotionError) {
+                    console.error('Error tracking emotion:', emotionError);
+                  }
+                  
+                  return goalNode;
+                } catch (error) {
+                  console.error('Error in graph operations for goal:', goal, error);
+                  return null;
+                }
+              });
+              
+              // Wait for all graph operations to complete
+              const goalNodes = await Promise.all(goalNodePromises);
+              console.log('Created goal nodes:', goalNodes.filter(n => n !== null));
                 
             } catch (error) {
               console.error('Error saving goals:', error);
@@ -156,7 +210,7 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
           };
           setOnboardingData(withCoachingData);
           
-          // Save coaching preferences to profile
+          // Save coaching preferences to profile (for backward compatibility)
           await supabase
             .from('profiles')
             .update({
@@ -164,6 +218,69 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
               onboarding_method: 'voice'
             })
             .eq('id', user.id);
+          
+          // NEW: Track emotions based on coaching preferences
+          // Analyze preferences to determine initial emotional state
+          try {
+            const prefs = data.coachingPreferences;
+            
+            // Determine overall emotional state based on preferences
+            // High Energy + High Structure = Confident/Motivated
+            // Low Energy + Low Structure = Uncertain/Anxious
+            const energyLevel = prefs.Energy?.level || 'balanced';
+            const structureLevel = prefs.Structure?.level || 'balanced';
+            
+            let emotionType: string;
+            let emotionIntensity: number;
+            
+            if (energyLevel === 'high' && structureLevel === 'high') {
+              emotionType = 'confident';
+              emotionIntensity = 0.8;
+            } else if (energyLevel === 'high' && structureLevel === 'low') {
+              emotionType = 'motivated';
+              emotionIntensity = 0.7;
+            } else if (energyLevel === 'low' && structureLevel === 'high') {
+              emotionType = 'anxious';
+              emotionIntensity = 0.5;
+            } else if (energyLevel === 'low' && structureLevel === 'low') {
+              emotionType = 'uncertain';
+              emotionIntensity = 0.6;
+            } else {
+              // Balanced preferences
+              emotionType = 'motivated';
+              emotionIntensity = 0.7;
+            }
+            
+            // Track the initial emotional state
+            const { error: emotionError } = await supabase
+              .rpc('track_emotion', {
+                p_user_id: user.id,
+                p_emotion: emotionType,
+                p_intensity: emotionIntensity,
+                p_context: `Initial emotional state based on coaching preferences: Energy=${energyLevel}, Structure=${structureLevel}`
+              });
+            
+            if (emotionError) {
+              console.error('Error tracking coaching preference emotion:', emotionError);
+            } else {
+              console.log(`Tracked initial emotion: ${emotionType} (${emotionIntensity})`);
+            }
+            
+            // Also track if user has specific concerns
+            if (prefs.Information?.level === 'high') {
+              // User wants lots of information - might indicate uncertainty
+              await supabase
+                .rpc('track_emotion', {
+                  p_user_id: user.id,
+                  p_emotion: 'uncertain',
+                  p_intensity: 0.4,
+                  p_context: 'User prefers high information - may need extra clarity and guidance'
+                });
+            }
+          } catch (error) {
+            console.error('Error tracking coaching preference emotions:', error);
+            // Continue with onboarding even if emotion tracking fails
+          }
           
           // Move to agent matching
           setCurrentPhase('agent_matching');
@@ -232,7 +349,7 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
         return (
           <TypeformGoalSelection
             onComplete={(selectedGoals) => handlePhaseComplete('goal_discovery', { selectedGoals })}
-            onSkip={() => handlePhaseSkip('goal_discovery')}
+            onSkip={() => handleSkipPhase('goal_discovery')}
             userPreferences={onboardingData.userPreferences}
           />
         );

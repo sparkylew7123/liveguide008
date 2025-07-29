@@ -90,6 +90,16 @@ export function GoalDiscoveryFlow({
         const errorMessage = typeof error === 'string' ? error : (error as Error)?.message || 'Connection failed';
         setMessages(prev => [...prev, `Error: ${errorMessage}`]);
       },
+    },
+    // Pass overrides as third parameter
+    {
+      agent: {
+        firstMessage: `Hello ${userName}! I'm Maya, your goal discovery guide. Let's explore what you'd like to achieve. What's been on your mind lately that you'd like to work on?`,
+        language: "en",
+      },
+      conversation: {
+        textOnly: false,
+      },
     }
   );
 
@@ -198,24 +208,9 @@ export function GoalDiscoveryFlow({
       
       console.log('🚀 Starting connection to agent (auth disabled)...');
       
-      // Since the agent has auth disabled, we can connect directly with agent ID
-      const sessionConfig = {
-        agentId: ELEVENLABS_AGENT_ID,
-        // Optional overrides for this session
-        overrides: {
-          agent: {
-            firstMessage: `Hello ${userName}! I'm Maya, your goal discovery guide. Let's explore what you'd like to achieve. What's been on your mind lately that you'd like to work on?`,
-            language: "en",
-          },
-          conversation: {
-            textOnly: false,
-          },
-        },
-      };
+      console.log('🚀 Starting ElevenLabs conversation with custom first message...');
       
-      console.log('🚀 Starting ElevenLabs conversation with direct agent connection...');
-      
-      // Use the React hook approach with direct agent connection
+      // Start session - overrides are configured in the hook initialization
       const conversationId = await conversation.startSession();
       
       console.log('✅ ElevenLabs conversation started successfully:', conversationId);

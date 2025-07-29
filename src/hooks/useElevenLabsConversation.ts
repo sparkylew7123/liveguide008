@@ -18,10 +18,26 @@ interface ConversationHandlers {
 /**
  * Custom hook that properly configures ElevenLabs conversation with WebSocket API requirements
  * According to https://elevenlabs.io/docs/conversational-ai/api-reference/conversational-ai/websocket
+ * 
+ * Supports overriding the agent's first message and other settings when starting a session.
+ * Note: Overrides must be enabled in the agent's security settings on ElevenLabs dashboard.
  */
 export function useElevenLabsConversation(
   config: ElevenLabsConfig,
-  handlers: ConversationHandlers
+  handlers: ConversationHandlers,
+  overrides?: {
+    agent?: {
+      firstMessage?: string;
+      language?: string;
+      prompt?: string;
+    };
+    conversation?: {
+      textOnly?: boolean;
+    };
+    tts?: {
+      voiceId?: string;
+    };
+  }
 ) {
   // Build the WebSocket URL with proper query parameters
   const buildWebSocketUrl = () => {
@@ -49,13 +65,21 @@ export function useElevenLabsConversation(
     return `${baseUrl}?${params.toString()}`;
   };
 
-  // Use the standard ElevenLabs conversation hook
-  const conversation = useConversation({
+  // Use the standard ElevenLabs conversation hook with overrides
+  const conversationConfig: any = {
     onConnect: handlers.onConnect,
     onDisconnect: handlers.onDisconnect,
     onMessage: handlers.onMessage,
     onError: handlers.onError,
-  });
+  };
+
+  // Add overrides if provided
+  if (overrides) {
+    conversationConfig.overrides = overrides;
+    console.log('🎨 Configuring conversation with overrides:', JSON.stringify(overrides, null, 2));
+  }
+
+  const conversation = useConversation(conversationConfig);
 
   // Enhanced startSession that properly formats the WebSocket connection
   const startSession = async () => {

@@ -21,7 +21,14 @@ interface AgentDetails {
   video_intro?: string;
 }
 
-export default function AgentsPage() {
+// Peachy Blush Theme
+// Psychological Principles:
+// - Peach tones create warmth and approachability
+// - Orange undertones boost energy and enthusiasm
+// - Pink elements add playfulness and reduce formality
+// - Combination promotes openness and emotional safety
+
+export default function AgentsPagePeachy() {
   const router = useRouter();
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
   const [selectedAgentName, setSelectedAgentName] = useState<string>('');
@@ -90,14 +97,14 @@ export default function AgentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-rose-100 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Navigation */}
         <div className="mb-8">
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="flex items-center gap-2 hover:bg-rose-100/50 text-rose-700"
+            className="flex items-center gap-2 hover:bg-orange-100/50 text-orange-700"
           >
             <ArrowLeft className="w-4 h-4" />
             {showVoiceOnboarding ? 'Back to Agent Selection' : 'Back to Home'}
@@ -110,15 +117,15 @@ export default function AgentsPage() {
             <AgentSelectionInterfaceFeminine
               onAgentSelect={handleAgentSelect}
               selectedAgentId={selectedAgentId}
-              theme="rose-quartz"
+              theme="peachy"
             />
             
           </div>
         ) : (
           <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2 text-rose-900">Voice Onboarding</h2>
-              <p className="text-rose-700">
+              <h2 className="text-2xl font-bold mb-2 text-orange-900">Voice Onboarding</h2>
+              <p className="text-orange-700">
                 You&apos;re now connected with {selectedAgentName}
               </p>
             </div>

@@ -1,0 +1,171 @@
+/* Feminine Color Themes for Agent Selection Interface */
+
+/* Rose Quartz & Serenity Theme */
+.rose-quartz-theme {
+  --primary: #ec4899; /* rose-500 */
+  --primary-hover: #db2777; /* rose-600 */
+  --primary-light: #fce7f3; /* rose-100 */
+  --primary-lighter: #fdf2f8; /* rose-50 */
+  
+  --secondary: #c084fc; /* purple-400 */
+  --secondary-light: #e9d5ff; /* purple-200 */
+  
+  --accent: #fbbf24; /* amber-400 for ratings */
+  
+  --background-gradient-start: #fdf2f8; /* rose-50 */
+  --background-gradient-middle: #fce7f3; /* pink-50 */
+  --background-gradient-end: #f3e8ff; /* purple-100 */
+  
+  --card-shadow: 0 10px 30px -10px rgba(236, 72, 153, 0.15);
+  --card-hover-shadow: 0 20px 40px -15px rgba(236, 72, 153, 0.25);
+}
+
+/* Lavender Dreams Theme */
+.lavender-theme {
+  --primary: #a855f7; /* purple-500 */
+  --primary-hover: #9333ea; /* purple-600 */
+  --primary-light: #e9d5ff; /* purple-200 */
+  --primary-lighter: #f3e8ff; /* purple-50 */
+  
+  --secondary: #ec4899; /* rose-500 */
+  --secondary-light: #fbcfe8; /* pink-200 */
+  
+  --accent: #fbbf24; /* amber-400 for ratings */
+  
+  --background-gradient-start: #f3e8ff; /* purple-50 */
+  --background-gradient-middle: #fae8ff; /* fuchsia-50 */
+  --background-gradient-end: #fce7f3; /* pink-50 */
+  
+  --card-shadow: 0 10px 30px -10px rgba(168, 85, 247, 0.15);
+  --card-hover-shadow: 0 20px 40px -15px rgba(168, 85, 247, 0.25);
+}
+
+/* Peachy Blush Theme */
+.peachy-theme {
+  --primary: #f97316; /* orange-500 */
+  --primary-hover: #ea580c; /* orange-600 */
+  --primary-light: #fed7aa; /* orange-200 */
+  --primary-lighter: #fff7ed; /* orange-50 */
+  
+  --secondary: #f43f5e; /* rose-500 */
+  --secondary-light: #fecaca; /* red-200 */
+  
+  --accent: #fbbf24; /* amber-400 for ratings */
+  
+  --background-gradient-start: #fff7ed; /* orange-50 */
+  --background-gradient-middle: #fce7f3; /* pink-50 */
+  --background-gradient-end: #ffe4e6; /* rose-100 */
+  
+  --card-shadow: 0 10px 30px -10px rgba(249, 115, 22, 0.15);
+  --card-hover-shadow: 0 20px 40px -15px rgba(249, 115, 22, 0.25);
+}
+
+/* Mauve Sophistication Theme */
+.mauve-theme {
+  --primary: #9333ea; /* purple-600 */
+  --primary-hover: #7c3aed; /* purple-700 */
+  --primary-light: #ddd6fe; /* purple-300 */
+  --primary-lighter: #f3e8ff; /* purple-50 */
+  
+  --secondary: #be185d; /* pink-700 */
+  --secondary-light: #fbcfe8; /* pink-200 */
+  
+  --accent: #fbbf24; /* amber-400 for ratings */
+  
+  --background-gradient-start: #f3e8ff; /* purple-50 */
+  --background-gradient-middle: #ffe4e6; /* rose-100 */
+  --background-gradient-end: #fce7f3; /* pink-100 */
+  
+  --card-shadow: 0 10px 30px -10px rgba(147, 51, 234, 0.15);
+  --card-hover-shadow: 0 20px 40px -15px rgba(147, 51, 234, 0.25);
+}
+
+/* Additional Feminine Design Elements */
+.feminine-glow {
+  box-shadow: 
+    0 0 20px rgba(var(--primary-rgb), 0.1),
+    0 0 40px rgba(var(--primary-rgb), 0.05);
+}
+
+.feminine-gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.feminine-border-gradient {
+  position: relative;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, var(--primary), var(--secondary)) border-box;
+  border: 2px solid transparent;
+}
+
+/* Soft animations for feminine touch */
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes soft-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.feminine-float {
+  animation: gentle-float 6s ease-in-out infinite;
+}
+
+.feminine-pulse {
+  animation: soft-pulse 3s ease-in-out infinite;
+}
+
+.feminine-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Accessibility enhancements for feminine themes */
+@media (prefers-reduced-motion: reduce) {
+  .feminine-float,
+  .feminine-pulse,
+  .feminine-shimmer {
+    animation: none;
+  }
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  .rose-quartz-theme,
+  .lavender-theme,
+  .peachy-theme,
+  .mauve-theme {
+    --card-shadow: 0 0 0 2px currentColor;
+    --card-hover-shadow: 0 0 0 3px currentColor;
+  }
+}

@@ -17,19 +17,10 @@ interface AgentMatchingPresentationProps {
   isLoading: boolean;
 }
 
-interface MatchedAgent {
+interface MatchedAgent extends Record<string, any> {
   uuid: string;
-  name: string;
-  title: string;
-  description: string;
-  specialties: string[];
-  personality_type: string;
-  coaching_style: string;
-  avatar_url?: string;
   match_score: number;
   match_reasoning: string;
-  elevenlabs_agent_id: string;
-  sample_audio_url?: string;
 }
 
 export function AgentMatchingPresentation({
@@ -71,7 +62,7 @@ export function AgentMatchingPresentation({
       const { data: agents, error } = await supabase
         .from('agent_personae')
         .select('*')
-        .eq('is_active', true);
+        .eq('availability_status', 'available');
 
       if (error) {
         console.error('Error fetching agents:', error);
@@ -84,37 +75,59 @@ export function AgentMatchingPresentation({
         let score = 0;
         let reasoning = '';
 
+        // Use JSONB data if available, otherwise fall back to column values
+        const agentData = agent.JSONB || agent;
+        const agentName = agent.Name || agentData.name;
+        const agentSpecialty = agent.Speciality || agentData.specialty || '';
+        const agentPersonality = agent.Personality || agentData.personality || '';
+
         // Goal-based matching
-        const agentSpecialties = agent.specialties || [];
-        const goalMatches = selectedGoals.filter(goal => 
-          agentSpecialties.some((specialty: string) => 
-            specialty.toLowerCase().includes(goal.toLowerCase()) ||
-            goal.toLowerCase().includes(specialty.toLowerCase())
-          )
-        );
+        const goalCategories = agent['Goal Category'] || agent.Category || '';
+        const specialtyText = `${agentSpecialty} ${goalCategories}`.toLowerCase();
+        
+        const goalMatches = selectedGoals.filter(goal => {
+          const goalText = typeof goal === 'string' ? goal : goal.title || '';
+          return specialtyText.includes(goalText.toLowerCase()) ||
+                 goalText.toLowerCase().includes(agentSpecialty.toLowerCase());
+        });
         
         if (goalMatches.length > 0) {
           score += (goalMatches.length / selectedGoals.length) * 40;
           reasoning += `Strong match for ${goalMatches.length} of your goals. `;
         }
 
-        // Coaching style matching
-        if (coachingPreferences && agent.coaching_style) {
-          const styleMatch = calculateStyleMatch(coachingPreferences, agent.coaching_style);
-          score += styleMatch * 30;
-          if (styleMatch > 0.7) {
+        // Coaching style matching based on personality
+        if (coachingPreferences && agentPersonality) {
+          // Simple personality-based matching
+          const personalityLower = agentPersonality.toLowerCase();
+          let styleScore = 0.5; // Base compatibility
+          
+          if (coachingPreferences.Energy?.preference === 'high' && 
+              (personalityLower.includes('energetic') || personalityLower.includes('motivating'))) {
+            styleScore += 0.2;
+          }
+          if (coachingPreferences.Structure?.preference === 'high' && 
+              (personalityLower.includes('structured') || personalityLower.includes('organized'))) {
+            styleScore += 0.2;
+          }
+          if (personalityLower.includes('supportive') || personalityLower.includes('empathetic')) {
+            styleScore += 0.1;
+          }
+          
+          score += styleScore * 30;
+          if (styleScore > 0.7) {
             reasoning += `Excellent coaching style compatibility. `;
           }
         }
 
         // Personality compatibility
-        if (agent.personality_type) {
+        if (agentPersonality) {
           score += 20; // Base score for having personality info
-          reasoning += `Complementary personality traits. `;
+          reasoning += `${agentPersonality.split('.')[0]}. `;
         }
 
         // Experience and rating
-        const rating = (agent as any).rating || 4.5;
+        const rating = agent.average_rating || 4.5;
         score += (rating / 5) * 10;
 
         return {
@@ -283,15 +296,15 @@ export function AgentMatchingPresentation({
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-16 h-16">
-                    <AvatarImage src={agent.avatar_url} alt={agent.name} />
+                    <AvatarImage src={agent.Image} alt={agent.Name} />
                     <AvatarFallback className="text-lg font-semibold">
-                      {agent.name.split(' ').map(n => n[0]).join('')}
+                      {(agent.Name || '').split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <CardTitle className="text-xl">{agent.name}</CardTitle>
+                      <CardTitle className="text-xl">{agent.Name}</CardTitle>
                       <Badge 
                         className={`${getMatchScoreColor(agent.match_score)} border-none`}
                       >
@@ -299,7 +312,7 @@ export function AgentMatchingPresentation({
                       </Badge>
                     </div>
                     <CardDescription className="text-base mt-1">
-                      {agent.title}
+                      {agent.Speciality}
                     </CardDescription>
                   </div>
                 </div>
@@ -319,7 +332,7 @@ export function AgentMatchingPresentation({
             </CardHeader>
             
             <CardContent>
-              <p className="text-gray-700 mb-4">{agent.description}</p>
+              <p className="text-gray-700 mb-4">{agent.Backstory || agent.JSONB?.backstory || ''}</p>
               
               <div className="space-y-3">
                 <div>
@@ -330,11 +343,11 @@ export function AgentMatchingPresentation({
                 </div>
                 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Specialties:</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Key Features:</h4>
                   <div className="flex flex-wrap gap-2">
-                    {agent.specialties?.map((specialty: string, index: number) => (
+                    {(agent.JSONB?.key_features || agent['Key Features']?.split(',') || []).map((feature: string, index: number) => (
                       <Badge key={index} variant="secondary" className="text-xs">
-                        {specialty}
+                        {feature.trim()}
                       </Badge>
                     ))}
                   </div>
@@ -345,25 +358,25 @@ export function AgentMatchingPresentation({
                     <div className="flex items-center space-x-1">
                       <Star className="w-4 h-4 text-yellow-500" />
                       <span className="text-sm font-medium">
-                        {(agent as any).rating || 4.8}
+                        {agent.average_rating || 4.8}
                       </span>
                     </div>
                     
                     <div className="flex items-center space-x-1">
                       <MessageCircle className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-600">
-                        {agent.coaching_style || 'Adaptive Style'}
+                        {agent['Tone and Style'] || agent.JSONB?.tone_and_style || 'Adaptive Style'}
                       </span>
                     </div>
                   </div>
                   
-                  {agent.sample_audio_url && (
+                  {agent.video_intro && (
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Play sample audio
+                        // TODO: Play video intro
                       }}
                     >
                       <MessageCircle className="w-4 h-4 mr-1" />

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useUser } from '@/contexts/UserContext'
-import { goalService, GoalCategoryWithGoals } from '@/lib/goals'
+import { graphGoalService, GraphGoal } from '@/lib/graph-goals'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -19,32 +19,60 @@ import {
   Sparkles,
   CheckCircle,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Trophy,
+  Activity
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 export default function LobbyPage() {
+  const router = useRouter()
   const { user, anonymousUser, isAnonymous, effectiveUserId, isLoading } = useUser()
-  const [goalCategories, setGoalCategories] = useState<GoalCategoryWithGoals[]>([])
+  const [userGoals, setUserGoals] = useState<GraphGoal[]>([])
   const [loadingGoals, setLoadingGoals] = useState(true)
+  const [recentSessions, setRecentSessions] = useState<any[]>([])
+  const [emotionalJourney, setEmotionalJourney] = useState<any[]>([])
 
   useEffect(() => {
-    if (!effectiveUserId) return
+    // Redirect to login if not authenticated (since anonymous users are disabled)
+    if (!isLoading && !user) {
+      router.push('/login')
+      return
+    }
 
-    const loadGoals = async () => {
+    if (!effectiveUserId || !user) {
+      // For non-authenticated users, set empty data and stop loading
+      setUserGoals([])
+      setRecentSessions([])
+      setEmotionalJourney([])
+      setLoadingGoals(false)
+      return
+    }
+
+    const loadData = async () => {
       try {
-        const categories = await goalService.getUserGoalsByCategory(effectiveUserId)
-        setGoalCategories(categories)
+        // Load goals with progress
+        const goals = await graphGoalService.getUserGoalsWithProgress(effectiveUserId)
+        setUserGoals(goals)
+
+        // Load recent sessions
+        const sessions = await graphGoalService.getRecentSessions(effectiveUserId, 5)
+        setRecentSessions(sessions)
+
+        // Load emotional journey for confidence tracking
+        const emotions = await graphGoalService.getEmotionalJourney(effectiveUserId, 30)
+        setEmotionalJourney(emotions)
       } catch (error) {
-        console.error('Error loading goals:', error)
+        console.error('Error loading data:', error)
       } finally {
         setLoadingGoals(false)
       }
     }
 
-    loadGoals()
-  }, [effectiveUserId])
+    loadData()
+  }, [effectiveUserId, user, isLoading, router])
 
   const getCategoryIcon = (categoryTitle: string) => {
     switch (categoryTitle) {
@@ -76,11 +104,26 @@ export default function LobbyPage() {
     }
   }
 
-  const totalGoals = goalCategories.reduce((sum, cat) => sum + cat.goals.length, 0)
-  const completedGoals = goalCategories.reduce((sum, cat) => 
-    sum + cat.goals.filter(goal => goal.goal_status === 'completed').length, 0
-  )
-  const progressPercentage = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0
+  // Group goals by category
+  const goalsByCategory = userGoals.reduce((acc, goal) => {
+    const category = goal.category || 'Uncategorized'
+    if (!acc[category]) {
+      acc[category] = []
+    }
+    acc[category].push(goal)
+    return acc
+  }, {} as Record<string, GraphGoal[]>)
+
+  // Calculate overall progress metrics
+  const totalGoals = userGoals.length
+  const totalSessions = userGoals.reduce((sum, goal) => sum + (goal.session_count || 0), 0)
+  const totalDuration = userGoals.reduce((sum, goal) => sum + (goal.total_duration_minutes || 0), 0)
+  const totalAccomplishments = userGoals.reduce((sum, goal) => sum + (goal.accomplishment_count || 0), 0)
+  
+  // Calculate average confidence from emotional journey
+  const averageConfidence = emotionalJourney.length > 0
+    ? emotionalJourney.reduce((sum, emotion) => sum + (emotion.confidence_level || 0), 0) / emotionalJourney.length
+    : 0
 
   if (isLoading || loadingGoals) {
     return (
@@ -178,12 +221,20 @@ export default function LobbyPage() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-300">Completed</span>
-                  <span className="text-white">{completedGoals}/{totalGoals}</span>
+                  <span className="text-gray-300">Active Goals</span>
+                  <span className="text-white">{totalGoals}</span>
                 </div>
-                <Progress value={progressPercentage} className="h-2" />
-                <div className="text-xs text-gray-400">
-                  {progressPercentage.toFixed(0)}% Complete
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Total Sessions</span>
+                  <span className="text-white">{totalSessions}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Accomplishments</span>
+                  <span className="text-white">{totalAccomplishments}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Time Invested</span>
+                  <span className="text-white">{Math.round(totalDuration / 60)}h {totalDuration % 60}m</span>
                 </div>
               </div>
             </CardContent>
@@ -200,10 +251,21 @@ export default function LobbyPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full border-gray-400 text-gray-300 hover:bg-gray-800">
-                <Clock className="mr-2 h-4 w-4" />
-                View Sessions
-              </Button>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Last Session</span>
+                  <span className="text-white">
+                    {recentSessions.length > 0 
+                      ? new Date(recentSessions[0].start_time).toLocaleDateString()
+                      : 'No sessions yet'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">Confidence Level</span>
+                  <span className="text-white">{(averageConfidence * 100).toFixed(0)}%</span>
+                </div>
+                <Progress value={averageConfidence * 100} className="h-2" />
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -220,7 +282,7 @@ export default function LobbyPage() {
             </Button>
           </div>
 
-          {goalCategories.length === 0 ? (
+          {userGoals.length === 0 ? (
             <Card className="bg-slate-800/50 border-slate-700">
               <CardContent className="py-12 text-center">
                 <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -238,41 +300,73 @@ export default function LobbyPage() {
             </Card>
           ) : (
             <Accordion type="single" collapsible className="space-y-4">
-              {goalCategories.map((category) => (
-                <AccordionItem key={category.id} value={category.id} className="border-slate-700">
+              {Object.entries(goalsByCategory).map(([category, goals]) => (
+                <AccordionItem key={category} value={category} className="border-slate-700">
                   <AccordionTrigger className="bg-slate-800/50 px-6 py-4 rounded-lg hover:bg-slate-800/70 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${getCategoryColor(category.title || '')}`}>
-                        {getCategoryIcon(category.title || '')}
+                      <div className={`p-2 rounded-lg ${getCategoryColor(category)}`}>
+                        {getCategoryIcon(category)}
                       </div>
                       <div className="text-left">
-                        <div className="font-semibold text-white">{category.title}</div>
+                        <div className="font-semibold text-white">{category}</div>
                         <div className="text-sm text-gray-300">
-                          {category.goals.length} goal{category.goals.length !== 1 ? 's' : ''}
+                          {goals.length} goal{goals.length !== 1 ? 's' : ''} • 
+                          {goals.reduce((sum, g) => sum + (g.session_count || 0), 0)} sessions
                         </div>
                       </div>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-6 py-4">
                     <div className="space-y-3">
-                      {category.goals.map((goal) => (
-                        <div key={goal.id} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            {goal.goal_status === 'completed' ? (
-                              <CheckCircle className="h-5 w-5 text-green-400" />
-                            ) : (
-                              <div className="h-5 w-5 rounded-full border-2 border-gray-400" />
-                            )}
-                            <div>
-                              <div className="text-white font-medium">{goal.goal_title}</div>
-                              {goal.goal_description && (
-                                <div className="text-sm text-gray-300">{goal.goal_description}</div>
+                      {goals.map((goal) => (
+                        <div key={goal.goal_id} className="p-4 bg-slate-800/30 rounded-lg">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Trophy className="h-4 w-4 text-amber-400" />
+                                <div className="text-white font-medium">{goal.goal_title}</div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="text-gray-400">Sessions:</span>
+                                  <span className="text-gray-200 ml-1">{goal.session_count || 0}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Duration:</span>
+                                  <span className="text-gray-200 ml-1">{goal.total_duration_minutes || 0}m</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Accomplishments:</span>
+                                  <span className="text-gray-200 ml-1">{goal.accomplishment_count || 0}</span>
+                                </div>
+                              </div>
+                              {goal.target_date && (
+                                <div className="mt-2 text-sm text-gray-400">
+                                  Target: {new Date(goal.target_date).toLocaleDateString()}
+                                </div>
                               )}
                             </div>
+                            <div className="flex items-center gap-2">
+                              {goal.priority && (
+                                <Badge 
+                                  variant="outline" 
+                                  className={
+                                    goal.priority === 'high' ? 'border-red-400 text-red-400' :
+                                    goal.priority === 'medium' ? 'border-amber-400 text-amber-400' :
+                                    'border-gray-400 text-gray-400'
+                                  }
+                                >
+                                  {goal.priority}
+                                </Badge>
+                              )}
+                              <Link href={`/coaching/${goal.goal_id}`}>
+                                <Button size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-900/20">
+                                  <Mic className="w-4 h-4 mr-1" />
+                                  Coach
+                                </Button>
+                              </Link>
+                            </div>
                           </div>
-                          <Badge variant="outline" className="text-gray-300 border-gray-400">
-                            {goal.goal_status}
-                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -282,6 +376,81 @@ export default function LobbyPage() {
             </Accordion>
           )}
         </div>
+
+        {/* Recent Sessions */}
+        {recentSessions.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Recent Sessions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentSessions.map((session) => (
+                <Card key={session.session_id} className="bg-slate-800/50 border-slate-700">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg text-white flex items-center gap-2">
+                        <Activity className="h-4 w-4" />
+                        {new Date(session.start_time).toLocaleDateString()}
+                      </CardTitle>
+                      <Badge variant="outline" className="text-gray-300 border-gray-400">
+                        {session.duration_minutes || 0}m
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {session.emotional_state && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Heart className="h-4 w-4 text-red-400" />
+                          <span className="text-gray-300">Feeling: {session.emotional_state}</span>
+                        </div>
+                      )}
+                      {session.confidence_level && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <TrendingUp className="h-4 w-4 text-green-400" />
+                          <span className="text-gray-300">Confidence: {(session.confidence_level * 100).toFixed(0)}%</span>
+                        </div>
+                      )}
+                      {session.accomplishment_count > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <CheckCircle className="h-4 w-4 text-amber-400" />
+                          <span className="text-gray-300">{session.accomplishment_count} accomplishments</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Confidence Trend */}
+        {emotionalJourney.length > 0 && (
+          <div className="mb-8">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Confidence Trend
+                </CardTitle>
+                <CardDescription className="text-gray-300">
+                  Your emotional journey over the last 30 days
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Average Confidence</span>
+                    <span className="text-2xl font-bold text-white">{(averageConfidence * 100).toFixed(0)}%</span>
+                  </div>
+                  <Progress value={averageConfidence * 100} className="h-3" />
+                  <p className="text-sm text-gray-400">
+                    Based on {emotionalJourney.length} emotional check-ins
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Anonymous User CTA */}
         {isAnonymous && (

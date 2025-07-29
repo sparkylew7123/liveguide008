@@ -382,6 +382,16 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
         setConversationError(`ElevenLabs error: ${error.message || String(error)}`)
         setConversationConnected(false)
       }
+    },
+    // Pass overrides as third parameter for custom first message
+    {
+      agent: {
+        firstMessage: `Hello ${userPreferences?.userName || 'there'}! I'm Maya, your goal discovery guide. Let's explore what you'd like to achieve. What's been on your mind lately that you'd like to work on?`,
+        language: "en",
+      },
+      conversation: {
+        textOnly: false,
+      },
     }
   )
   
@@ -537,7 +547,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
         conversation.endSession()
       }
     }
-  }, [conversation])
+  }, []) // Empty dependency array - only run cleanup on unmount
 
   const handleStartConversation = async () => {
     setConversationStarted(true)

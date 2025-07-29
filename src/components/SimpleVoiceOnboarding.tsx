@@ -19,19 +19,29 @@ interface AgentDetails {
   average_rating: number | null;
 }
 
+interface GoalContext {
+  goalId: string;
+  goalTitle: string;
+  category: string;
+  sessionCount: number;
+  accomplishmentCount: number;
+}
+
 interface SimpleVoiceOnboardingProps {
   onComplete?: (data: Record<string, unknown>) => void;
   agentId?: string;
   agentDetails?: AgentDetails | null;
   loading?: boolean;
   userName?: string;
+  goalContext?: GoalContext;
 }
 
 export function SimpleVoiceOnboarding({ 
   agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'SuIlXQ4S6dyjrNViOrQ8',
   agentDetails,
   loading = false,
-  userName = 'User'
+  userName = 'User',
+  goalContext
 }: SimpleVoiceOnboardingProps) {
   const [messages, setMessages] = useState<string[]>([]);
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
@@ -45,9 +55,16 @@ export function SimpleVoiceOnboarding({
       customCallId: conversationSessionId.current,
       metadata: formatMetadata({
         userName: userName || 'there',
-        sessionType: 'simple_voice_onboarding',
+        sessionType: goalContext ? 'coaching_session' : 'simple_voice_onboarding',
         agentName: agentDetails?.Name || 'AI Coach',
-        microphoneWorking: true
+        microphoneWorking: true,
+        ...(goalContext && {
+          goalId: goalContext.goalId,
+          goalTitle: goalContext.goalTitle,
+          goalCategory: goalContext.category,
+          previousSessions: goalContext.sessionCount,
+          previousAccomplishments: goalContext.accomplishmentCount
+        })
       })
     },
     {
