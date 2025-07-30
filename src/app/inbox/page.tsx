@@ -21,8 +21,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
-import { getInboxContent } from '@/lib/content';
-
 interface InboxMessage {
   id: string;
   sender_name: string;
@@ -56,7 +54,6 @@ interface Notification {
 }
 
 export default function InboxPage() {
-  const content = getInboxContent();
   const [activeTab, setActiveTab] = useState('messages');
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,9 +202,9 @@ export default function InboxPage() {
           <div className="mb-8">
             <div className="flex justify-between items-start">
               <div>
-                <div data-sb-object-id="inbox-header">
-                  <h1 data-sb-field-path="title" className="text-3xl font-bold text-white mb-2">Inbox</h1>
-                  <p data-sb-field-path="subtitle" className="text-gray-400">Stay connected with your coaches and track your progress</p>
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">Inbox</h1>
+                  <p className="text-gray-400">Stay connected with your coaches and track your progress</p>
                 </div>
               </div>
               {messages.length === 0 && !loading && (
@@ -224,7 +221,7 @@ export default function InboxPage() {
                   ) : (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      {content.emptyState.populateButton}
+                      Populate Test Data
                     </>
                   )}
                 </Button>
@@ -254,7 +251,7 @@ export default function InboxPage() {
               {loading ? (
                 <div className="text-center py-8">
                   <RefreshCw className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-400">{content.loadingText}</p>
+                  <p className="text-gray-400">Loading messages...</p>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="text-center py-8">
