@@ -24,7 +24,6 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
-    "@stackbit/cms-git": "^1.0.35",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.50.5",
     "class-variance-authority": "^0.7.1",
@@ -41,7 +40,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@stackbit/types": "^2.1.14",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^24.0.13",
     "@types/react": "^18.3.23",
