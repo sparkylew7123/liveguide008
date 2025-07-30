@@ -150,23 +150,26 @@ export class AnonymousUserService {
       console.log('Skipping anonymous sign-in due to server error')
       return this.getAnonymousId()
       
-      // const { data, error } = await this.supabase.auth.signInAnonymously()
+      // Uncomment below when anonymous sign-ins are enabled in Supabase
+      /*
+      const { data, error } = await this.supabase.auth.signInAnonymously()
       
-      // if (error) {
-      //   console.error('Error signing in anonymously:', error)
-      //   return null
-      // }
+      if (error) {
+        console.error('Error signing in anonymously:', error)
+        return null
+      }
       
-      // // Store mapping between anonymous ID and Supabase user ID
-      // const anonymousId = this.getAnonymousId()
-      // const supabaseUserId = data.user?.id
+      // Store mapping between anonymous ID and Supabase user ID
+      const anonymousId = this.getAnonymousId()
+      const supabaseUserId = data.user?.id
       
-      // if (supabaseUserId) {
-      //   this.mapAnonymousToSupabase(anonymousId, supabaseUserId)
-      //   return supabaseUserId
-      // }
+      if (supabaseUserId) {
+        this.mapAnonymousToSupabase(anonymousId, supabaseUserId)
+        return supabaseUserId
+      }
       
-      // return null
+      return null
+      */
     } catch (error) {
       console.error('Error with anonymous sign in:', error)
       return this.getAnonymousId()
