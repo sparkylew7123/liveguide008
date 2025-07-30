@@ -11,42 +11,14 @@ export default defineStackbitConfig({
             contentDirs: ["content"],
             models: [
                 {
-                    name: "HomePage",
+                    name: "Page",
                     type: "page",
-                    urlPath: "/",
-                    filePath: "content/landing.json",
-                    singleInstance: true,
+                    urlPath: "/{slug}",
+                    filePath: "content/pages/{slug}.json",
                     fields: [
-                        {
-                            name: "hero",
-                            type: "object",
-                            fields: [
-                                { name: "badge", type: "string", required: true },
-                                { name: "title", type: "string", required: true },
-                                { name: "description", type: "string", required: true },
-                                { name: "ctaText", type: "string", required: true },
-                                { name: "features", type: "list", items: { type: "string" } }
-                            ]
-                        },
-                        {
-                            name: "whyChoose",
-                            type: "object",
-                            fields: [
-                                { name: "title", type: "string", required: true },
-                                { name: "subtitle", type: "string", required: true },
-                                {
-                                    name: "features",
-                                    type: "list",
-                                    items: {
-                                        type: "object",
-                                        fields: [
-                                            { name: "title", type: "string", required: true },
-                                            { name: "description", type: "string", required: true }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
+                        { name: "slug", type: "slug", required: true },
+                        { name: "title", type: "string", required: true },
+                        { name: "content", type: "markdown" }
                     ]
                 },
                 {
@@ -89,43 +61,21 @@ export default defineStackbitConfig({
         // 1. Filter all page models
         const pageModels = models.filter((m) => m.type === "page");
 
-        // 2. Create site map entries for our static pages
-        const homePageDoc = documents.find(d => d.modelName === "HomePage");
-        const staticPages: SiteMapEntry[] = homePageDoc ? [
-            {
-                stableId: "home",
-                urlPath: "/",
-                document: homePageDoc,
-                isHomePage: true,
-            }
-        ] : [];
-
-        // 3. Map other page documents to site map entries
-        const dynamicPages = documents
-            .filter((d) => pageModels.some(m => m.name === d.modelName && m.name !== "HomePage"))
+        // 2. Map page documents to site map entries
+        return documents
+            .filter((d) => pageModels.some(m => m.name === d.modelName))
             .map((document) => {
-                const urlPath = (() => {
-                    switch (document.modelName) {
-                        case 'AuthContent':
-                            return null; // Data model, not a page
-                        case 'InboxContent':
-                            return null; // Data model, not a page
-                        default:
-                            return `/${document.modelName.toLowerCase()}`;
-                    }
-                })();
-
-                if (!urlPath) return null;
-
+                // Get slug from document fields
+                const slugField = document.fields?.slug;
+                const slug: string = typeof slugField === 'string' ? slugField : '';
+                const isHome = slug === 'index' || slug.length === 0;
+                
                 return {
                     stableId: document.id,
-                    urlPath,
+                    urlPath: isHome ? '/' : `/${slug}`,
                     document,
-                    isHomePage: false,
+                    isHomePage: isHome,
                 };
-            })
-            .filter(Boolean) as SiteMapEntry[];
-
-        return [...staticPages, ...dynamicPages];
+            }) as SiteMapEntry[];
     }
 });
