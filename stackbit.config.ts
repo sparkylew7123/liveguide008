@@ -5,6 +5,19 @@ export default defineStackbitConfig({
     stackbitVersion: "~0.6.0",
     ssgName: "nextjs",
     nodeVersion: "21",
+    modelExtensions: [
+        {
+            name: "Page",
+            fields: [
+                {
+                    name: "pageId",
+                    type: "string",
+                    required: true,
+                    hidden: true
+                }
+            ]
+        }
+    ],
     contentSources: [
         new GitContentSource({
             rootPath: __dirname,
@@ -16,7 +29,8 @@ export default defineStackbitConfig({
                     urlPath: "/{slug}",
                     filePath: "content/pages/{slug}.json",
                     fields: [
-                        { name: "title", type: "string", required: true }
+                        { name: "title", type: "string", required: true },
+                        { name: "slug", type: "slug", required: true }
                     ]
                 },
                 {
@@ -65,44 +79,60 @@ export default defineStackbitConfig({
             ]
         })
     ],
-    siteMap: ({ documents, models }) => {
-        // 1. Filter all page models
-        const pageModels = models.filter((m) => m.type === "page");
-
-        return documents
-            // 2. Filter all documents which are of a page model
-            .filter((d) => pageModels.some(m => m.name === d.modelName))
-            // 3. Map each document to a SiteMapEntry
-            .map((document) => {
-                // Special handling for LandingPage
-                if (document.modelName === 'LandingPage') {
-                    return {
-                        stableId: document.id,
-                        urlPath: '/',
+    siteMap: ({ documents }) => {
+        // Create sitemap entries
+        const siteMapEntries: SiteMapEntry[] = [];
+        
+        // Add home page
+        const landingPage = documents.find(doc => doc.modelName === 'LandingPage');
+        if (landingPage) {
+            siteMapEntries.push({
+                stableId: 'home',
+                label: 'Home',
+                urlPath: '/',
+                document: landingPage,
+                isHomePage: true,
+            });
+        }
+        
+        // Add other pages
+        documents
+            .filter((doc) => doc.modelName === 'Page')
+            .forEach((document) => {
+                const slugField = document.fields?.slug;
+                const titleField = document.fields?.title;
+                const pageIdField = document.fields?.pageId;
+                
+                // Extract string values from DocumentField
+                const slug = typeof slugField === 'object' && slugField !== null && 'value' in slugField 
+                    ? String(slugField.value) 
+                    : typeof slugField === 'string' 
+                    ? slugField 
+                    : null;
+                    
+                const title = typeof titleField === 'object' && titleField !== null && 'value' in titleField
+                    ? String(titleField.value)
+                    : typeof titleField === 'string'
+                    ? titleField
+                    : 'Untitled Page';
+                    
+                const pageId = typeof pageIdField === 'object' && pageIdField !== null && 'value' in pageIdField
+                    ? String(pageIdField.value)
+                    : typeof pageIdField === 'string'
+                    ? pageIdField
+                    : document.id;
+                
+                if (slug) {
+                    siteMapEntries.push({
+                        stableId: String(pageId),
+                        label: title,
+                        urlPath: `/${slug}`,
                         document,
-                        isHomePage: true,
-                    };
+                        isHomePage: false,
+                    });
                 }
-
-                // Map the model name to its corresponding URL prefix
-                const urlPrefix = (() => {
-                    switch (document.modelName) {
-                        case 'Page':
-                            return 'page';
-                        case 'BlogPost':
-                            return 'blog';
-                        default:
-                            return document.modelName.toLowerCase();
-                    }
-                })();
-
-                return {
-                    stableId: document.id,
-                    urlPath: `/${urlPrefix}/${document.id}`,
-                    document,
-                    isHomePage: false,
-                };
-            })
-            .filter(Boolean) as SiteMapEntry[];
+            });
+            
+        return siteMapEntries;
     }
 });

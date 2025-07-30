@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
+import { getInboxContent } from '@/lib/content';
 
 interface InboxMessage {
   id: string;
@@ -55,6 +56,7 @@ interface Notification {
 }
 
 export default function InboxPage() {
+  const content = getInboxContent();
   const [activeTab, setActiveTab] = useState('messages');
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -222,7 +224,7 @@ export default function InboxPage() {
                   ) : (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      Populate Test Data
+                      {content.emptyState.populateButton}
                     </>
                   )}
                 </Button>
@@ -252,7 +254,7 @@ export default function InboxPage() {
               {loading ? (
                 <div className="text-center py-8">
                   <RefreshCw className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-400">Loading messages...</p>
+                  <p className="text-gray-400">{content.loadingText}</p>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="text-center py-8">

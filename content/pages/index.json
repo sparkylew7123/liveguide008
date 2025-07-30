@@ -1,3 +1,5 @@
 {
-  "title": "Welcome to LiveGuide"
+  "title": "Welcome to LiveGuide",
+  "slug": "welcome",
+  "pageId": "page-welcome"
 }
