@@ -4,8 +4,8 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "18.17.0"
-  NPM_VERSION = "9.6.7"
+  NODE_VERSION = "22.12.0"
+  NPM_VERSION = "10.9.2"
   # Ensure Next.js knows the deployment URL
   NEXT_PUBLIC_SITE_URL = "${DEPLOY_PRIME_URL}"
 

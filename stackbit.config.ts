@@ -1,6 +1,6 @@
 export default {
     stackbitVersion: "~0.6.0",
-    nodeVersion: "18",
+    nodeVersion: "22",
     ssgName: "nextjs",
     contentSources: [
         {
