@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
       agentId, 
       limit = 10,
       searchType = 'hybrid', // 'semantic', 'keyword', or 'hybrid'
-      semanticWeight = 0.7
     } = await request.json()
 
     if (!query || !agentId) {
@@ -158,7 +157,7 @@ export async function POST(request: NextRequest) {
 
 
 // Helper function to update document access analytics
-async function updateDocumentAccess(supabase: any, documentIds: string[]) {
+async function updateDocumentAccess(supabase: ReturnType<typeof createServiceRoleClient>, documentIds: string[]) {
   try {
     for (const docId of documentIds) {
       await supabase.rpc('update_document_access', { doc_id: docId })

@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(cookieStore)
 
     // This should be called by the webhook or service role
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { error: authError } = await supabase.auth.getUser()
     if (authError) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -123,7 +123,13 @@ function getStartDate(timeframe: string): Date {
   }
 }
 
-function calculateConversationMetrics(insights: any[]) {
+function calculateConversationMetrics(insights: {
+  duration_seconds?: number;
+  engagement_score?: number;
+  topics?: string[];
+  goals_mentioned?: string[];
+  action_items?: string[];
+}[]) {
   if (insights.length === 0) {
     return {
       totalConversations: 0,

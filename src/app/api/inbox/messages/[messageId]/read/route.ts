@@ -34,7 +34,10 @@ export async function POST(
 
     // Update read receipt with additional info if provided
     if (readDurationSeconds || deviceInfo) {
-      const updateData: any = {}
+      const updateData: {
+        read_duration_seconds?: number;
+        device_info?: string;
+      } = {}
       if (readDurationSeconds) updateData.read_duration_seconds = readDurationSeconds
       if (deviceInfo) updateData.device_info = deviceInfo
 

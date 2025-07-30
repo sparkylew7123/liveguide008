@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create knowledge base for agent
-    let { data: knowledgeBase, error: kbError } = await supabase
+    const { data: knowledgeBase, error: kbError } = await supabase
       .from('agent_knowledge_bases')
       .select('id')
       .eq('agent_id', agentId)

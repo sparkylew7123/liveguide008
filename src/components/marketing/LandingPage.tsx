@@ -249,13 +249,15 @@ export default function LandingPage() {
                 Voice-First AI Life Coaching
               </Badge>
               
-              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
-                Your Personal
-                <br />
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Voice 1st <span style={{ fontSize: '115%' }}>AI Coach</span>
-                </span>
-              </h1>
+              <div data-sb-object-id="landing-hero-title">
+                <h1 data-sb-field-path="title" className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+                  Your Personal
+                  <br />
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Voice 1st <span style={{ fontSize: '115%' }}>AI Coach</span>
+                  </span>
+                </h1>
+              </div>
               
               {/* Description text in gradient box */}
               <motion.div
@@ -264,11 +266,13 @@ export default function LandingPage() {
                 transition={{ duration: 0.8, delay: 0.3 }}
                 className="mt-6 p-6 rounded-2xl bg-gradient-to-br from-slate-900/95 via-blue-900/90 to-purple-900/95 backdrop-blur-sm border border-white/10 shadow-2xl"
               >
-                <p className="text-lg leading-relaxed sm:text-xl" style={{ color: 'white' }}>
-                  Experience the future of personal development with AI coaches powered by ElevenLabs. 
-                  Choose from 12 specialized coaches for career, wellness, mindfulness, and emotional growth. 
-                  Start speaking, start growing.
-                </p>
+                <div data-sb-object-id="landing-hero-description">
+                  <p data-sb-field-path="description" className="text-lg leading-relaxed sm:text-xl" style={{ color: 'white' }}>
+                    Experience the future of personal development with AI coaches powered by ElevenLabs. 
+                    Choose from 12 specialized coaches for career, wellness, mindfulness, and emotional growth. 
+                    Start speaking, start growing.
+                  </p>
+                </div>
               </motion.div>
               
               {/* Talk to Agent button */}
@@ -402,13 +406,15 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-              Why Choose LiveGuide?
-            </h2>
-            <p className="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
-              Our streamlined platform combines ElevenLabs&apos; cutting-edge voice AI with proven coaching methodologies 
-              to deliver personalized guidance that sounds and feels completely natural.
-            </p>
+            <div data-sb-object-id="features-section">
+              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+                Why Choose LiveGuide?
+              </h2>
+              <p data-sb-field-path="subtitle" className="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
+                Our streamlined platform combines ElevenLabs&apos; cutting-edge voice AI with proven coaching methodologies 
+                to deliver personalized guidance that sounds and feels completely natural.
+              </p>
+            </div>
           </motion.div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -449,12 +455,14 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-              Trusted by Voice-First Learners
-            </h2>
-            <p className="mt-4 text-lg text-gray-300">
-              See what our users are saying about their natural voice coaching experience
-            </p>
+            <div data-sb-object-id="testimonials-section">
+              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+                Trusted by Voice-First Learners
+              </h2>
+              <p data-sb-field-path="subtitle" className="mt-4 text-lg text-gray-300">
+                See what our users are saying about their natural voice coaching experience
+              </p>
+            </div>
           </motion.div>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -495,13 +503,15 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl mb-6">
-              Ready to Start Voice Coaching?
-            </h2>
-            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join others who have discovered the power of voice-first AI coaching. 
-              Choose your specialized coach and start your journey today.
-            </p>
+            <div data-sb-object-id="cta-section">
+              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl mb-6">
+                Ready to Start Voice Coaching?
+              </h2>
+              <p data-sb-field-path="subtitle" className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+                Join others who have discovered the power of voice-first AI coaching. 
+                Choose your specialized coach and start your journey today.
+              </p>
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
               <Input 

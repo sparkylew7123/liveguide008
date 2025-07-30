@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   Bot, 
   Settings, 
@@ -25,7 +24,7 @@ export default function MayaConfigPage() {
   const [configStatus, setConfigStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
   const [logs, setLogs] = useState<string[]>([]);
   const [showApiKey, setShowApiKey] = useState(false);
-  const [agentDetails, setAgentDetails] = useState({
+  const [agentDetails] = useState({
     name: "Maya - LiveGuide Onboarding Specialist",
     agentId: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'Not configured',
     apiKey: process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY || 'Not configured',
@@ -109,7 +108,7 @@ export default function MayaConfigPage() {
             if (data.status) {
               setConfigStatus(data.status);
             }
-          } catch (e) {
+          } catch {
             // Not JSON, just add as log
             if (line.trim()) {
               setLogs(prev => [...prev, line]);
@@ -220,7 +219,7 @@ export default function MayaConfigPage() {
             {/* Features Card */}
             <Card>
               <CardHeader>
-                <CardTitle>Maya's Capabilities</CardTitle>
+                <CardTitle>Maya&apos;s Capabilities</CardTitle>
                 <CardDescription>Key features configured by the script</CardDescription>
               </CardHeader>
               <CardContent>
@@ -242,7 +241,7 @@ export default function MayaConfigPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Conversation Framework</CardTitle>
-                <CardDescription>Maya's programmed expertise areas</CardDescription>
+                <CardDescription>Maya&apos;s programmed expertise areas</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -279,7 +278,7 @@ export default function MayaConfigPage() {
                 <div className="bg-gray-900 rounded-lg p-4 h-96 overflow-y-auto">
                   {logs.length === 0 ? (
                     <p className="text-gray-500 text-sm font-mono">
-                      Click "Run Configuration Script" to see logs...
+                      Click &quot;Run Configuration Script&quot; to see logs...
                     </p>
                   ) : (
                     <div className="space-y-1">

@@ -26,7 +26,12 @@ export default function KnowledgeManagementPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadMessage, setUploadMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<{
+    id?: string;
+    title: string;
+    excerpt: string;
+    score: number;
+  }[]>([])
   const [searching, setSearching] = useState(false)
   const [agents, setAgents] = useState<Agent[]>([])
   const [loadingAgents, setLoadingAgents] = useState(true)
@@ -58,8 +63,8 @@ export default function KnowledgeManagementPage() {
           setAgentId(defaultAgent['11labs_agentID'])
         }
       }
-    } catch (error) {
-      console.error('Error fetching agents:', error)
+    } catch {
+      console.error('Error fetching agents')
     } finally {
       setLoadingAgents(false)
     }
@@ -103,7 +108,7 @@ export default function KnowledgeManagementPage() {
       } else {
         setUploadMessage(`Error: ${result.error}`)
       }
-    } catch (error) {
+    } catch {
       setUploadMessage('Upload failed. Please try again.')
     } finally {
       setUploading(false)
@@ -133,8 +138,8 @@ export default function KnowledgeManagementPage() {
         console.error('Search error:', result.error)
         setSearchResults([])
       }
-    } catch (error) {
-      console.error('Search failed:', error)
+    } catch {
+      console.error('Search failed')
       setSearchResults([])
     } finally {
       setSearching(false)
@@ -151,7 +156,7 @@ export default function KnowledgeManagementPage() {
           <CardHeader>
             <CardTitle>Upload Knowledge Document</CardTitle>
             <CardDescription>
-              Add coaching materials to the agent's knowledge base
+              Add coaching materials to the agent&apos;s knowledge base
             </CardDescription>
           </CardHeader>
           <CardContent>

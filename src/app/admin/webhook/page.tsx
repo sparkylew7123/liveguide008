@@ -238,7 +238,7 @@ export default function WebhookAdminPage() {
                 <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500">No webhooks configured</p>
                 <p className="text-sm text-gray-400 mt-2">
-                  Click "Setup Webhook" to register your first webhook
+                  Click &quot;Setup Webhook&quot; to register your first webhook
                 </p>
               </div>
             ) : (

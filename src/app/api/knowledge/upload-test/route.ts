@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 // Test endpoint that uses service role for authentication bypass
 export async function POST(request: NextRequest) {
-  const isDevelopment = process.env.NODE_ENV === 'development'
   
   try {
     // Use service role client to bypass RLS
@@ -73,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create knowledge base
-    let { data: knowledgeBase, error: kbError } = await supabase
+    const { data: knowledgeBase, error: kbError } = await supabase
       .from('agent_knowledge_bases')
       .select('*')
       .eq('agent_id', agentId)

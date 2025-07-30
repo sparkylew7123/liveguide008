@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
-import { generateEmbedding, chunkText, generateChunkEmbeddings } from '@/services/embeddings'
+import { chunkText, generateChunkEmbeddings } from '@/services/embeddings'
 
 // This endpoint processes documents to generate embeddings
 // In production, this would be called by a queue worker

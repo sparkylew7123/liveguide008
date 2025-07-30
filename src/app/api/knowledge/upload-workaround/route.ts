@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File
     const agentId = formData.get('agentId') as string
-    const category = formData.get('category') as string
     const metadata = formData.get('metadata') as string
 
     if (!file || !agentId) {
@@ -35,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if knowledge base exists
-    let { data: knowledgeBase, error: kbError } = await supabase
+    const { data: knowledgeBase, error: kbError } = await supabase
       .from('agent_knowledge_bases')
       .select('id')
       .eq('agent_id', agentId)

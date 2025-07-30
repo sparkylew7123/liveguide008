@@ -154,7 +154,14 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateGoalMetrics(goals: any[]) {
+function calculateGoalMetrics(goals: {
+  status: string;
+  category?: string;
+  goal_progress?: {
+    created_at: string;
+    progress_percentage?: number;
+  }[];
+}[]) {
   const total = goals.length
   const completed = goals.filter(g => g.status === 'achieved').length
   const inProgress = goals.filter(g => g.status === 'active').length
@@ -167,7 +174,7 @@ function calculateGoalMetrics(goals: any[]) {
   goals.forEach(goal => {
     if (goal.goal_progress && goal.goal_progress.length > 0) {
       const latestProgress = goal.goal_progress
-        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
       
       if (latestProgress.progress_percentage) {
         totalProgress += latestProgress.progress_percentage

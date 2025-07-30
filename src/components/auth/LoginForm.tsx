@@ -70,7 +70,9 @@ function LoginFormContent() {
 
   return (
     <div className="w-full max-w-md p-8 bg-gray-900/80 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-800">
-      <h2 className="mb-6 text-2xl font-bold text-center text-white">Sign In</h2>
+      <div data-sb-object-id="login-form-header">
+        <h2 data-sb-field-path="title" className="mb-6 text-2xl font-bold text-center text-white">Sign In</h2>
+      </div>
       
       {error && (
         <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 text-red-400 rounded-lg backdrop-blur-sm">

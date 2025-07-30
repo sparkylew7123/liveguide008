@@ -191,7 +191,7 @@ export default function ColorPaletteDemo() {
               </p>
               <ol className="list-decimal list-inside space-y-2 text-gray-600">
                 <li>Import the feminine theme component: <code className="bg-gray-100 px-2 py-1 rounded">AgentSelectionInterfaceFeminine</code></li>
-                <li>Pass the theme prop: <code className="bg-gray-100 px-2 py-1 rounded">theme="rose-quartz"</code></li>
+                <li>Pass the theme prop: <code className="bg-gray-100 px-2 py-1 rounded">theme=&quot;rose-quartz&quot;</code></li>
                 <li>Update the background gradient in the parent container</li>
                 <li>Optionally import the CSS file for additional styling options</li>
               </ol>

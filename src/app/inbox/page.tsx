@@ -203,8 +203,10 @@ export default function InboxPage() {
           <div className="mb-8">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Inbox</h1>
-                <p className="text-gray-400">Stay connected with your coaches and track your progress</p>
+                <div data-sb-object-id="inbox-header">
+                  <h1 data-sb-field-path="title" className="text-3xl font-bold text-white mb-2">Inbox</h1>
+                  <p data-sb-field-path="subtitle" className="text-gray-400">Stay connected with your coaches and track your progress</p>
+                </div>
               </div>
               {messages.length === 0 && !loading && (
                 <Button

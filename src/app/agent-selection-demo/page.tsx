@@ -45,7 +45,7 @@ export default function AgentSelectionDemo() {
               <span className="text-sm text-gray-600">Theme:</span>
               <select
                 value={selectedTheme}
-                onChange={(e) => setSelectedTheme(e.target.value as any)}
+                onChange={(e) => setSelectedTheme(e.target.value as 'rose-quartz' | 'lavender' | 'peachy' | 'mauve')}
                 className="text-sm border rounded px-2 py-1"
               >
                 <option value="rose-quartz">Rose Quartz</option>

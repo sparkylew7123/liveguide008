@@ -81,7 +81,15 @@ export async function PATCH(
     const updates = await request.json()
 
     // Build update object with allowed fields only
-    const allowedUpdates: any = {}
+    const allowedUpdates: {
+      status?: string;
+      read_at?: string;
+      archived_at?: string;
+      is_pinned?: boolean;
+      is_starred?: boolean;
+      user_tags?: string[];
+      user_category?: string;
+    } = {}
     
     if ('status' in updates) {
       allowedUpdates.status = updates.status

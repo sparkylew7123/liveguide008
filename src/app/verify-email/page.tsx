@@ -27,15 +27,17 @@ export default function VerifyEmailPage() {
           </svg>
         </div>
         
-        <h2 className="mb-4 text-2xl font-bold text-white">Check Your Email</h2>
-        
-        <p className="mb-6 text-gray-300">
-          We've sent you a verification email. Please check your inbox and click the link to verify your account.
-        </p>
-        
-        <p className="mb-8 text-sm text-gray-400">
-          Didn't receive the email? Check your spam folder or wait a few moments and try again.
-        </p>
+        <div data-sb-object-id="verify-email-content">
+          <h2 data-sb-field-path="title" className="mb-4 text-2xl font-bold text-white">Check Your Email</h2>
+          
+          <p data-sb-field-path="message" className="mb-6 text-gray-300">
+            We've sent you a verification email. Please check your inbox and click the link to verify your account.
+          </p>
+          
+          <p data-sb-field-path="help-text" className="mb-8 text-sm text-gray-400">
+            Didn't receive the email? Check your spam folder or wait a few moments and try again.
+          </p>
+        </div>
         
         <Link 
           href="/login" 

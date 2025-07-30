@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const { startDate, endDate } = getPeriodDates(period)
 
     // Get or create coaching effectiveness record
-    let { data: effectiveness, error } = await supabase
+    const { data: effectiveness, error } = await supabase
       .from('coaching_effectiveness')
       .select('*')
       .eq('user_id', user.id)
@@ -166,7 +166,7 @@ function getPeriodDates(period: string) {
 }
 
 async function createEffectivenessRecord(
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   userId: string,
   startDate: Date,
   endDate: Date
@@ -231,7 +231,11 @@ async function createEffectivenessRecord(
   return data
 }
 
-function calculateTrends(insights: any[]) {
+function calculateTrends(insights: {
+  topics?: string[];
+  coaching_areas?: string[];
+  sentiment?: string;
+}[]) {
   // Topic frequency
   const topicCounts = new Map<string, number>()
   insights.forEach(insight => {
