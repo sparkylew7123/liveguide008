@@ -42,3 +42,8 @@ next-env.d.ts
 
 # MCP config files (contains API keys)
 .mcp.json
+
+# Package lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
