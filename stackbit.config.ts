@@ -16,9 +16,7 @@ export default defineStackbitConfig({
                     urlPath: "/{slug}",
                     filePath: "content/pages/{slug}.json",
                     fields: [
-                        { name: "slug", type: "slug", required: true },
-                        { name: "title", type: "string", required: true },
-                        { name: "content", type: "markdown" }
+                        { name: "title", type: "string", required: true }
                     ]
                 },
                 {
@@ -71,31 +69,40 @@ export default defineStackbitConfig({
         // 1. Filter all page models
         const pageModels = models.filter((m) => m.type === "page");
 
-        // 2. Map page documents to site map entries
         return documents
+            // 2. Filter all documents which are of a page model
             .filter((d) => pageModels.some(m => m.name === d.modelName))
+            // 3. Map each document to a SiteMapEntry
             .map((document) => {
-                // Handle different page types
+                // Special handling for LandingPage
                 if (document.modelName === 'LandingPage') {
                     return {
-                        stableId: 'home',
+                        stableId: document.id,
                         urlPath: '/',
                         document,
                         isHomePage: true,
                     };
                 }
-                
-                // Handle generic pages with slugs
-                const slugField = document.fields?.slug;
-                const slug: string = typeof slugField === 'string' ? slugField : '';
-                const isHome = slug === 'index' || slug.length === 0;
-                
+
+                // Map the model name to its corresponding URL prefix
+                const urlPrefix = (() => {
+                    switch (document.modelName) {
+                        case 'Page':
+                            return 'page';
+                        case 'BlogPost':
+                            return 'blog';
+                        default:
+                            return document.modelName.toLowerCase();
+                    }
+                })();
+
                 return {
                     stableId: document.id,
-                    urlPath: isHome ? '/' : `/${slug}`,
+                    urlPath: `/${urlPrefix}/${document.id}`,
                     document,
-                    isHomePage: isHome,
+                    isHomePage: false,
                 };
-            }) as SiteMapEntry[];
+            })
+            .filter(Boolean) as SiteMapEntry[];
     }
 });
