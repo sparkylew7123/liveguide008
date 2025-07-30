@@ -1,5 +1,5 @@
 // stackbit.config.js
-export default {
+module.exports = {
   stackbitVersion: '~0.6',
   nodeVersion: '18',
   ssgName: 'nextjs',
