@@ -22,6 +22,16 @@ export default defineStackbitConfig({
                     ]
                 },
                 {
+                    name: "LandingPage",
+                    type: "page",
+                    urlPath: "/",
+                    filePath: "content/landing.json",
+                    singleInstance: true,
+                    fields: [
+                        { name: "title", type: "string", default: "Home" }
+                    ]
+                },
+                {
                     name: "AuthContent",
                     type: "data",
                     filePath: "content/auth.json",
@@ -65,7 +75,17 @@ export default defineStackbitConfig({
         return documents
             .filter((d) => pageModels.some(m => m.name === d.modelName))
             .map((document) => {
-                // Get slug from document fields
+                // Handle different page types
+                if (document.modelName === 'LandingPage') {
+                    return {
+                        stableId: 'home',
+                        urlPath: '/',
+                        document,
+                        isHomePage: true,
+                    };
+                }
+                
+                // Handle generic pages with slugs
                 const slugField = document.fields?.slug;
                 const slug: string = typeof slugField === 'string' ? slugField : '';
                 const isHome = slug === 'index' || slug.length === 0;
