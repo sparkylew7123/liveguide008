@@ -1,4 +1,5 @@
-const { withPayload } = require("@payloadcms/next/withPayload");
+import { withPayload } from "@payloadcms/next/withPayload";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -12,10 +13,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config) => {
     // Important: always return the modified config
     return config
   },
 }
 
-module.exports = withPayload(nextConfig)
+export default withPayload(nextConfig)
