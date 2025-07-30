@@ -1,0 +1,29 @@
+# Stackbit configuration in YAML format (alternative to .js)
+stackbitVersion: ~0.6
+nodeVersion: '18'
+ssgName: nextjs
+cmsName: files
+
+# Simple files-based content configuration
+contentSources:
+  - name: content
+    type: files
+    path: content
+    files: '**/*.json'
+    
+# Minimal model definitions
+models:
+  LandingPage:
+    type: data
+    label: Landing Page
+    file: content/landing.json
+    
+  AuthContent:
+    type: data
+    label: Auth Content
+    file: content/auth.json
+    
+  InboxContent:
+    type: data
+    label: Inbox Content
+    file: content/inbox.json
