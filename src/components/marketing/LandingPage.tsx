@@ -25,13 +25,7 @@ import {
   Phone,
   MessageSquare
 } from 'lucide-react'
-import type { LandingContent } from '@/lib/content'
-
-interface LandingPageProps {
-  content: LandingContent
-}
-
-export default function LandingPage({ content }: LandingPageProps) {
+export default function LandingPage() {
   const videoRef = useRef<HTMLDivElement>(null)
   const videoElementRef = useRef<HTMLVideoElement>(null)
   const [showOverlay, setShowOverlay] = useState(false)
@@ -160,14 +154,45 @@ export default function LandingPage({ content }: LandingPageProps) {
     "Always Available": <Clock className="h-6 w-6" />
   }
   
-  const features = content.whyChoose.features.map(feature => ({
-    icon: featureIcons[feature.title as keyof typeof featureIcons] || <Brain className="h-6 w-6" />,
-    title: feature.title,
-    description: feature.description
-  }))
+  const features = [
+    {
+      icon: <Brain className="h-6 w-6" />,
+      title: "AI-Powered Personalization",
+      description: "Our advanced AI learns from your interactions to provide increasingly personalized guidance"
+    },
+    {
+      icon: <Mic className="h-6 w-6" />,
+      title: "Voice-First Experience",
+      description: "Natural conversations with your AI coach make growth feel effortless and engaging"
+    },
+    {
+      icon: <Clock className="h-6 w-6" />,
+      title: "Real-Time Adaptation",
+      description: "Your coaching evolves with you, adjusting strategies based on your progress and feedback"
+    }
+  ]
 
   // Updated testimonials to reflect streamlined voice-first approach
-  const testimonials = content.testimonials.items
+  const testimonials = [
+    {
+      name: "Sarah Chen",
+      role: "Entrepreneur",
+      content: "LiveGuide helped me overcome my public speaking anxiety. The voice coaching felt so natural and supportive!",
+      rating: 5
+    },
+    {
+      name: "Michael Rodriguez",
+      role: "Software Engineer",
+      content: "Finally found a coaching app that adapts to my busy schedule. The AI really understands my goals.",
+      rating: 5
+    },
+    {
+      name: "Emma Thompson",
+      role: "Marketing Manager",
+      content: "The personalized insights have been game-changing for my personal development journey.",
+      rating: 5
+    }
+  ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -214,12 +239,12 @@ export default function LandingPage({ content }: LandingPageProps) {
               className="flex flex-col justify-center order-1 lg:order-1"
             >
               <Badge className="mb-6 w-fit bg-blue-600/20 text-blue-300 border-blue-500/30">
-                {content.hero.badge}
+                AI-Powered Personal Growth
               </Badge>
               
-              <div data-sb-object-id="landing-hero-title">
-                <h1 data-sb-field-path="title" className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
-                  {content.hero.title.split('Voice 1st')[0]}
+              <div >
+                <h1  className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+                  Your Journey to a Better You Starts Here
                   <br />
                   <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                     Voice 1st <span style={{ fontSize: '115%' }}>AI Coach</span>
@@ -234,9 +259,9 @@ export default function LandingPage({ content }: LandingPageProps) {
                 transition={{ duration: 0.8, delay: 0.3 }}
                 className="mt-6 p-6 rounded-2xl bg-gradient-to-br from-slate-900/95 via-blue-900/90 to-purple-900/95 backdrop-blur-sm border border-white/10 shadow-2xl"
               >
-                <div data-sb-object-id="landing-hero-description">
-                  <p data-sb-field-path="description" className="text-lg leading-relaxed sm:text-xl" style={{ color: 'white' }}>
-                    {content.hero.description}
+                <div >
+                  <p  className="text-lg leading-relaxed sm:text-xl" style={{ color: 'white' }}>
+                    Experience personalized AI coaching that adapts to your unique needs. Get voice-guided support, real-time insights, and achieve your goals faster than ever before.
                   </p>
                 </div>
               </motion.div>
@@ -254,7 +279,7 @@ export default function LandingPage({ content }: LandingPageProps) {
                   onClick={handleTalkToAgent}
                 >
                   <Mic className="mr-2 h-5 w-5" />
-                  {content.hero.ctaText}
+                  Start Your Free Journey
                 </Button>
               </motion.div>
             </motion.div>
@@ -323,7 +348,7 @@ export default function LandingPage({ content }: LandingPageProps) {
                           className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg transition-transform ${showButtonPulse ? 'button-pulse' : ''}`}
                         >
                           <Mic className="mr-2 h-5 w-5" />
-                          {content.hero.ctaText}
+                          Start Your Free Journey
                         </Button>
                       </motion.div>
                     </motion.div>
@@ -344,7 +369,12 @@ export default function LandingPage({ content }: LandingPageProps) {
               className="order-3 lg:col-span-2 mt-8 lg:mt-6"
             >              
               <div className="flex items-center gap-6 text-sm text-gray-400">
-                {content.hero.features.map((feature, index) => (
+                {[
+                  "Voice-Activated Coaching",
+                  "Personalized AI Insights",
+                  "24/7 Support",
+                  "Goal Tracking"
+                ].map((feature, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-400" />
                     {feature}
@@ -366,12 +396,12 @@ export default function LandingPage({ content }: LandingPageProps) {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <div data-sb-object-id="features-section">
-              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-                {content.whyChoose.title}
+            <div >
+              <h2  className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+                Why Choose LiveGuide?
               </h2>
-              <p data-sb-field-path="subtitle" className="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
-                {content.whyChoose.subtitle}
+              <p  className="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
+                Experience the future of personal development with our cutting-edge AI technology
               </p>
             </div>
           </motion.div>
@@ -414,12 +444,12 @@ export default function LandingPage({ content }: LandingPageProps) {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <div data-sb-object-id="testimonials-section">
-              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-                {content.testimonials.title}
+            <div >
+              <h2  className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+                Loved by Thousands
               </h2>
-              <p data-sb-field-path="subtitle" className="mt-4 text-lg text-gray-300">
-                {content.testimonials.subtitle}
+              <p  className="mt-4 text-lg text-gray-300">
+                See what our users are saying about their transformation journey
               </p>
             </div>
           </motion.div>
@@ -462,19 +492,19 @@ export default function LandingPage({ content }: LandingPageProps) {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <div data-sb-object-id="cta-section">
-              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl mb-6">
-                {content.cta.title}
+            <div >
+              <h2  className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl mb-6">
+                Ready to Transform Your Life?
               </h2>
-              <p data-sb-field-path="subtitle" className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-                {content.cta.subtitle}
+              <p  className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+                Join thousands who are already on their journey to personal growth
               </p>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
               <Input 
                 type="email" 
-                placeholder={content.cta.emailPlaceholder}
+                placeholder="Enter your email"
                 className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-400"
               />
               <Button 
@@ -483,12 +513,12 @@ export default function LandingPage({ content }: LandingPageProps) {
                 onClick={handleTalkToAgent}
               >
                 <Mic className="mr-2 h-4 w-4" />
-                {content.cta.buttonText}
+                Get Started Free
               </Button>
             </div>
             
             <p className="text-sm text-gray-400 mt-4">
-              {content.cta.disclaimer}
+              No credit card required. Start your journey today!
             </p>
           </motion.div>
         </div>
@@ -501,7 +531,7 @@ export default function LandingPage({ content }: LandingPageProps) {
             <div className="lg:col-span-2">
               <h3 className="text-xl font-bold text-white mb-4">LiveGuide</h3>
               <p className="text-gray-400 max-w-md">
-                {content.footer.tagline}
+                Empowering personal growth through AI
               </p>
             </div>
             
@@ -525,7 +555,7 @@ export default function LandingPage({ content }: LandingPageProps) {
           </div>
           
           <div className="mt-12 pt-8 border-t border-slate-800 text-center text-gray-400">
-            <p>{content.footer.copyright}</p>
+            <p>© 2024 LiveGuide. All rights reserved.</p>
           </div>
         </div>
       </footer>
