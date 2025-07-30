@@ -25,13 +25,42 @@ import {
   Phone,
   MessageSquare
 } from 'lucide-react'
+import type { LandingContent } from '@/lib/content'
 
-export default function LandingPage() {
+interface LandingPageProps {
+  content: LandingContent
+}
+
+export default function LandingPage({ content }: LandingPageProps) {
   const videoRef = useRef<HTMLDivElement>(null)
   const videoElementRef = useRef<HTMLVideoElement>(null)
   const [showOverlay, setShowOverlay] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
+  const [isPaused, setIsPaused] = useState(true)
   const [hasEnded, setHasEnded] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
+  const [showButtonPulse, setShowButtonPulse] = useState(false)
+
+  useEffect(() => {
+    // Parallax scroll effect
+    const handleScroll = () => {
+      setScrollY(window.scrollY)
+    }
+    
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Start button pulse animation after 8 seconds
+    const timer = setTimeout(() => {
+      setShowButtonPulse(true)
+    }, 8000)
+    
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     // Initialize video event listeners
@@ -122,89 +151,60 @@ export default function LandingPage() {
   }
 
   // Updated features for streamlined ElevenLabs-focused platform
-  const features = [
-    {
-      icon: <Mic className="h-6 w-6" />,
-      title: "Voice-First AI Coaching",
-      description: "Speak naturally with specialized AI coaches powered by ElevenLabs for personalized life guidance"
-    },
-    {
-      icon: <Users className="h-6 w-6" />,
-      title: "12 Expert AI Coaches",
-      description: "Choose from career, wellness, mindfulness, and emotional well-being specialists with unique personalities"
-    },
-    {
-      icon: <Zap className="h-6 w-6" />,
-      title: "Secure Broker Architecture",
-      description: "Direct, secure connections to ElevenLabs agents with enterprise-grade privacy protection"
-    },
-    {
-      icon: <Target className="h-6 w-6" />,
-      title: "Goal-Focused Sessions",
-      description: "Every conversation is tailored to help you achieve your specific personal and professional goals"
-    },
-    {
-      icon: <Shield className="h-6 w-6" />,
-      title: "Privacy First",
-      description: "Your voice conversations are protected with end-to-end encryption and secure data handling"
-    },
-    {
-      icon: <Clock className="h-6 w-6" />,
-      title: "Always Available",
-      description: "Get coaching support 24/7 with instant voice responses from your personalized AI coach"
-    }
-  ]
+  const featureIcons = {
+    "Voice-First AI Coaching": <Mic className="h-6 w-6" />,
+    "12 Expert AI Coaches": <Users className="h-6 w-6" />,
+    "Secure Broker Architecture": <Zap className="h-6 w-6" />,
+    "Goal-Focused Sessions": <Target className="h-6 w-6" />,
+    "Privacy First": <Shield className="h-6 w-6" />,
+    "Always Available": <Clock className="h-6 w-6" />
+  }
+  
+  const features = content.whyChoose.features.map(feature => ({
+    icon: featureIcons[feature.title as keyof typeof featureIcons] || <Brain className="h-6 w-6" />,
+    title: feature.title,
+    description: feature.description
+  }))
 
   // Updated testimonials to reflect streamlined voice-first approach
-  const testimonials = [
-    {
-      name: "Sarah Chen",
-      role: "Product Manager",
-      content: "The voice coaching feels incredibly natural. Having a dedicated AI coach for my career goals has been transformative.",
-      rating: 5
-    },
-    {
-      name: "Marcus Johnson",
-      role: "Entrepreneur",
-      content: "Finally, a platform that understands the power of voice. My mindfulness coach Elias has helped me find balance.",
-      rating: 5
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "Designer",
-      content: "The voice quality from ElevenLabs is amazing. It's like talking to a real person who truly cares about my progress.",
-      rating: 5
-    }
-  ]
+  const testimonials = content.testimonials.items
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Logo Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="absolute top-6 left-6 z-20"
-      >
-        <div 
-          className="h-8 w-auto cursor-pointer"
-          onClick={() => window.location.href = '/'}
-        >
-          <Image 
-            src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1750020672/liveguide-logo-clear.png" 
-            alt="LiveGuide" 
-            width={140} 
-            height={40} 
-            className="h-8 w-auto"
-            priority
-            unoptimized
-          />
-        </div>
-      </motion.div>
+      {/* Spacer for fixed navbar */}
+      <div className="h-16" />
+      
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden px-6 py-20 sm:py-32">
-        <div className="mx-auto max-w-7xl">
+      <section className="relative overflow-hidden px-6 pt-2 pb-7 sm:pt-4 sm:pb-11">
+        {/* Hero Backdrop Image */}
+        <motion.div 
+          className="absolute inset-0 z-0"
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ 
+            scale: 1, 
+            opacity: 1,
+            y: scrollY * 0.3 
+          }}
+          transition={{ 
+            scale: { duration: 1.5, ease: "easeOut" },
+            opacity: { duration: 1 }
+          }}
+        >
+          <Image
+            src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1753786361/Screenshot_2025-07-29_at_11.45.49_o6h11t.jpg"
+            alt="Hero backdrop"
+            fill
+            priority
+            quality={90}
+            className="object-cover object-center opacity-65 scale-110"
+            sizes="100vw"
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJalwtBu1FQaE6ooBEiUUwUURQD//Z"
+          />
+        </motion.div>
+        
+        <div className="relative z-10 mx-auto max-w-7xl">
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-8">
             {/* Hero Content */}
             <motion.div
@@ -214,15 +214,49 @@ export default function LandingPage() {
               className="flex flex-col justify-center order-1 lg:order-1"
             >
               <Badge className="mb-6 w-fit bg-blue-600/20 text-blue-300 border-blue-500/30">
-                Voice-First AI Life Coaching
+                {content.hero.badge}
               </Badge>
               
-              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
-                Your Personal
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  {" "}Voice Coach
-                </span>
-              </h1>
+              <div data-sb-object-id="landing-hero-title">
+                <h1 data-sb-field-path="title" className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+                  {content.hero.title.split('Voice 1st')[0]}
+                  <br />
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Voice 1st <span style={{ fontSize: '115%' }}>AI Coach</span>
+                  </span>
+                </h1>
+              </div>
+              
+              {/* Description text in gradient box */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="mt-6 p-6 rounded-2xl bg-gradient-to-br from-slate-900/95 via-blue-900/90 to-purple-900/95 backdrop-blur-sm border border-white/10 shadow-2xl"
+              >
+                <div data-sb-object-id="landing-hero-description">
+                  <p data-sb-field-path="description" className="text-lg leading-relaxed sm:text-xl" style={{ color: 'white' }}>
+                    {content.hero.description}
+                  </p>
+                </div>
+              </motion.div>
+              
+              {/* Talk to Agent button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="mt-6 flex justify-end"
+              >
+                <Button 
+                  size="lg" 
+                  className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg transition-transform ${showButtonPulse ? 'button-pulse' : ''}`}
+                  onClick={handleTalkToAgent}
+                >
+                  <Mic className="mr-2 h-5 w-5" />
+                  {content.hero.ctaText}
+                </Button>
+              </motion.div>
             </motion.div>
 
             {/* Video Section - Appears after title on mobile, side-by-side on desktop */}
@@ -232,7 +266,7 @@ export default function LandingPage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative order-2 lg:order-2 mt-8 lg:mt-0"
             >
-              <div className="relative overflow-hidden rounded-2xl bg-gray-900 shadow-2xl max-w-md mx-auto lg:max-w-none">
+              <div className={`relative overflow-hidden rounded-2xl bg-gray-900 shadow-2xl max-w-sm mx-auto lg:max-w-lg transition-opacity duration-500 ${!isPaused && !hasEnded ? 'opacity-100' : 'opacity-75'}`}>
                 <div 
                   ref={videoRef}
                   className="aspect-square w-full relative"
@@ -271,7 +305,7 @@ export default function LandingPage() {
                           onClick={handlePlayAction}
                           size="lg"
                           variant="outline"
-                          className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 text-lg"
+                          className="bg-white/20 border-white/50 text-white hover:bg-white/30 backdrop-blur-md px-8 py-4 text-lg font-medium shadow-lg"
                         >
                           {getPlayButtonProps().icon}
                           {getPlayButtonProps().text}
@@ -286,10 +320,10 @@ export default function LandingPage() {
                         <Button
                           onClick={handleTalkToAgent}
                           size="lg"
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg"
+                          className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg transition-transform ${showButtonPulse ? 'button-pulse' : ''}`}
                         >
                           <Mic className="mr-2 h-5 w-5" />
-                          Talk to Agent
+                          {content.hero.ctaText}
                         </Button>
                       </motion.div>
                     </motion.div>
@@ -302,53 +336,20 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Rest of Hero Content - Appears after video on mobile */}
+            {/* Features checkmarks - Appears after video on mobile */}
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
               className="order-3 lg:col-span-2 mt-8 lg:mt-6"
             >              
-              <p className="text-lg leading-8 text-gray-300 sm:text-xl lg:max-w-3xl">
-                Experience the future of personal development with AI coaches powered by ElevenLabs. 
-                Choose from 12 specialized coaches for career, wellness, mindfulness, and emotional growth. 
-                Start speaking, start growing.
-              </p>
-              
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-6">
-                <Button 
-                  size="lg" 
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg"
-                  onClick={handleTalkToAgent}
-                >
-                  <Mic className="mr-2 h-5 w-5" />
-                  Talk to Agent
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="border-gray-400 text-gray-300 hover:bg-gray-800 px-8 py-4 text-lg"
-                  onClick={handleVoiceDemo}
-                >
-                  <PlayCircle className="mr-2 h-5 w-5" />
-                  Try Voice Demo
-                </Button>
-              </div>
-              
-              <div className="mt-8 flex items-center gap-6 text-sm text-gray-400">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  Free voice demo
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  No credit card required
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  Secure & private
-                </div>
+              <div className="flex items-center gap-6 text-sm text-gray-400">
+                {content.hero.features.map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    {feature}
+                  </div>
+                ))}
               </div>
             </motion.div>
           </div>
@@ -365,13 +366,14 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-              Why Choose LiveGuide?
-            </h2>
-            <p className="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
-              Our streamlined platform combines ElevenLabs&apos; cutting-edge voice AI with proven coaching methodologies 
-              to deliver personalized guidance that sounds and feels completely natural.
-            </p>
+            <div data-sb-object-id="features-section">
+              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+                {content.whyChoose.title}
+              </h2>
+              <p data-sb-field-path="subtitle" className="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
+                {content.whyChoose.subtitle}
+              </p>
+            </div>
           </motion.div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -412,12 +414,14 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-              Trusted by Voice-First Learners
-            </h2>
-            <p className="mt-4 text-lg text-gray-300">
-              See what our users are saying about their natural voice coaching experience
-            </p>
+            <div data-sb-object-id="testimonials-section">
+              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+                {content.testimonials.title}
+              </h2>
+              <p data-sb-field-path="subtitle" className="mt-4 text-lg text-gray-300">
+                {content.testimonials.subtitle}
+              </p>
+            </div>
           </motion.div>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -458,18 +462,19 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl mb-6">
-              Ready to Start Voice Coaching?
-            </h2>
-            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join others who have discovered the power of voice-first AI coaching. 
-              Choose your specialized coach and start your journey today.
-            </p>
+            <div data-sb-object-id="cta-section">
+              <h2 data-sb-field-path="title" className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl mb-6">
+                {content.cta.title}
+              </h2>
+              <p data-sb-field-path="subtitle" className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+                {content.cta.subtitle}
+              </p>
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
               <Input 
                 type="email" 
-                placeholder="Enter your email"
+                placeholder={content.cta.emailPlaceholder}
                 className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-400"
               />
               <Button 
@@ -478,12 +483,12 @@ export default function LandingPage() {
                 onClick={handleTalkToAgent}
               >
                 <Mic className="mr-2 h-4 w-4" />
-                Start Coaching
+                {content.cta.buttonText}
               </Button>
             </div>
             
             <p className="text-sm text-gray-400 mt-4">
-              Start your free voice demo today. No commitment required.
+              {content.cta.disclaimer}
             </p>
           </motion.div>
         </div>
@@ -496,7 +501,7 @@ export default function LandingPage() {
             <div className="lg:col-span-2">
               <h3 className="text-xl font-bold text-white mb-4">LiveGuide</h3>
               <p className="text-gray-400 max-w-md">
-                Empowering personal growth through voice-first AI coaching powered by ElevenLabs technology.
+                {content.footer.tagline}
               </p>
             </div>
             
@@ -520,7 +525,7 @@ export default function LandingPage() {
           </div>
           
           <div className="mt-12 pt-8 border-t border-slate-800 text-center text-gray-400">
-            <p>&copy; 2024 LiveGuide. All rights reserved.</p>
+            <p>{content.footer.copyright}</p>
           </div>
         </div>
       </footer>

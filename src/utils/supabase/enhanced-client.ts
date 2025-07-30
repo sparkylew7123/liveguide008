@@ -21,12 +21,6 @@ function createBaseClient(): SupabaseClient {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true
-      },
-      cookieOptions: {
-        name: 'sb-auth',
-        path: '/',
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production'
       }
     }
   );

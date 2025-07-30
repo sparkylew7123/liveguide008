@@ -10,8 +10,7 @@ import { ConversationWaveforms, WaveformGlow } from '@/components/ui/waveform-an
 import { useUser } from '@/contexts/UserContext'
 import { goalService, PREDEFINED_GOALS, GOAL_CATEGORY_ICONS } from '@/lib/goals'
 import { createClient } from '@/utils/supabase/client'
-import { useConversation } from '@elevenlabs/react'
-import { generateCallId } from '@/hooks/useElevenLabsConversation'
+import { useElevenLabsConversation, generateCallId, formatMetadata } from '@/hooks/useElevenLabsConversation'
 import { 
   Mic, 
   MicOff, 
@@ -98,7 +97,8 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
   const isSpeakingRef = useRef(false)
   const conversationSessionId = useRef(`goal_discovery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
   
-  const { effectiveUserId, anonymousId } = useUser()
+  const { effectiveUserId } = useUser()
+  const anonymousId = null // TypeformGoalSelection doesn't use anonymous ID from context
   
   // ElevenLabs agent configuration
   const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'SuIlXQ4S6dyjrNViOrQ8'
@@ -228,7 +228,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                 microphoneState.transcript,
                 goal,
                 currentPhaseData.id,
-                'goal_selected'
+                'yes' // Changed from 'goal_selected' to match the type
               )
               
               // Clear matched response after animation
@@ -309,36 +309,49 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
     }
   }
 
-  // Direct ElevenLabs text-to-speech integration
-  const conversation = {
-    status: 'connected',
-    startSession: async () => {
-      console.log('✅ Direct ElevenLabs TTS ready')
-      setConversationConnected(true)
-      setConversationError(null)
-      return true
+  // Get the appropriate agent ID based on voice preference
+  const getAgentId = () => {
+    // You can map voice preferences to specific agent IDs if needed
+    const defaultAgentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'SuIlXQ4S6dyjrNViOrQ8'
+    return defaultAgentId
+  }
+
+  // Real ElevenLabs WebSocket conversation
+  const conversation = useElevenLabsConversation(
+    {
+      agentId: getAgentId(),
+      userId: effectiveUserId,
+      customCallId: conversationSessionId.current,
+      metadata: formatMetadata({
+        userName: userPreferences?.userName || 'there',
+        sessionType: 'typeform_goal_selection',
+        voicePreference: userPreferences?.voicePreference || 'female',
+        microphoneWorking: userPreferences?.microphoneWorking || false
+      })
     },
-    endSession: () => {
-      console.log('👋 ElevenLabs TTS session ended')
-      setConversationConnected(false)
-    },
-    speakText: async (text: string, onComplete?: () => void) => {
-      try {
-        // Prevent multiple simultaneous speech calls
-        if (isSpeakingRef.current) {
-          console.log('🚫 Already speaking, ignoring new speech request')
-          return
+    {
+      onConnect: () => {
+        console.log('🤖 CONNECTED TO ELEVENLABS - Real WebSocket')
+        // Cancel any browser speech synthesis immediately
+        if ('speechSynthesis' in window) {
+          console.log('🔇 Cancelling browser TTS - ElevenLabs is now connected')
+          speechSynthesis.cancel()
         }
-        
-        const { voiceId, agentName } = getVoiceConfig()
-        console.log(`🗣️ ${agentName} speaking with ElevenLabs voice:`, voiceId, 'Text:', text)
-        isSpeakingRef.current = true
-        
-        // Set the transcript to the exact text we're speaking
-        setCurrentTranscript(text)
+        setConversationConnected(true)
+        setConversationError(null)
+      },
+      onDisconnect: () => {
+        console.log('👋 DISCONNECTED FROM ELEVENLABS')
+        setConversationConnected(false)
+      },
+      onMessage: (message) => {
+        console.log('💬 ELEVENLABS MESSAGE RECEIVED:', message)
+        setAgentSpeaking(true)
+        setCurrentTranscript(message.message || '')
         
         // Save agent's speech to conversation history
         if (effectiveUserId) {
+          const { agentName } = getVoiceConfig()
           supabase
             .from('voice_chat_events')
             .insert({
@@ -347,9 +360,8 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
               conversation_id: conversationSessionId.current,
               event_type: 'agent_speech',
               event_data: {
-                text,
+                text: message.message,
                 agent_name: agentName,
-                voice_id: voiceId,
                 phase_id: currentPhaseData?.id,
                 phase_title: currentPhaseData?.title,
                 timestamp: new Date().toISOString()
@@ -360,131 +372,40 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
             })
         }
         
-        // Stop any existing audio/speech
-        if (currentAudioRef.current) {
-          currentAudioRef.current.pause()
-          currentAudioRef.current.currentTime = 0
-          currentAudioRef.current = null
-        }
-        
-        if ('speechSynthesis' in window) {
-          speechSynthesis.cancel()
-        }
-        
-        
-        setAgentSpeaking(true)
-        
-        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream?output_format=mp3_22050_32`, {
-          method: "POST",
-          headers: {
-            "xi-api-key": process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY || "***REMOVED***",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            "text": text,
-            "model_id": "eleven_multilingual_v2",
-            "voice_settings": {
-              "stability": 0.5,
-              "similarity_boost": 0.5
-            }
-          }),
-        })
-
-        if (response.ok) {
-          const audioBlob = await response.blob()
-          const audioUrl = URL.createObjectURL(audioBlob)
-          const audio = new Audio(audioUrl)
-          
-          // Store reference to current audio
-          currentAudioRef.current = audio
-          
-          // No longer using typing animation for transcript
-          
-          audio.onended = () => {
-            setAgentSpeaking(false)
-            isSpeakingRef.current = false
-            URL.revokeObjectURL(audioUrl)
-            if (currentAudioRef.current === audio) {
-              currentAudioRef.current = null
-            }
-            // Call the completion callback if provided
-            if (onComplete) {
-              onComplete()
-            }
-          }
-          
-          audio.onerror = () => {
-            setAgentSpeaking(false)
-            isSpeakingRef.current = false
-            URL.revokeObjectURL(audioUrl)
-            console.error('❌ Audio playback error')
-            if (currentAudioRef.current === audio) {
-              currentAudioRef.current = null
-            }
-          }
-          
-          await audio.play()
-          console.log('✅ ElevenLabs speech completed')
-        } else {
-          throw new Error(`ElevenLabs API error: ${response.status}`)
-        }
-      } catch (error) {
-        console.error('❌ ElevenLabs TTS error:', error)
-        setAgentSpeaking(false)
-        isSpeakingRef.current = false
-        // Fallback to browser speech synthesis
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(text)
-          utterance.rate = 0.9
-          utterance.pitch = 1
-          utterance.onend = () => {
-            setAgentSpeaking(false)
-            isSpeakingRef.current = false
-            // Call the completion callback if provided
-            if (onComplete) {
-              onComplete()
-            }
-          }
-          speechSynthesis.speak(utterance)
-        }
+        // Set speaking animation duration based on message length
+        setTimeout(() => {
+          setAgentSpeaking(false)
+        }, Math.min(message.message?.length * 50, 5000))
+      },
+      onError: (error) => {
+        console.error('❌ ELEVENLABS ERROR:', error)
+        setConversationError(`ElevenLabs error: ${error.message || String(error)}`)
+        setConversationConnected(false)
       }
+    },
+    // Pass overrides as third parameter for custom first message
+    {
+      agent: {
+        firstMessage: `Hello ${userPreferences?.userName || 'there'}! I'm Maya, your goal discovery guide. Let's explore what you'd like to achieve. What's been on your mind lately that you'd like to work on?`,
+        language: "en",
+      },
+      conversation: {
+        textOnly: false,
+      },
     }
-  }
+  )
   
-  // Initialize ElevenLabs conversation - keeping this commented for now
-  // const conversation = useConversation({
-  //   onConnect: () => {
-  //     console.log('🤖 CONNECTED TO ELEVENLABS - Status:', conversation.status)
-  //     setConversationConnected(true)
-  //     setConversationError(null)
-  //   },
-  //   onDisconnect: () => {
-  //     console.log('👋 DISCONNECTED FROM ELEVENLABS')
-  //     setConversationConnected(false)
-  //   },
-  //   onMessage: (message) => {
-  //     console.log('💬 ELEVENLABS MESSAGE RECEIVED:', message)
-  //     // Maya is speaking - she will automatically speak when session starts
-  //     setAgentSpeaking(true)
-  //     // Set a timeout to stop the speaking animation based on typical response length
-  //     setTimeout(() => {
-  //       setAgentSpeaking(false)
-  //     }, 5000)
-  //   },
-  //   onError: (error) => {
-  //     console.error('❌ ELEVENLABS ERROR DETAILS:', error)
-  //     console.error('❌ ERROR TYPE:', typeof error)
-  //     console.error('❌ ERROR STRING:', String(error))
-  //     setConversationError(`ElevenLabs error: ${error.message || String(error)}`)
-  //     setConversationConnected(false)
-  //   }
-  // })
   
   // Initialize ElevenLabs session when component loads (but don't play audio yet)
   useEffect(() => {
     const initializeSession = async () => {
       console.log('🎬 Initializing ElevenLabs session...')
-      await conversation.startSession()
+      try {
+        await conversation.startSession()
+        console.log('✅ ElevenLabs session started successfully')
+      } catch (error) {
+        console.error('❌ Failed to start ElevenLabs session:', error)
+      }
     }
     
     initializeSession()
@@ -501,36 +422,69 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
       return
     }
     
+    // Add a delay for the first phase to let ElevenLabs finish any initial greeting
+    const phaseDelay = currentPhase === 0 ? 1500 : 0
+    
     const startPhase = async () => {
+      // Wait for the phase delay if needed
+      if (phaseDelay > 0) {
+        console.log(`⏳ Waiting ${phaseDelay}ms before starting phase ${currentPhase}...`)
+        await new Promise(resolve => setTimeout(resolve, phaseDelay))
+      }
+      
       console.log('🎬 Starting NEW phase:', currentPhaseData?.id, 'Phase key:', phaseKey)
       console.log('🔗 ElevenLabs connected:', conversationConnected)
+      console.log('🔗 ElevenLabs status:', conversation.status)
       
       // Mark this phase as spoken IMMEDIATELY to prevent repeats
       setHasSpokenPhase(phaseKey)
       
-      // Agent speaks the question using ElevenLabs
-      if (conversationConnected && conversation.speakText) {
-        console.log(`🎤 ${getVoiceConfig().agentName} speaking with ElevenLabs...`)
-        await conversation.speakText(currentPhaseData?.question || '', () => {
-          // Auto-activate microphone after agent finishes speaking
-          console.log(`🎤 Auto-activating microphone after ${getVoiceConfig().agentName} speech...`)
+      // Small delay to ensure ElevenLabs is fully ready
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // With real WebSocket connection, the agent speaks automatically when connected
+      if (conversationConnected) {
+        console.log(`🎤 ${getVoiceConfig().agentName} connected via WebSocket`)
+        // The agent will speak automatically through the WebSocket connection
+        // Do NOT use speechSynthesis here - ElevenLabs handles it
+        setAgentSpeaking(true)
+        
+        // Auto-activate microphone after a delay to let agent speak first
+        setTimeout(() => {
+          console.log(`🎤 Auto-activating microphone...`)
+          setAgentSpeaking(false)
+          // Ensure clean start
+          stopMicListening()
           setTimeout(() => {
-            // Ensure clean start
-            stopMicListening()
-            setTimeout(() => {
-              startMicListening()
-            }, 200)
-          }, 500)
-        })
+            startMicListening()
+          }, 200)
+        }, 3000) // Give agent time to speak
       } else {
         console.log('⚠️ No ElevenLabs connection, using fallback...')
+        console.log('⚠️ FALLBACK SPEECH - Phase:', currentPhaseData?.id, 'Question:', currentPhaseData?.question?.substring(0, 50) + '...')
         setAgentSpeaking(true)
-        startTypingAnimation(currentPhaseData.question, estimateSpeechDuration(currentPhaseData.question))
-        setTimeout(() => {
-          setAgentSpeaking(false)
-          // Auto-activate microphone after fallback speech
-          startMicListening()
-        }, 3000)
+        // Use browser speech synthesis as fallback ONLY when ElevenLabs is NOT connected
+        if ('speechSynthesis' in window && currentPhaseData?.question) {
+          // Double-check ElevenLabs is not connected before speaking
+          if (conversationConnected || conversation.status === 'connected') {
+            console.log('🚫 PREVENTING FALLBACK - ElevenLabs is actually connected!')
+            return
+          }
+          
+          // Cancel any ongoing speech first
+          speechSynthesis.cancel()
+          
+          const utterance = new SpeechSynthesisUtterance(currentPhaseData.question)
+          utterance.rate = 0.9
+          utterance.pitch = 1
+          utterance.onend = () => {
+            console.log('⚠️ FALLBACK SPEECH ENDED')
+            setAgentSpeaking(false)
+            // Auto-activate microphone after fallback speech
+            startMicListening()
+          }
+          speechSynthesis.speak(utterance)
+        }
       }
       
       // Show question after a brief delay
@@ -580,7 +534,6 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
         currentAudioRef.current = null
       }
       
-      
       // Reset speaking flag
       isSpeakingRef.current = false
       
@@ -588,8 +541,13 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
       if ('speechSynthesis' in window) {
         speechSynthesis.cancel()
       }
+      
+      // Disconnect ElevenLabs if connected
+      if (conversation && conversation.status === 'connected') {
+        conversation.endSession()
+      }
     }
-  }, [])
+  }, []) // Empty dependency array - only run cleanup on unmount
 
   const handleStartConversation = async () => {
     setConversationStarted(true)
@@ -600,16 +558,23 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
       startGoalListening(conversationSessionId.current)
     }
     
-    // Now that user has interacted, play the welcome message
+    // Now that user has interacted, handle the welcome message
     const userName = userPreferences?.userName || 'there'
     const { agentName } = getVoiceConfig()
     const welcomeText = `Hello ${userName}! I'm ${agentName}. Let's have a natural conversation to discover your personal goals and aspirations. I'll ask you some questions about your goals. You can respond by speaking or using the buttons. I'll help identify goals that match your interests.`
     
-    if (conversation.speakText) {
-      console.log('🎙️ Playing welcome message after user interaction...')
-      setCurrentTranscript(welcomeText) // Set transcript for welcome message
-      await conversation.speakText(welcomeText, () => {
-        // Auto-activate microphone after welcome message
+    console.log('🎙️ Starting conversation, ElevenLabs connected:', conversationConnected)
+    setCurrentTranscript(welcomeText) // Set transcript for welcome message
+    
+    // IMPORTANT: Do NOT use browser speech synthesis here if ElevenLabs is connected
+    // The welcome message is handled by the conversation flow in the useEffect below
+    if (!conversationConnected && 'speechSynthesis' in window) {
+      console.log('🔊 Using browser TTS for welcome message (ElevenLabs not connected)')
+      const utterance = new SpeechSynthesisUtterance(welcomeText)
+      utterance.rate = 0.9
+      utterance.pitch = 1
+      utterance.onend = () => {
+        // Auto-activate microphone after speech
         console.log('🎤 Auto-activating microphone after welcome message...')
         setTimeout(() => {
           // Ensure clean start
@@ -618,10 +583,22 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
             startMicListening()
           }, 200)
         }, 500)
-      })
+      }
+      speechSynthesis.speak(utterance)
+    } else if (conversationConnected) {
+      console.log('🎤 ElevenLabs connected - will handle speech through conversation flow')
+      // The welcome message will be spoken by ElevenLabs through the phase system
+      // Just prepare the microphone activation
+      setTimeout(() => {
+        console.log('🎤 Preparing microphone for ElevenLabs conversation...')
+        stopMicListening()
+        setTimeout(() => {
+          startMicListening()
+        }, 200)
+      }, 3000) // Give agent time to speak
     }
     
-    console.log('✅ Starting conversation flow with existing ElevenLabs session')
+    console.log('✅ Starting conversation flow')
   }
 
   const handleVoiceToggle = () => {
@@ -750,21 +727,20 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
   const speakQuestion = async () => {
     console.log('🔊 speakQuestion called - conversation connected:', conversationConnected)
     if (!isMuted) {
-      if (conversationConnected && conversation.speakText) {
-        console.log('🎤 Using ElevenLabs voice for replay')
-        await conversation.speakText(currentPhaseData?.question || '')
-      } else {
-        console.log('🔊 Falling back to browser synthesis')
-        // Use browser speech synthesis for replay functionality
-        if ('speechSynthesis' in window) {
-          const question = currentPhaseData?.question || ''
-          if (question) {
-            const utterance = new SpeechSynthesisUtterance(question)
-            utterance.rate = 0.9
-            utterance.pitch = 1
-            startTypingAnimation(question, estimateSpeechDuration(question))
-            speechSynthesis.speak(utterance)
-          }
+      // For replay functionality, we need to use browser synthesis
+      // since WebSocket doesn't support replaying previous messages
+      console.log('🔊 Using browser synthesis for replay')
+      if ('speechSynthesis' in window) {
+        const question = currentPhaseData?.question || ''
+        if (question) {
+          // Cancel any ongoing speech first to avoid overlaps
+          speechSynthesis.cancel()
+          
+          const utterance = new SpeechSynthesisUtterance(question)
+          utterance.rate = 0.9
+          utterance.pitch = 1
+          setCurrentTranscript(question)
+          speechSynthesis.speak(utterance)
         }
       }
     }
@@ -1099,7 +1075,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                         </motion.div>
                       )}
                     </div>
-                  ) : (currentPhase === 0 || currentPhase === 2) ? (
+                  ) : currentPhase === 0 ? (
                     <div className="flex justify-center gap-4">
                       <Button
                         onClick={handleYesResponse}
@@ -1120,6 +1096,61 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                         <X className="mr-2 h-5 w-5" />
                         No
                       </Button>
+                    </div>
+                  ) : currentPhase === 2 ? (
+                    <div className="space-y-6 max-w-2xl mx-auto">
+                      <div className="space-y-4">
+                        {selectedGoals.map((goal, index) => (
+                          <motion.div
+                            key={goal.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="bg-slate-700/30 rounded-lg p-4"
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <Target className="h-5 w-5 text-blue-400" />
+                                <span className="text-white font-medium">{goal.title}</span>
+                              </div>
+                              <span className="text-gray-400 text-sm">{goal.category}</span>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="text-gray-300 text-sm font-medium">
+                                Target timescale for achieving this goal:
+                              </label>
+                              <select
+                                value={goal.timescale || '6-months'}
+                                onChange={(e) => {
+                                  const updatedGoals = selectedGoals.map(g => 
+                                    g.id === goal.id ? { ...g, timescale: e.target.value } : g
+                                  )
+                                  setSelectedGoals(updatedGoals)
+                                }}
+                                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              >
+                                <option value="1-month">1 month</option>
+                                <option value="3-months">3 months</option>
+                                <option value="6-months">6 months</option>
+                                <option value="1-year">1 year</option>
+                                <option value="2-years">2+ years</option>
+                              </select>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                      
+                      <div className="text-center">
+                        <Button
+                          onClick={completeSelection}
+                          size="lg"
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+                        >
+                          Complete Goal Setup
+                          <Check className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ) : null}
                   

@@ -82,16 +82,25 @@ export function useDirectElevenLabsConnection({
   }, [apiKey, agentId, onConnect, onDisconnect, onMessage, onError]);
 
   const endSession = useCallback(async () => {
-    if (websocket) {
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
       websocket.close();
       setWebsocket(null);
       setStatus('disconnected');
     }
   }, [websocket]);
 
+  const sendMessage = useCallback((message: any) => {
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.send(JSON.stringify(message));
+    } else {
+      console.warn('Cannot send message - WebSocket not connected');
+    }
+  }, [websocket]);
+
   return {
     status,
     startSession,
-    endSession
+    endSession,
+    sendMessage
   };
 }

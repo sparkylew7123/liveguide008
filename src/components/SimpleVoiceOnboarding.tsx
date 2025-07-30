@@ -1,10 +1,11 @@
 'use client';
 
-import { useConversation } from '@elevenlabs/react';
-import { useCallback, useState } from 'react';
+import { useElevenLabsConversation, formatMetadata } from '@/hooks/useElevenLabsConversation';
+import { useCallback, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
 
 interface AgentDetails {
   uuid: string;
@@ -18,42 +19,74 @@ interface AgentDetails {
   average_rating: number | null;
 }
 
+interface GoalContext {
+  goalId: string;
+  goalTitle: string;
+  category: string;
+  sessionCount: number;
+  accomplishmentCount: number;
+}
+
 interface SimpleVoiceOnboardingProps {
   onComplete?: (data: Record<string, unknown>) => void;
   agentId?: string;
   agentDetails?: AgentDetails | null;
   loading?: boolean;
   userName?: string;
+  goalContext?: GoalContext;
 }
 
 export function SimpleVoiceOnboarding({ 
   agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'SuIlXQ4S6dyjrNViOrQ8',
   agentDetails,
   loading = false,
-  userName = 'User'
+  userName = 'User',
+  goalContext
 }: SimpleVoiceOnboardingProps) {
   const [messages, setMessages] = useState<string[]>([]);
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
+  const { effectiveUserId } = useUser();
+  const conversationSessionId = useRef(`voice_onboarding_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
-  const conversation = useConversation({
-    onConnect: () => {
-      console.log('🎯 Connected to ElevenLabs');
-      setMessages(prev => [...prev, 'Connected to AI coach']);
+  const conversation = useElevenLabsConversation(
+    {
+      agentId: agentId,
+      userId: effectiveUserId,
+      customCallId: conversationSessionId.current,
+      metadata: formatMetadata({
+        userName: userName || 'there',
+        sessionType: goalContext ? 'coaching_session' : 'simple_voice_onboarding',
+        agentName: agentDetails?.Name || 'AI Coach',
+        microphoneWorking: true,
+        ...(goalContext && {
+          goalId: goalContext.goalId,
+          goalTitle: goalContext.goalTitle,
+          goalCategory: goalContext.category,
+          previousSessions: goalContext.sessionCount,
+          previousAccomplishments: goalContext.accomplishmentCount
+        })
+      })
     },
-    onDisconnect: () => {
-      console.log('👋 Disconnected from ElevenLabs');
-      setMessages(prev => [...prev, 'Conversation ended']);
-    },
-    onMessage: (message) => {
-      console.log('💬 Message:', message);
-      setMessages(prev => [...prev, `AI: ${message.message}`]);
-    },
-    onError: (error) => {
-      console.error('❌ Error:', error);
-      const errorMessage = typeof error === 'string' ? error : (error as Error)?.message || 'Connection failed';
-      setMessages(prev => [...prev, `Error: ${errorMessage}`]);
-    },
-  });
+    {
+      onConnect: () => {
+        console.log('🎯 Connected to ElevenLabs');
+        setMessages(prev => [...prev, 'Connected to AI coach']);
+      },
+      onDisconnect: () => {
+        console.log('👋 Disconnected from ElevenLabs');
+        setMessages(prev => [...prev, 'Conversation ended']);
+      },
+      onMessage: (message) => {
+        console.log('💬 Message:', message);
+        setMessages(prev => [...prev, `AI: ${message.message}`]);
+      },
+      onError: (error) => {
+        console.error('❌ Error:', error);
+        const errorMessage = typeof error === 'string' ? error : (error as Error)?.message || 'Connection failed';
+        setMessages(prev => [...prev, `Error: ${errorMessage}`]);
+      },
+    }
+  );
 
   const startConversation = useCallback(async () => {
     try {
@@ -62,9 +95,8 @@ export function SimpleVoiceOnboarding({
       setIsPermissionGranted(true);
       
       // Start conversation with ElevenLabs
-      await conversation.startSession({
-        agentId: agentId
-      });
+      // The hook handles metadata and userName properly
+      await conversation.startSession();
       
       setMessages(prev => [...prev, 'Starting conversation...']);
     } catch (error) {

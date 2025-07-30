@@ -146,6 +146,12 @@ export class AnonymousUserService {
   // Sign in with anonymous user for Supabase
   async signInAnonymously(): Promise<string | null> {
     try {
+      // Temporarily disable anonymous sign-in to fix 500 error
+      console.log('Skipping anonymous sign-in due to server error')
+      return this.getAnonymousId()
+      
+      // Uncomment below when anonymous sign-ins are enabled in Supabase
+      /*
       const { data, error } = await this.supabase.auth.signInAnonymously()
       
       if (error) {
@@ -163,9 +169,10 @@ export class AnonymousUserService {
       }
       
       return null
+      */
     } catch (error) {
       console.error('Error with anonymous sign in:', error)
-      return null
+      return this.getAnonymousId()
     }
   }
 

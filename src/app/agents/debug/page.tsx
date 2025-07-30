@@ -5,7 +5,13 @@ import { createClient } from '@/utils/supabase/client';
 
 export default function DebugAgents() {
   const [status, setStatus] = useState('Testing...');
-  const [agents, setAgents] = useState<any[]>([]);
+  const [agents, setAgents] = useState<{
+    uuid: string;
+    Name: string;
+    Speciality: string;
+    '11labs_agentID': string;
+    availability_status: string;
+  }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

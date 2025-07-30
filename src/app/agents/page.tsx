@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AgentSelectionInterface } from '@/components/AgentSelectionInterface';
+import { AgentSelectionInterfaceFeminine } from '@/components/AgentSelectionInterfaceFeminine';
 import { SimpleVoiceOnboarding } from '@/components/SimpleVoiceOnboarding';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -18,6 +18,7 @@ interface AgentDetails {
   '11labs_agentID': string;
   availability_status: string;
   average_rating: number | null;
+  video_intro?: string;
 }
 
 export default function AgentsPage() {
@@ -60,7 +61,7 @@ export default function AgentsPage() {
       
       const { data, error } = await supabase
         .from('agent_personae')
-        .select('uuid, Name, Speciality, "Key Features", Personality, Image, "11labs_agentID", availability_status, average_rating')
+        .select('uuid, Name, Speciality, "Key Features", Personality, Image, "11labs_agentID", availability_status, average_rating, video_intro')
         .eq('11labs_agentID', elevenLabsId)
         .single();
       
@@ -89,14 +90,14 @@ export default function AgentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen p-4 rose-quartz-theme theme-gradient-bg">
       <div className="max-w-7xl mx-auto">
         {/* Navigation */}
         <div className="mb-8">
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:bg-rose-100/50 text-rose-700"
           >
             <ArrowLeft className="w-4 h-4" />
             {showVoiceOnboarding ? 'Back to Agent Selection' : 'Back to Home'}
@@ -106,17 +107,18 @@ export default function AgentsPage() {
         {/* Content */}
         {!showVoiceOnboarding ? (
           <div className="space-y-8">
-            <AgentSelectionInterface
+            <AgentSelectionInterfaceFeminine
               onAgentSelect={handleAgentSelect}
               selectedAgentId={selectedAgentId}
+              theme="rose-quartz"
             />
             
           </div>
         ) : (
           <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Voice Onboarding</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl font-bold mb-2 text-rose-900">Voice Onboarding</h2>
+              <p className="text-rose-700">
                 You&apos;re now connected with {selectedAgentName}
               </p>
             </div>

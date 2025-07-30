@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import {
   Home,
   Mic,
@@ -17,7 +18,8 @@ import {
   Menu,
   X,
   LogOut,
-  User
+  User,
+  Inbox
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -63,6 +65,7 @@ export function Navbar() {
 
   const navItems: NavItem[] = [
     { label: 'Lobby', href: '/lobby', icon: Home },
+    { label: 'Inbox', href: '/inbox', icon: Inbox },
     { label: 'Voice Sessions', href: '/agents', icon: Mic },
     { label: 'Schedule', href: '/schedule', icon: Calendar },
     { label: 'Progress', href: '/progress', icon: BarChart3 },
@@ -74,10 +77,60 @@ export function Navbar() {
     router.push('/');
   };
 
-  // Don't show navbar on landing, login, or register pages
-  const hideNavbar = ['/', '/login', '/register'].includes(pathname);
+  // Don't show navbar on login or register pages
+  const hideNavbar = ['/login', '/register'].includes(pathname);
   
-  if (hideNavbar || isLoading || !isAuthenticated) {
+  if (hideNavbar || isLoading) {
+    return null;
+  }
+  
+  // Show different navbar for landing page when not authenticated
+  if (pathname === '/' && !isAuthenticated) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-md border-b border-gray-800">
+        <div className="w-full px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3">
+              <Image 
+                src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1750020672/liveguide-logo-clear.png" 
+                alt="LiveGuide" 
+                width={199} 
+                height={53} 
+                className="h-12 w-auto"
+                priority
+                unoptimized
+              />
+            </Link>
+
+            {/* Auth Buttons */}
+            <div className="flex items-center gap-4">
+              <ThemeToggle className="text-gray-300 hover:text-white hover:bg-gray-800" />
+              
+              <Link href="/login">
+                <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white hover:bg-gray-800"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                >
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+  
+  // Don't show authenticated navbar if not authenticated (except on landing page which has its own navbar above)
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -92,9 +145,9 @@ export function Navbar() {
               <Image 
                 src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1750020672/liveguide-logo-clear.png" 
                 alt="LiveGuide" 
-                width={120} 
-                height={32} 
-                className="h-7 w-auto"
+                width={199} 
+                height={53} 
+                className="h-12 w-auto"
                 priority
                 unoptimized
               />
@@ -124,13 +177,17 @@ export function Navbar() {
 
             {/* Right Section */}
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-300 hover:text-white hover:bg-gray-800"
-              >
-                <Bell className="h-5 w-5" />
-              </Button>
+              <ThemeToggle className="text-gray-300 hover:text-white hover:bg-gray-800" />
+              
+              <Link href="/inbox">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-300 hover:text-white hover:bg-gray-800"
+                >
+                  <Bell className="h-5 w-5" />
+                </Button>
+              </Link>
               
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
@@ -164,9 +221,9 @@ export function Navbar() {
               <Image 
                 src="https://res.cloudinary.com/dlq71ih0t/image/upload/v1750020672/liveguide-logo-clear.png" 
                 alt="LiveGuide" 
-                width={100} 
-                height={28} 
-                className="h-6 w-auto"
+                width={166} 
+                height={46} 
+                className="h-10 w-auto"
                 priority
                 unoptimized
               />
@@ -223,6 +280,11 @@ export function Navbar() {
                       </div>
                     </Avatar>
                     <span className="text-sm text-gray-300">{userName}</span>
+                  </div>
+                  
+                  <div className="px-4 py-2 flex items-center justify-between">
+                    <span className="text-sm text-gray-300">Theme</span>
+                    <ThemeToggle className="text-gray-300 hover:text-white hover:bg-gray-800" size="sm" />
                   </div>
                   
                   <Button

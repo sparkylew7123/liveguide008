@@ -92,6 +92,8 @@ enable_signup = true
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
+# OTP expiry duration in seconds (max 3600 seconds = 1 hour)
+otp_expiry = 1800
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

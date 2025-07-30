@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ElevenLabsWebhookManager } from '@/lib/elevenlabs-webhook';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const apiKey = process.env.ELEVENLABS_API_KEY;
     
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const apiKey = process.env.ELEVENLABS_API_KEY;
     

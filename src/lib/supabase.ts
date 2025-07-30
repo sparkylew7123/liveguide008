@@ -7,18 +7,36 @@ import { createClient as createSSRClient } from '@/utils/supabase/client';
 export const supabase = createSSRClient();
 
 export async function signUp(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: `${window.location.origin}/verify-email` },
-  });
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { 
+        emailRedirectTo: `${window.location.origin}/verify-email`,
+        data: {
+          // Add any additional user metadata here if needed
+        }
+      },
+    });
+    
+    if (error) {
+      console.error('Supabase signup error:', error);
+    }
+    
+    return { data, error };
+  } catch (err) {
+    console.error('Signup exception:', err);
+    return { 
+      data: null, 
+      error: err instanceof Error ? err : new Error('Unknown signup error') 
+    };
+  }
 }
 
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
-    password,
+    password
   });
   return { data, error };
 }

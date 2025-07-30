@@ -46,9 +46,10 @@ export function OnboardingProgress({
   };
 
   return (
-    <div className="w-full bg-white/80 backdrop-blur-sm border-b border-blue-200 py-4 px-6">
+    <div className="w-full bg-white/80 backdrop-blur-sm border-b border-blue-200 py-2 sm:py-4 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between">
+        {/* Hide step indicators on mobile */}
+        <div className="hidden sm:flex items-center justify-between">
           {phases.map((phase, index) => (
             <div key={phase.id} className="flex items-center flex-1">
               {/* Phase Step */}
@@ -104,8 +105,8 @@ export function OnboardingProgress({
           ))}
         </div>
         
-        {/* Progress Summary */}
-        <div className="mt-4 text-center">
+        {/* Progress Summary - Hidden on mobile */}
+        <div className="hidden sm:block mt-4 text-center">
           <p className="text-sm text-gray-600">
             {completedGoals > 0 && (
               <span className="text-green-600 font-medium">
