@@ -16,6 +16,7 @@
   "dependencies": {
     "@elevenlabs/client": "^0.3.0",
     "@elevenlabs/react": "^0.3.0",
+    "@heroicons/react": "^2.2.0",
     "@marsidev/react-turnstile": "^1.1.0",
     "@payloadcms/db-postgres": "^3.49.1",
     "@payloadcms/email-resend": "^3.49.1",
