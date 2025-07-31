@@ -8,6 +8,8 @@
   NPM_VERSION = "10.9.2"
   # Ensure Next.js knows the deployment URL
   NEXT_PUBLIC_SITE_URL = "${DEPLOY_PRIME_URL}"
+  # Force cache clear
+  NETLIFY_CACHE_BUST = "2025-07-31-security-fix"
 
 # Branch deploy contexts
 [context.production]
@@ -18,6 +20,10 @@
 
 [context.branch-deploy]
   command = "npm run build"
+
+# Plugins
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # Visual Editor preview settings
 [[headers]]
