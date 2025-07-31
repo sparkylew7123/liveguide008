@@ -6,7 +6,7 @@
 - **Name**: callstart
 - **ID**: `759865b1c81c4b6b875aafc324e07651`
 - **URL**: `https://aesefwyijcsynbbhozhb.supabase.co/functions/v1/elevenlabs-webhook`
-- **Secret**: `***REMOVED***`
+- **Secret**: `your_webhook_secret_here`
 
 ### 🎯 Agent Configuration
 - **Agent Name**: Maya - LiveGuide Onboarding Specialist
@@ -55,9 +55,9 @@ The webhook uses HMAC-SHA256 signature verification:
 ## Environment Variables
 
 ```env
-ELEVENLABS_API_KEY=***REMOVED***
+ELEVENLABS_API_KEY=your_api_key_here
 NEXT_PUBLIC_ELEVENLABS_AGENT_ID=SuIlXQ4S6dyjrNViOrQ8
-ELEVENLABS_WEBHOOK_SECRET=***REMOVED***
+ELEVENLABS_WEBHOOK_SECRET=your_webhook_secret_here
 ```
 
 ## Deployment Status

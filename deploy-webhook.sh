@@ -4,7 +4,7 @@
 echo "Deploying ElevenLabs webhook Edge Function..."
 
 # Set the webhook secret as an environment variable for the function
-npx supabase secrets set ELEVENLABS_WEBHOOK_SECRET=***REMOVED*** --project-ref aesefwyijcsynbbhozhb
+npx supabase secrets set ELEVENLABS_WEBHOOK_SECRET=$ELEVENLABS_WEBHOOK_SECRET --project-ref aesefwyijcsynbbhozhb
 
 # Deploy the function
 npx supabase functions deploy elevenlabs-webhook --no-verify-jwt --project-ref aesefwyijcsynbbhozhb
