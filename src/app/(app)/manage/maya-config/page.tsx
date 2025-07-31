@@ -76,7 +76,7 @@ export default function MayaConfigPage() {
     setLogs([]);
 
     try {
-      const response = await fetch('/api/admin/configure-maya', {
+      const response = await fetch('/api/manage/configure-maya', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
