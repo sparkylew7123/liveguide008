@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, ViewfinderCircleIcon, CpuChipIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ViewfinderCircleIcon, CpuChipIcon, UsersIcon, AcademicCapIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { OnboardingPhase } from './VoiceGuidedOnboarding';
 
 interface OnboardingProgressProps {
@@ -19,7 +19,7 @@ export function OnboardingProgress({
       id: 'goal_discovery',
       title: 'Goal Discovery',
       description: 'Share your aspirations',
-      icon: Target,
+      icon: AcademicCapIcon,
       completed: completedGoals > 0,
       active: currentPhase === 'goal_discovery'
     },
@@ -27,7 +27,7 @@ export function OnboardingProgress({
       id: 'coaching_style',
       title: 'Coaching Style',
       description: 'Discover your preferences',
-      icon: Brain,
+      icon: SparklesIcon,
       completed: hasCoachingPreferences,
       active: currentPhase === 'coaching_style'
     },
@@ -35,7 +35,7 @@ export function OnboardingProgress({
       id: 'agent_matching',
       title: 'Coach Matching',
       description: 'Meet your perfect coach',
-      icon: Users,
+      icon: UsersIcon,
       completed: false,
       active: currentPhase === 'agent_matching'
     }
