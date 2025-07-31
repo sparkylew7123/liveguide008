@@ -17,6 +17,7 @@
     "@elevenlabs/react": "^0.3.0",
     "@marsidev/react-turnstile": "^1.1.0",
     "@payloadcms/db-postgres": "^3.49.1",
+    "@payloadcms/email-resend": "^3.49.1",
     "@payloadcms/next": "^3.49.1",
     "@payloadcms/payload-cloud": "^3.49.1",
     "@payloadcms/richtext-lexical": "^3.49.1",
@@ -41,6 +42,7 @@
     "payload": "^3.49.1",
     "react": "19.1",
     "react-dom": "19.1",
+    "resend": "^4.7.0",
     "sharp": "^0.34.3",
     "tailwind-merge": "^3.3.1",
     "uuid": "^11.1.0"
