@@ -18,7 +18,6 @@
     "@elevenlabs/react": "^0.3.0",
     "@heroicons/react": "^2.2.0",
     "@marsidev/react-turnstile": "^1.1.0",
-    "@payloadcms/db-postgres": "^3.49.1",
     "@payloadcms/email-resend": "^3.49.1",
     "@payloadcms/next": "^3.49.1",
     "@payloadcms/payload-cloud": "^3.49.1",

@@ -10,4 +10,133 @@ assets:
   staticDir: public
   uploadDir: images
   publicPath: /
-models: {}
+
+# Content source configuration
+contentSources:
+  - name: pages
+    type: files
+    path: src/app
+    watch: true
+
+# Page models configuration
+models:
+  HomePage:
+    type: page
+    label: Home Page
+    filePath: 'src/app/(app)/page.tsx'
+    urlPath: /
+    fields:
+      - type: string
+        name: title
+        label: Page Title
+        required: false
+
+  LoginPage:
+    type: page
+    label: Login Page
+    filePath: 'src/app/(app)/login/page.tsx'
+    urlPath: /login
+    
+  RegisterPage:
+    type: page
+    label: Register Page
+    filePath: 'src/app/(app)/register/page.tsx'
+    urlPath: /register
+    
+  AgentsPage:
+    type: page
+    label: Agents Page
+    filePath: 'src/app/(app)/agents/page.tsx'
+    urlPath: /agents
+    
+  InboxPage:
+    type: page
+    label: Inbox Page
+    filePath: 'src/app/(app)/inbox/page.tsx'
+    urlPath: /inbox
+    
+  ProgressPage:
+    type: page
+    label: Progress Page
+    filePath: 'src/app/(app)/progress/page.tsx'
+    urlPath: /progress
+    
+  SettingsPage:
+    type: page
+    label: Settings Page
+    filePath: 'src/app/(app)/settings/page.tsx'
+    urlPath: /settings
+    
+  OnboardingPage:
+    type: page
+    label: Voice Onboarding Page
+    filePath: 'src/app/(app)/onboarding/voice-guided/page.tsx'
+    urlPath: /onboarding/voice-guided
+    
+  CoachingPage:
+    type: page
+    label: Coaching Page
+    filePath: 'src/app/(app)/coaching/[goalId]/page.tsx'
+    urlPath: '/coaching/:goalId'
+    fields:
+      - type: string
+        name: goalId
+        label: Goal ID
+        required: true
+
+# Define page templates
+pageModels:
+  - HomePage
+  - LoginPage
+  - RegisterPage
+  - AgentsPage
+  - InboxPage
+  - ProgressPage
+  - SettingsPage
+  - OnboardingPage
+  - CoachingPage
+
+# Sitemap configuration
+siteMap:
+  - label: Home
+    type: page
+    modelName: HomePage
+    urlPath: /
+  - label: Authentication
+    type: folder
+    children:
+      - label: Login
+        type: page
+        modelName: LoginPage
+        urlPath: /login
+      - label: Register
+        type: page
+        modelName: RegisterPage
+        urlPath: /register
+  - label: App Features
+    type: folder
+    children:
+      - label: Agents
+        type: page
+        modelName: AgentsPage
+        urlPath: /agents
+      - label: Inbox
+        type: page
+        modelName: InboxPage
+        urlPath: /inbox
+      - label: Progress
+        type: page
+        modelName: ProgressPage
+        urlPath: /progress
+      - label: Settings
+        type: page
+        modelName: SettingsPage
+        urlPath: /settings
+  - label: Onboarding
+    type: page
+    modelName: OnboardingPage
+    urlPath: /onboarding/voice-guided
+
+# Preview URL configuration
+previewUrl:
+  enable: true
