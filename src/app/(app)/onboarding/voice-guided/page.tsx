@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { VoiceGuidedOnboarding } from '@/components/onboarding/VoiceGuidedOnboarding';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function VoiceGuidedOnboardingPage() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function VoiceGuidedOnboardingPage() {
           onClick={handleBack}
           className="flex items-center gap-2 bg-white/80 backdrop-blur-sm"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon  className="w-4 h-4" />
           Back to Home
         </Button>
       </div>

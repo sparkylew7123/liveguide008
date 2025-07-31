@@ -8,23 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
-import { 
-  Mic, 
-  Brain, 
-  Users, 
-  Zap, 
-  Star, 
-  ArrowRight,
-  CheckCircle,
-  PlayCircle,
-  Shield,
-  Clock,
-  RotateCcw,
-  Target,
-  Play,
-  Phone,
-  MessageSquare
-} from 'lucide-react'
+import { MicrophoneIcon, CpuChipIcon, UsersIcon, BoltIcon, StarIcon, ArrowRightIcon, CheckCircleIcon, PlayCircleIcon, ShieldCheckIcon, ClockIcon, ArrowPathIcon, ViewfinderCircleIcon, PlayIcon, PhoneIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 export default function LandingPage() {
   const videoRef = useRef<HTMLDivElement>(null)
   const videoElementRef = useRef<HTMLVideoElement>(null)
@@ -134,39 +118,39 @@ export default function LandingPage() {
     if (isPaused && !hasEnded) {
       return {
         text: 'Resume',
-        icon: <Play className="mr-2 h-5 w-5" />
+        icon: <PlayIcon  className="mr-2 h-5 w-5" />
       }
     } else {
       return {
         text: 'Watch Again',
-        icon: <RotateCcw className="mr-2 h-5 w-5" />
+        icon: <ArrowPathIcon  className="mr-2 h-5 w-5" />
       }
     }
   }
 
   // Updated features for streamlined ElevenLabs-focused platform
   const featureIcons = {
-    "Voice-First AI Coaching": <Mic className="h-6 w-6" />,
-    "12 Expert AI Coaches": <Users className="h-6 w-6" />,
-    "Secure Broker Architecture": <Zap className="h-6 w-6" />,
-    "Goal-Focused Sessions": <Target className="h-6 w-6" />,
-    "Privacy First": <Shield className="h-6 w-6" />,
-    "Always Available": <Clock className="h-6 w-6" />
+    "Voice-First AI Coaching": <MicrophoneIcon  className="h-6 w-6" />,
+    "12 Expert AI Coaches": <UsersIcon  className="h-6 w-6" />,
+    "Secure Broker Architecture": <BoltIcon  className="h-6 w-6" />,
+    "Goal-Focused Sessions": <ViewfinderCircleIcon  className="h-6 w-6" />,
+    "Privacy First": <ShieldCheckIcon  className="h-6 w-6" />,
+    "Always Available": <ClockIcon  className="h-6 w-6" />
   }
   
   const features = [
     {
-      icon: <Brain className="h-6 w-6" />,
+      icon: <CpuChipIcon  className="h-6 w-6" />,
       title: "AI-Powered Personalization",
       description: "Our advanced AI learns from your interactions to provide increasingly personalized guidance"
     },
     {
-      icon: <Mic className="h-6 w-6" />,
+      icon: <MicrophoneIcon  className="h-6 w-6" />,
       title: "Voice-First Experience",
       description: "Natural conversations with your AI coach make growth feel effortless and engaging"
     },
     {
-      icon: <Clock className="h-6 w-6" />,
+      icon: <ClockIcon  className="h-6 w-6" />,
       title: "Real-Time Adaptation",
       description: "Your coaching evolves with you, adjusting strategies based on your progress and feedback"
     }
@@ -278,7 +262,7 @@ export default function LandingPage() {
                   className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg transition-transform ${showButtonPulse ? 'button-pulse' : ''}`}
                   onClick={handleTalkToAgent}
                 >
-                  <Mic className="mr-2 h-5 w-5" />
+                  <MicrophoneIcon  className="mr-2 h-5 w-5" />
                   Start Your Free Journey
                 </Button>
               </motion.div>
@@ -347,7 +331,7 @@ export default function LandingPage() {
                           size="lg"
                           className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg transition-transform ${showButtonPulse ? 'button-pulse' : ''}`}
                         >
-                          <Mic className="mr-2 h-5 w-5" />
+                          <MicrophoneIcon  className="mr-2 h-5 w-5" />
                           Start Your Free Journey
                         </Button>
                       </motion.div>
@@ -376,7 +360,7 @@ export default function LandingPage() {
                   "Goal Tracking"
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    <CheckCircleIcon  className="h-4 w-4 text-green-400" />
                     {feature}
                   </div>
                 ))}
@@ -467,7 +451,7 @@ export default function LandingPage() {
                   <CardContent className="pt-6">
                     <div className="flex mb-4">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                        <StarIcon  key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                       ))}
                     </div>
                     <p className="text-gray-300 mb-6">&ldquo;{testimonial.content}&rdquo;</p>
@@ -512,7 +496,7 @@ export default function LandingPage() {
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
                 onClick={handleTalkToAgent}
               >
-                <Mic className="mr-2 h-4 w-4" />
+                <MicrophoneIcon  className="mr-2 h-4 w-4" />
                 Get Started Free
               </Button>
             </div>

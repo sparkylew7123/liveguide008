@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, Briefcase, Heart, Users } from 'lucide-react';
+import { ViewfinderCircleIcon, BriefcaseIcon, HeartIcon, UsersIcon } from '@heroicons/react/24/outline';
 
 interface Goal {
   id: string;

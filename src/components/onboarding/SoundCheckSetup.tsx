@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useMicrophoneAccess } from '@/hooks/useMicrophoneAccess'
 import { WaveformAnimation } from '@/components/ui/waveform-animation'
-import { Mic, Settings, ChevronRight, Volume2 } from 'lucide-react'
+import { MicrophoneIcon, Cog6ToothIcon, ChevronRightIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline'
 
 interface SoundCheckSetupProps {
   onComplete: (preferences: {
@@ -236,7 +236,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
                   variant="outline"
                   className="bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600 mr-2"
                 >
-                  <Mic className="mr-2 h-4 w-4" />
+                  <MicrophoneIcon  className="mr-2 h-4 w-4" />
                   Retry Microphone
                 </Button>
                 <Button
@@ -244,7 +244,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
                   variant="outline"
                   className="bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600"
                 >
-                  <Settings className="mr-2 h-4 w-4" />
+                  <Cog6ToothIcon  className="mr-2 h-4 w-4" />
                   Fix Settings
                 </Button>
               </div>
@@ -257,7 +257,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
               >
-                Continue <ChevronRight className="ml-2 h-5 w-5" />
+                Continue <ChevronRightIcon  className="ml-2 h-5 w-5" />
               </Button>
             )}
           </motion.div>
@@ -308,7 +308,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
                     : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600'
                 }`}
               >
-                <Mic className="mr-2 h-5 w-5" />
+                <MicrophoneIcon  className="mr-2 h-5 w-5" />
                 {listening ? 'Listening... (Click to stop)' : 'Click to Listen for Name'}
               </Button>
               
@@ -349,7 +349,7 @@ export default function SoundCheckSetup({ onComplete }: SoundCheckSetupProps) {
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
               >
-                Start Goal Discovery <ChevronRight className="ml-2 h-5 w-5" />
+                Start Goal Discovery <ChevronRightIcon  className="ml-2 h-5 w-5" />
               </Button>
             </div>
           </motion.div>

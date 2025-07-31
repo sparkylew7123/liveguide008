@@ -8,21 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { 
-  Target, 
-  Mic, 
-  Calendar, 
-  TrendingUp,
-  Users,
-  Heart,
-  Briefcase,
-  Sparkles,
-  CheckCircle,
-  Clock,
-  ArrowRight,
-  Trophy,
-  Activity
-} from 'lucide-react'
+import { ViewfinderCircleIcon, MicrophoneIcon, CalendarIcon, TrendingUpIcon, UsersIcon, HeartIcon, BriefcaseIcon, SparklesIcon, CheckCircleIcon, ClockIcon, ArrowRightIcon, TrophyIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -92,15 +78,15 @@ export default function LobbyPage() {
   const getCategoryIcon = (categoryTitle: string) => {
     switch (categoryTitle) {
       case 'Personal Growth':
-        return <Target className="h-5 w-5" />
+        return <ViewfinderCircleIcon />
       case 'Professional':
-        return <Briefcase className="h-5 w-5" />
+        return <BriefcaseIcon />
       case 'Health & Wellness':
-        return <Heart className="h-5 w-5" />
+        return <HeartIcon />
       case 'Relationships':
-        return <Users className="h-5 w-5" />
+        return <UsersIcon />
       default:
-        return <Sparkles className="h-5 w-5" />
+        return <SparklesIcon />
     }
   }
 
@@ -173,7 +159,7 @@ export default function LobbyPage() {
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Mic className="h-5 w-5" />
+                <MicrophoneIcon />
                 Continue Coaching
               </CardTitle>
               <CardDescription className="text-gray-300">
@@ -183,7 +169,7 @@ export default function LobbyPage() {
             <CardContent>
               <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 <Link href="/onboarding/voice-guided">
-                  <Mic className="mr-2 h-4 w-4" />
+                  <MicrophoneIcon  className="mr-2 h-4 w-4" />
                   Start Session
                 </Link>
               </Button>
@@ -193,7 +179,7 @@ export default function LobbyPage() {
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Target className="h-5 w-5" />
+                <ViewfinderCircleIcon />
                 Goal Progress
               </CardTitle>
               <CardDescription className="text-gray-300">
@@ -225,7 +211,7 @@ export default function LobbyPage() {
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+                <CalendarIcon />
                 Recent Activity
               </CardTitle>
               <CardDescription className="text-gray-300">
@@ -258,7 +244,7 @@ export default function LobbyPage() {
             <h2 className="text-2xl font-bold text-white">Your Goals</h2>
             <Button asChild variant="outline" className="border-gray-400 text-gray-300 hover:bg-gray-800">
               <Link href="/onboarding/voice-guided">
-                <Target className="mr-2 h-4 w-4" />
+                <ViewfinderCircleIcon  className="mr-2 h-4 w-4" />
                 Add New Goals
               </Link>
             </Button>
@@ -267,14 +253,14 @@ export default function LobbyPage() {
           {userGoals.length === 0 ? (
             <Card className="bg-slate-800/50 border-slate-700">
               <CardContent className="py-12 text-center">
-                <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <ViewfinderCircleIcon  className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">No Goals Yet</h3>
                 <p className="text-gray-300 mb-6">
                   Start by talking to our AI coach to discover and set your personal goals.
                 </p>
                 <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   <Link href="/onboarding/voice-guided">
-                    <Mic className="mr-2 h-4 w-4" />
+                    <MicrophoneIcon  className="mr-2 h-4 w-4" />
                     Discover Your Goals
                   </Link>
                 </Button>
@@ -305,7 +291,7 @@ export default function LobbyPage() {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <Trophy className="h-4 w-4 text-amber-400" />
+                                <TrophyIcon  className="h-4 w-4 text-amber-400" />
                                 <div className="text-white font-medium">{goal.goal_title}</div>
                               </div>
                               <div className="grid grid-cols-3 gap-4 text-sm">
@@ -343,7 +329,7 @@ export default function LobbyPage() {
                               )}
                               <Link href={`/coaching/${goal.goal_id}`}>
                                 <Button size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-900/20">
-                                  <Mic className="w-4 h-4 mr-1" />
+                                  <MicrophoneIcon  className="w-4 h-4 mr-1" />
                                   Coach
                                 </Button>
                               </Link>
@@ -369,7 +355,7 @@ export default function LobbyPage() {
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg text-white flex items-center gap-2">
-                        <Activity className="h-4 w-4" />
+                        <ChartBarIcon  className="h-4 w-4" />
                         {new Date(session.start_time).toLocaleDateString()}
                       </CardTitle>
                       <Badge variant="outline" className="text-gray-300 border-gray-400">
@@ -381,19 +367,19 @@ export default function LobbyPage() {
                     <div className="space-y-2">
                       {session.emotional_state && (
                         <div className="flex items-center gap-2 text-sm">
-                          <Heart className="h-4 w-4 text-red-400" />
+                          <HeartIcon  className="h-4 w-4 text-red-400" />
                           <span className="text-gray-300">Feeling: {session.emotional_state}</span>
                         </div>
                       )}
                       {session.confidence_level && (
                         <div className="flex items-center gap-2 text-sm">
-                          <TrendingUp className="h-4 w-4 text-green-400" />
+                          <TrendingUpIcon  className="h-4 w-4 text-green-400" />
                           <span className="text-gray-300">Confidence: {(session.confidence_level * 100).toFixed(0)}%</span>
                         </div>
                       )}
                       {session.accomplishment_count > 0 && (
                         <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-4 w-4 text-amber-400" />
+                          <CheckCircleIcon  className="h-4 w-4 text-amber-400" />
                           <span className="text-gray-300">{session.accomplishment_count} accomplishments</span>
                         </div>
                       )}
@@ -411,7 +397,7 @@ export default function LobbyPage() {
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
+                  <TrendingUpIcon />
                   Confidence Trend
                 </CardTitle>
                 <CardDescription className="text-gray-300">
@@ -450,7 +436,7 @@ export default function LobbyPage() {
                 <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   <Link href="/register">
                     Create Account
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRightIcon  className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </div>

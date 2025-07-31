@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Star, Check } from 'lucide-react';
+import { ArrowPathIcon, StarIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AgentPersona {
@@ -167,7 +167,7 @@ export function AgentSelection({ onSelectAgent, selectedAgentId }: AgentSelectio
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
+          <ArrowPathIcon  className="w-12 h-12 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Loading available coaches...</p>
         </div>
       </div>
@@ -209,7 +209,7 @@ export function AgentSelection({ onSelectAgent, selectedAgentId }: AgentSelectio
                 {selectedAgentId === agent['11labs_agentID'] && (
                   <div className="absolute top-4 right-4 z-10">
                     <Badge className="bg-primary text-primary-foreground">
-                      <Check className="w-3 h-3 mr-1" />
+                      <CheckIcon  className="w-3 h-3 mr-1" />
                       Selected
                     </Badge>
                   </div>
@@ -261,7 +261,7 @@ export function AgentSelection({ onSelectAgent, selectedAgentId }: AgentSelectio
       {loadingMore && (
         <div className="flex items-center justify-center py-8">
           <div className="text-center space-y-2">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+            <ArrowPathIcon  className="w-8 h-8 animate-spin text-primary mx-auto" />
             <p className="text-sm text-muted-foreground">Loading more coaches...</p>
           </div>
         </div>

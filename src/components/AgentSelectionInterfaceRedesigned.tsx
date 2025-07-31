@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { Loader2, Users, CheckCircle2 } from "lucide-react";
+import { ArrowPathIcon, UsersIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -130,7 +130,7 @@ export function AgentSelectionInterfaceRedesigned({
     return (
       <div className="flex items-center justify-center min-h-[600px]">
         <div className="text-center space-y-4">
-          <Loader2 className="w-10 h-10 animate-spin text-gray-400 mx-auto" />
+          <ArrowPathIcon  className="w-10 h-10 animate-spin text-gray-400 mx-auto" />
           <p className="text-gray-600 font-medium">Loading AI coaches...</p>
         </div>
       </div>
@@ -156,7 +156,7 @@ export function AgentSelectionInterfaceRedesigned({
     return (
       <div className="flex items-center justify-center min-h-[600px]">
         <Alert className="max-w-md">
-          <Users className="w-5 h-5" />
+          <UsersIcon  className="w-5 h-5" />
           <AlertDescription className="text-center space-y-4">
             <p>No coaches available at the moment.</p>
             <Button onClick={fetchAgents} variant="outline" size="sm">
@@ -232,7 +232,7 @@ export function AgentSelectionInterfaceRedesigned({
               )}>
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                    <CheckCircleIcon  className="w-6 h-6 text-green-600 flex-shrink-0" />
                     <div className="text-center md:text-left">
                       <h3 className="font-semibold text-gray-900">
                         {selectedAgentData.Name} Selected

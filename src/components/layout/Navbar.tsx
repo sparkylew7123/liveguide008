@@ -8,19 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import {
-  Home,
-  Mic,
-  Calendar,
-  BarChart3,
-  Settings,
-  Bell,
-  Menu,
-  X,
-  LogOut,
-  User,
-  Inbox
-} from 'lucide-react';
+import { HomeIcon, MicrophoneIcon, CalendarIcon, ChartBarIcon, Cog6ToothIcon, BellIcon, Bars3Icon, XMarkIcon, ArrowRightOnRectangleIcon, UserIcon, InboxIcon } from '@heroicons/react/24/outline';
 import { createClient } from '@/utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -64,12 +52,12 @@ export function Navbar() {
   }, [supabase.auth]);
 
   const navItems: NavItem[] = [
-    { label: 'Lobby', href: '/lobby', icon: Home },
-    { label: 'Inbox', href: '/inbox', icon: Inbox },
-    { label: 'Voice Sessions', href: '/agents', icon: Mic },
-    { label: 'Schedule', href: '/schedule', icon: Calendar },
-    { label: 'Progress', href: '/progress', icon: BarChart3 },
-    { label: 'Settings', href: '/settings', icon: Settings },
+    { label: 'Lobby', href: '/lobby', icon: HomeIcon },
+    { label: 'Inbox', href: '/inbox', icon: InboxIcon },
+    { label: 'Voice Sessions', href: '/agents', icon: MicrophoneIcon },
+    { label: 'Schedule', href: '/schedule', icon: CalendarIcon },
+    { label: 'Progress', href: '/progress', icon: ChartBarIcon },
+    { label: 'Settings', href: '/settings', icon: Cog6ToothIcon },
   ];
 
   const handleSignOut = async () => {
@@ -185,7 +173,7 @@ export function Navbar() {
                   size="icon"
                   className="text-gray-300 hover:text-white hover:bg-gray-800"
                 >
-                  <Bell className="h-5 w-5" />
+                  <BellIcon />
                 </Button>
               </Link>
               
@@ -204,7 +192,7 @@ export function Navbar() {
                 size="sm"
                 className="text-gray-300 hover:text-white hover:bg-gray-800"
               >
-                <LogOut className="h-4 w-4 mr-2" />
+                <ArrowRightOnRectangleIcon  className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
             </div>
@@ -236,7 +224,7 @@ export function Navbar() {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-300 hover:text-white hover:bg-gray-800"
             >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMenuOpen ? <XMarkIcon /> : <Bars3Icon />}
             </Button>
           </div>
         </div>
@@ -292,7 +280,7 @@ export function Navbar() {
                     variant="ghost"
                     className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-800 mt-2"
                   >
-                    <LogOut className="h-4 w-4 mr-2" />
+                    <ArrowRightOnRectangleIcon  className="h-4 w-4 mr-2" />
                     Sign Out
                   </Button>
                 </div>

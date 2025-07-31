@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { AgentSelectionInterface } from '@/components/AgentSelectionInterface';
 import { SimpleVoiceOnboarding } from '@/components/SimpleVoiceOnboarding';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function VoiceOnboardingPage() {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function VoiceOnboardingPage() {
             size="sm"
             className="bg-white/80 backdrop-blur-sm"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeftIcon  className="w-4 h-4 mr-2" />
             Change Agent
           </Button>
         </div>

@@ -4,7 +4,7 @@ import * as path from 'path'
 
 // Initialize ElevenLabs client
 const elevenlabs = new ElevenLabsClient({
-  apiKey: process.env.ELEVENLABS_API_KEY || '***REMOVED***'
+  apiKey: process.env.ELEVENLABS_API_KEY || ''
 })
 
 // Maya's agent ID

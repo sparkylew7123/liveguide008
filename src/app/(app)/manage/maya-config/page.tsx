@@ -4,20 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Bot, 
-  Settings, 
-  Mic, 
-  MessageSquare, 
-  CheckCircle2, 
-  XCircle,
-  Loader2,
-  Code,
-  Eye,
-  EyeOff,
-  RefreshCw,
-  Terminal
-} from 'lucide-react';
+import { CpuChipIcon, Cog6ToothIcon, MicrophoneIcon, ChatBubbleLeftRightIcon, CheckCircleIcon, XCircleIcon, ArrowPathIcon, CodeBracketIcon, EyeIcon, EyeSlashIcon, CommandLineIcon } from '@heroicons/react/24/outline';
 
 export default function MayaConfigPage() {
   const [isConfiguring, setIsConfiguring] = useState(false);
@@ -34,22 +21,22 @@ export default function MayaConfigPage() {
 
   const configFeatures = [
     {
-      icon: <Bot className="w-5 h-5" />,
+      icon: <CpuChipIcon  className="w-5 h-5" />,
       title: "Intelligent Onboarding",
       description: "Maya guides users through personalized goal discovery"
     },
     {
-      icon: <MessageSquare className="w-5 h-5" />,
+      icon: <ChatBubbleLeftRightIcon  className="w-5 h-5" />,
       title: "Natural Conversations",
       description: "Engaging dialogue that feels authentic and supportive"
     },
     {
-      icon: <Mic className="w-5 h-5" />,
+      icon: <MicrophoneIcon  className="w-5 h-5" />,
       title: "Voice-First Experience",
       description: "Warm, friendly voice optimized for coaching conversations"
     },
     {
-      icon: <Settings className="w-5 h-5" />,
+      icon: <Cog6ToothIcon  className="w-5 h-5" />,
       title: "Adaptive Coaching",
       description: "Discovers user preferences for personalized support"
     }
@@ -130,13 +117,13 @@ export default function MayaConfigPage() {
   const getStatusIcon = () => {
     switch (configStatus) {
       case 'running':
-        return <Loader2 className="w-5 h-5 animate-spin text-blue-500" />;
+        return <ArrowPathIcon  className="w-5 h-5 animate-spin text-blue-500" />;
       case 'success':
-        return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+        return <CheckCircleIcon  className="w-5 h-5 text-green-500" />;
       case 'error':
-        return <XCircle className="w-5 h-5 text-red-500" />;
+        return <XCircleIcon  className="w-5 h-5 text-red-500" />;
       default:
-        return <Settings className="w-5 h-5 text-gray-400" />;
+        return <Cog6ToothIcon  className="w-5 h-5 text-gray-400" />;
     }
   };
 
@@ -145,7 +132,7 @@ export default function MayaConfigPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Bot className="w-8 h-8 text-blue-600" />
+            <CpuChipIcon  className="w-8 h-8 text-blue-600" />
             Maya Agent Configuration
           </h1>
           <p className="mt-2 text-lg text-gray-600">
@@ -188,7 +175,7 @@ export default function MayaConfigPage() {
                         onClick={() => setShowApiKey(!showApiKey)}
                         className="p-1 hover:bg-gray-100 rounded"
                       >
-                        {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showApiKey ? <EyeSlashIcon  className="w-4 h-4" /> : <EyeIcon  className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
@@ -202,12 +189,12 @@ export default function MayaConfigPage() {
                   >
                     {isConfiguring ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <ArrowPathIcon  className="w-4 h-4 mr-2 animate-spin" />
                         Configuring...
                       </>
                     ) : (
                       <>
-                        <RefreshCw className="w-4 h-4 mr-2" />
+                        <ArrowPathIcon  className="w-4 h-4 mr-2" />
                         Run Configuration Script
                       </>
                     )}
@@ -268,7 +255,7 @@ export default function MayaConfigPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
-                    <Terminal className="w-5 h-5" />
+                    <CommandLineIcon  className="w-5 h-5" />
                     Configuration Logs
                   </span>
                   {getStatusIcon()}
@@ -299,7 +286,7 @@ export default function MayaConfigPage() {
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Code className="w-5 h-5" />
+              <CodeBracketIcon  className="w-5 h-5" />
               Configuration Script Overview
             </CardTitle>
             <CardDescription>

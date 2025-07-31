@@ -7,7 +7,7 @@ import { useDirectElevenLabsConnection } from '@/hooks/useDirectElevenLabsConnec
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Loader2, Target, Sparkles, Zap } from 'lucide-react';
+import { MicrophoneIcon, NoSymbolIcon, ArrowPathIcon, ViewfinderCircleIcon, SparklesIcon, BoltIcon } from '@heroicons/react/24/outline';
 import { createClient } from '@/utils/supabase/client';
 import { GoalCategoriesDisplay } from './GoalCategoriesDisplay';
 import { generateCallId, formatMetadata } from '@/hooks/useElevenLabsConversation';
@@ -275,7 +275,7 @@ export function GoalDiscoveryFlow({
       <div className="text-center space-y-8">
         <div className="space-y-4">
           <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-            <Target className="w-10 h-10 text-blue-600" />
+            <ViewfinderCircleIcon  className="w-10 h-10 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome to Goal Discovery, {userName}!
@@ -289,7 +289,7 @@ export function GoalDiscoveryFlow({
         <Card className="max-w-lg mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-blue-600" />
+              <SparklesIcon  className="w-5 h-5 text-blue-600" />
               How it works
             </CardTitle>
           </CardHeader>
@@ -330,12 +330,12 @@ export function GoalDiscoveryFlow({
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                 Starting...
               </>
             ) : (
               <>
-                <Mic className="mr-2 h-4 w-4" />
+                <MicrophoneIcon  className="mr-2 h-4 w-4" />
                 Start Voice Discovery
               </>
             )}
@@ -360,7 +360,7 @@ export function GoalDiscoveryFlow({
       <Card className="max-w-2xl mx-auto">
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2">
-            <Target className="w-5 h-5 text-blue-600" />
+            <ViewfinderCircleIcon  className="w-5 h-5 text-blue-600" />
             Goal Discovery with Maya
           </CardTitle>
           <CardDescription>
@@ -373,11 +373,11 @@ export function GoalDiscoveryFlow({
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-2">
               {conversation.status === 'connected' ? (
-                <Mic className="h-5 w-5 text-green-500" />
+                <MicrophoneIcon  className="h-5 w-5 text-green-500" />
               ) : conversation.status === 'connecting' ? (
-                <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                <ArrowPathIcon  className="h-5 w-5 text-blue-500 animate-spin" />
               ) : (
-                <MicOff className="h-5 w-5 text-gray-400" />
+                <NoSymbolIcon  className="h-5 w-5 text-gray-400" />
               )}
               <span className="text-sm font-medium">
                 Status: {conversation.status || 'disconnected'}
@@ -390,9 +390,9 @@ export function GoalDiscoveryFlow({
           <div className="space-y-3">
             <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
               {isListening ? (
-                <Zap className="w-4 h-4 text-blue-600 animate-pulse" />
+                <BoltIcon  className="w-4 h-4 text-blue-600 animate-pulse" />
               ) : (
-                <Sparkles className="w-4 h-4" />
+                <SparklesIcon  className="w-4 h-4" />
               )}
               {isListening ? 'Listening for goals...' : 'Goals detected:'}
               {goalCount > 0 && (
@@ -455,7 +455,7 @@ export function GoalDiscoveryFlow({
                 >
                   {conversation.status === 'connecting' ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                       Connecting...
                     </>
                   ) : (
@@ -547,7 +547,7 @@ export function GoalDiscoveryFlow({
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                 Saving Goals...
               </>
             ) : (

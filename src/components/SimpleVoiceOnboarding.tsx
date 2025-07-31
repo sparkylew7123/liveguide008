@@ -4,7 +4,7 @@ import { useElevenLabsConversation, formatMetadata } from '@/hooks/useElevenLabs
 import { useCallback, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mic, MicOff, Loader2 } from 'lucide-react';
+import { MicrophoneIcon, NoSymbolIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useUser } from '@/contexts/UserContext';
 
 interface AgentDetails {
@@ -143,7 +143,7 @@ export function SimpleVoiceOnboarding({
           )}
           {loading && (
             <div className="mb-4">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+              <ArrowPathIcon  className="w-8 h-8 animate-spin mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">Loading agent details...</p>
             </div>
           )}
@@ -162,11 +162,11 @@ export function SimpleVoiceOnboarding({
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-2">
               {conversation.status === 'connected' ? (
-                <Mic className="h-5 w-5 text-green-500" />
+                <MicrophoneIcon  className="h-5 w-5 text-green-500" />
               ) : conversation.status === 'connecting' ? (
-                <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                <ArrowPathIcon  className="h-5 w-5 text-blue-500 animate-spin" />
               ) : (
-                <MicOff className="h-5 w-5 text-gray-400" />
+                <NoSymbolIcon  className="h-5 w-5 text-gray-400" />
               )}
               <span className="text-sm font-medium">
                 Status: {conversation.status || 'disconnected'}
@@ -203,7 +203,7 @@ export function SimpleVoiceOnboarding({
               >
                 {conversation.status === 'connecting' ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                     Connecting...
                   </>
                 ) : (

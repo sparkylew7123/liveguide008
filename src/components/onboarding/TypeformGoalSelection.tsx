@@ -11,24 +11,7 @@ import { useUser } from '@/contexts/UserContext'
 import { goalService, PREDEFINED_GOALS, GOAL_CATEGORY_ICONS } from '@/lib/goals'
 import { createClient } from '@/utils/supabase/client'
 import { useElevenLabsConversation, generateCallId, formatMetadata } from '@/hooks/useElevenLabsConversation'
-import { 
-  Mic, 
-  MicOff, 
-  Check, 
-  X,
-  ChevronDown,
-  ChevronUp,
-  Volume2,
-  VolumeX,
-  Target,
-  Sparkles,
-  Users,
-  Heart,
-  Briefcase,
-  DollarSign,
-  Palette,
-  GraduationCap
-} from 'lucide-react'
+import { MicrophoneIcon, NoSymbolIcon, CheckIcon, XMarkIcon, ChevronDownIcon, ChevronUpIcon, SpeakerWaveIcon, SpeakerXMarkIcon, ViewfinderCircleIcon, SparklesIcon, UsersIcon, HeartIcon, BriefcaseIcon, CurrencyDollarIcon, PaintBrushIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
 
 interface TypeformGoalSelectionProps {
   onComplete: (selectedGoals: any[]) => void
@@ -757,7 +740,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
               transition={{ duration: 0.6 }}
             >
               <div className="mb-6">
-                <Target className="h-16 w-16 mx-auto text-blue-400 mb-4" />
+                <ViewfinderCircleIcon  className="h-16 w-16 mx-auto text-blue-400 mb-4" />
                 <h1 className="text-3xl font-bold text-white mb-2">
                   Goal Discovery Session
                 </h1>
@@ -788,7 +771,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                   size="lg"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                 >
-                  <Mic className="mr-2 h-5 w-5" />
+                  <MicrophoneIcon  className="mr-2 h-5 w-5" />
                   Start Goal Discovery
                 </Button>
                 
@@ -831,7 +814,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
               size="sm"
               className="text-gray-400 hover:text-white"
             >
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              {isMuted ? <SpeakerXMarkIcon  className="h-4 w-4" /> : <SpeakerWaveIcon  className="h-4 w-4" />}
             </Button>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2">
@@ -924,7 +907,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                   <div className="flex flex-col items-center gap-2">
                     {microphoneState.isListening && (
                       <div className="text-green-400 text-sm animate-pulse">
-                        <Mic className="inline mr-2 h-4 w-4" />
+                        <MicrophoneIcon  className="inline mr-2 h-4 w-4" />
                         {currentPhase === 1 ? 'Listening for goals...' : 'Listening...'}
                       </div>
                     )}
@@ -954,7 +937,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                         <div className="text-white font-medium">
                           {matchedResponse ? (
                             <>
-                              <Check className="inline mr-2 h-5 w-5 text-green-400" />
+                              <CheckIcon  className="inline mr-2 h-5 w-5 text-green-400" />
                               {matchedResponse}
                             </>
                           ) : (
@@ -1008,9 +991,9 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                                 <span className="text-gray-400 text-sm">({goals.length} goals)</span>
                               </div>
                               {isExpanded ? (
-                                <ChevronUp className="h-5 w-5 text-gray-400" />
+                                <ChevronUpIcon  className="h-5 w-5 text-gray-400" />
                               ) : (
-                                <ChevronDown className="h-5 w-5 text-gray-400" />
+                                <ChevronDownIcon  className="h-5 w-5 text-gray-400" />
                               )}
                             </button>
                             
@@ -1042,7 +1025,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                                           <div className="flex items-center justify-between">
                                             <span className="text-sm">{goal}</span>
                                             {isSelected && (
-                                              <Check className="h-4 w-4 text-blue-400" />
+                                              <CheckIcon  className="h-4 w-4 text-blue-400" />
                                             )}
                                           </div>
                                         </button>
@@ -1070,7 +1053,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
                           >
                             Continue with {selectedGoals.length} Goal{selectedGoals.length !== 1 ? 's' : ''}
-                            <ChevronDown className="ml-2 h-4 w-4" />
+                            <ChevronDownIcon  className="ml-2 h-4 w-4" />
                           </Button>
                         </motion.div>
                       )}
@@ -1083,7 +1066,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                         variant="outline"
                         className="border-gray-400 text-gray-300 hover:bg-gray-800"
                       >
-                        <Check className="mr-2 h-5 w-5" />
+                        <CheckIcon  className="mr-2 h-5 w-5" />
                         Yes
                       </Button>
                       
@@ -1093,7 +1076,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                         variant="outline"
                         className="border-gray-400 text-gray-300 hover:bg-gray-800"
                       >
-                        <X className="mr-2 h-5 w-5" />
+                        <XMarkIcon  className="mr-2 h-5 w-5" />
                         No
                       </Button>
                     </div>
@@ -1110,7 +1093,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                           >
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-3">
-                                <Target className="h-5 w-5 text-blue-400" />
+                                <ViewfinderCircleIcon  className="h-5 w-5 text-blue-400" />
                                 <span className="text-white font-medium">{goal.title}</span>
                               </div>
                               <span className="text-gray-400 text-sm">{goal.category}</span>
@@ -1148,7 +1131,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
                         >
                           Complete Goal Setup
-                          <Check className="ml-2 h-4 w-4" />
+                          <CheckIcon  className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -1181,7 +1164,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
                 className="mt-8 p-4 bg-slate-700/30 rounded-lg"
               >
                 <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-yellow-400" />
+                  <SparklesIcon  className="h-5 w-5 text-yellow-400" />
                   Goals Detected
                 </h4>
                 <div className="space-y-2">
@@ -1221,7 +1204,7 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               Continue with {selectedGoals.length} Goal{selectedGoals.length !== 1 ? 's' : ''}
-              <ChevronDown className="ml-2 h-4 w-4" />
+              <ChevronDownIcon  className="ml-2 h-4 w-4" />
             </Button>
           )}
         </div>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FC, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mic } from 'lucide-react';
+import { MicrophoneIcon } from '@heroicons/react/24/outline';
 import { createClient } from '@/utils/supabase/client';
 
 interface HeaderProps {
@@ -74,7 +74,7 @@ const Header: FC<HeaderProps> = ({ isAuthenticated = false, onMicrophoneClick })
                     aria-label="Microphone Calibration"
                     title="Recalibrate Microphone"
                   >
-                    <Mic className="h-5 w-5" />
+                    <MicrophoneIcon />
                   </button>
                 )}
                 <Link

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle, XCircle, AlertCircle, Webhook } from 'lucide-react';
+import { ArrowPathIcon, CheckCircleIcon, XCircleIcon, ExclamationCircleIcon, LinkIcon } from '@heroicons/react/24/outline';
 
 interface WebhookInfo {
   id: string;
@@ -120,7 +120,7 @@ export default function WebhookAdminPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <ArrowPathIcon  className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading webhook configuration...</p>
         </div>
       </div>
@@ -148,7 +148,7 @@ export default function WebhookAdminPage() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Webhook className="h-5 w-5" />
+              <LinkIcon />
               Webhook Status
             </CardTitle>
           </CardHeader>
@@ -158,9 +158,9 @@ export default function WebhookAdminPage() {
                 <span className="text-sm font-medium">Configuration Status:</span>
                 <Badge variant={isConfigured ? 'default' : 'destructive'}>
                   {isConfigured ? (
-                    <><CheckCircle className="h-3 w-3 mr-1" /> Configured</>
+                    <><CheckCircleIcon  className="h-3 w-3 mr-1" /> Configured</>
                   ) : (
-                    <><XCircle className="h-3 w-3 mr-1" /> Not Configured</>
+                    <><XCircleIcon  className="h-3 w-3 mr-1" /> Not Configured</>
                   )}
                 </Badge>
               </div>
@@ -198,9 +198,9 @@ export default function WebhookAdminPage() {
                 className="flex items-center gap-2"
               >
                 {processing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <ArrowPathIcon  className="h-4 w-4 animate-spin" />
                 ) : (
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircleIcon  className="h-4 w-4" />
                 )}
                 {isConfigured ? 'Webhook Configured' : 'Setup Webhook'}
               </Button>
@@ -235,7 +235,7 @@ export default function WebhookAdminPage() {
           <CardContent>
             {webhooks.length === 0 ? (
               <div className="text-center py-8">
-                <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <ExclamationCircleIcon  className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500">No webhooks configured</p>
                 <p className="text-sm text-gray-400 mt-2">
                   Click &quot;Setup Webhook&quot; to register your first webhook

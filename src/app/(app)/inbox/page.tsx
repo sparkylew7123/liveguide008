@@ -2,20 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Play, 
-  Bookmark, 
-  MoreVertical, 
-  FileText, 
-  Video, 
-  Headphones, 
-  Mic,
-  Map,
-  CheckCircle,
-  Clock,
-  Bell,
-  RefreshCw
-} from 'lucide-react';
+import { PlayIcon, BookmarkIcon, EllipsisVerticalIcon, DocumentTextIcon, VideoCameraIcon, MicrophoneIcon, MapIcon, CheckCircleIcon, ClockIcon, BellIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -140,23 +127,23 @@ export default function InboxPage() {
 
   const getContentIcon = (attachments?: MessageAttachment[]) => {
     if (!attachments || attachments.length === 0) {
-      return <FileText className="h-4 w-4" />;
+      return <DocumentTextIcon  className="h-4 w-4" />;
     }
     
     const type = attachments[0].attachment_type;
     switch (type) {
       case 'mindmap':
-        return <Map className="h-4 w-4" />;
+        return <MapIcon  className="h-4 w-4" />;
       case 'video':
-        return <Video className="h-4 w-4" />;
+        return <VideoCameraIcon  className="h-4 w-4" />;
       case 'podcast':
-        return <Headphones className="h-4 w-4" />;
+        return <PlayIcon  className="h-4 w-4" />;
       case 'audio':
-        return <Mic className="h-4 w-4" />;
+        return <MicrophoneIcon  className="h-4 w-4" />;
       case 'pdf':
-        return <FileText className="h-4 w-4" />;
+        return <DocumentTextIcon  className="h-4 w-4" />;
       default:
-        return <FileText className="h-4 w-4" />;
+        return <DocumentTextIcon  className="h-4 w-4" />;
     }
   };
 
@@ -182,11 +169,11 @@ export default function InboxPage() {
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
       case 'achievement':
-        return <CheckCircle className="h-5 w-5 text-green-400" />;
+        return <CheckCircleIcon  className="h-5 w-5 text-green-400" />;
       case 'reminder':
-        return <Clock className="h-5 w-5 text-blue-400" />;
+        return <ClockIcon  className="h-5 w-5 text-blue-400" />;
       case 'system':
-        return <Bell className="h-5 w-5 text-purple-400" />;
+        return <BellIcon  className="h-5 w-5 text-purple-400" />;
     }
   };
 
@@ -215,12 +202,12 @@ export default function InboxPage() {
                 >
                   {isPopulating ? (
                     <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                       Populating...
                     </>
                   ) : (
                     <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
+                      <ArrowPathIcon  className="mr-2 h-4 w-4" />
                       Populate Test Data
                     </>
                   )}
@@ -250,12 +237,12 @@ export default function InboxPage() {
             <TabsContent value="messages" className="space-y-4">
               {loading ? (
                 <div className="text-center py-8">
-                  <RefreshCw className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
+                  <ArrowPathIcon  className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
                   <p className="text-gray-400">Loading messages...</p>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="text-center py-8">
-                  <Bell className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <BellIcon  className="h-12 w-12 text-gray-600 mx-auto mb-4" />
                   <p className="text-gray-400 mb-4">No messages yet</p>
                   <p className="text-gray-500 text-sm">Click "Populate Test Data" to add sample messages</p>
                 </div>
@@ -299,7 +286,7 @@ export default function InboxPage() {
                           <div>
                             <h3 className="font-semibold text-white flex items-center gap-2">
                               {message.sender_name}
-                              {message.is_pinned && <Bookmark className="h-4 w-4 text-yellow-500 fill-current" />}
+                              {message.is_pinned && <BookmarkIcon  className="h-4 w-4 text-yellow-500 fill-current" />}
                             </h3>
                             <p className="text-sm text-gray-400">
                               {message.metadata?.session_date ? `Re. session on ${new Date(message.metadata.session_date).toLocaleDateString()}` : message.message_type}
@@ -333,21 +320,21 @@ export default function InboxPage() {
                           size="icon"
                           className="text-gray-400 hover:text-white hover:bg-slate-700"
                         >
-                          <Play className="h-4 w-4" />
+                          <PlayIcon  className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="text-gray-400 hover:text-white hover:bg-slate-700"
                         >
-                          <Bookmark className="h-4 w-4" />
+                          <BookmarkIcon  className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="text-gray-400 hover:text-white hover:bg-slate-700"
                         >
-                          <MoreVertical className="h-4 w-4" />
+                          <EllipsisVerticalIcon  className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>

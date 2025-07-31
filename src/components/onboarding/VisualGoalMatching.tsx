@@ -9,17 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { useRealtimeGoalDetection } from '@/hooks/useRealtimeGoalDetection'
 import { goalService, GOAL_CATEGORY_COLORS, GOAL_CATEGORY_ICONS } from '@/lib/goals'
 import { cn } from '@/lib/utils'
-import { 
-  Target, 
-  Briefcase, 
-  Heart, 
-  Users, 
-  Sparkles,
-  Check,
-  Volume2,
-  ChevronRight,
-  Zap
-} from 'lucide-react'
+import { ViewfinderCircleIcon, BriefcaseIcon, HeartIcon, UsersIcon, SparklesIcon, CheckIcon, SpeakerWaveIcon, ChevronRightIcon, BoltIcon } from '@heroicons/react/24/outline'
 
 interface GoalCategory {
   id: string
@@ -139,15 +129,15 @@ export default function VisualGoalMatching({
   const getIconForCategory = (categoryTitle: string) => {
     switch (categoryTitle) {
       case 'Personal Growth':
-        return <Target className="h-5 w-5" />
+        return <ViewfinderCircleIcon />
       case 'Professional':
-        return <Briefcase className="h-5 w-5" />
+        return <BriefcaseIcon />
       case 'Health & Wellness':
-        return <Heart className="h-5 w-5" />
+        return <HeartIcon />
       case 'Relationships':
-        return <Users className="h-5 w-5" />
+        return <UsersIcon />
       default:
-        return <Sparkles className="h-5 w-5" />
+        return <SparklesIcon />
     }
   }
 
@@ -257,7 +247,7 @@ export default function VisualGoalMatching({
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-green-400" />
+                  <CheckIcon  className="h-5 w-5 text-green-400" />
                   <span className="text-white font-medium">
                     {selectedGoals.length} Goal{selectedGoals.length !== 1 ? 's' : ''} Selected
                   </span>
@@ -267,7 +257,7 @@ export default function VisualGoalMatching({
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   Continue
-                  <ChevronRight className="ml-2 h-4 w-4" />
+                  <ChevronRightIcon  className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -328,14 +318,14 @@ export default function VisualGoalMatching({
                       <div className="flex gap-2">
                         {matchedGoals.length > 0 && (
                           <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                            <Zap className="h-3 w-3 mr-1" />
+                            <BoltIcon  className="h-3 w-3 mr-1" />
                             {matchedGoals.length} Matched
                           </Badge>
                         )}
                         
                         {selectedGoalsInCategory.length > 0 && (
                           <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                            <Check className="h-3 w-3 mr-1" />
+                            <CheckIcon  className="h-3 w-3 mr-1" />
                             {selectedGoalsInCategory.length} Selected
                           </Badge>
                         )}
@@ -379,7 +369,7 @@ export default function VisualGoalMatching({
                                 
                                 {goal.isMatched && (
                                   <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                                    <Volume2 className="h-2 w-2 mr-1" />
+                                    <SpeakerWaveIcon  className="h-2 w-2 mr-1" />
                                     Voice Match
                                   </Badge>
                                 )}
@@ -398,7 +388,7 @@ export default function VisualGoalMatching({
                             
                             <div className="ml-3 flex flex-col items-end gap-1">
                               {goal.isSelected && (
-                                <Check className="h-5 w-5 text-blue-400" />
+                                <CheckIcon  className="h-5 w-5 text-blue-400" />
                               )}
                               
                               {goal.matchConfidence && (

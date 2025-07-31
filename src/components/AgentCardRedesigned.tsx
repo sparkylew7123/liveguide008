@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Star, Brain, Heart, Sparkles, Play, Info, Check } from "lucide-react";
+import { StarIcon, CpuChipIcon, HeartIcon, SparklesIcon, PlayIcon, InformationCircleIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -166,7 +166,7 @@ export function AgentCardRedesigned({
             )
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Brain className="w-16 h-16 text-gray-300" />
+              <CpuChipIcon  className="w-16 h-16 text-gray-300" />
             </div>
           )}
           
@@ -184,7 +184,7 @@ export function AgentCardRedesigned({
             >
               {isAvailable ? (
                 <>
-                  <Check className="w-3 h-3 mr-1" />
+                  <CheckIcon  className="w-3 h-3 mr-1" />
                   Available
                 </>
               ) : (
@@ -194,7 +194,7 @@ export function AgentCardRedesigned({
             
             {agent.average_rating && (
               <Badge variant="secondary" className={cn("font-medium", styles.badge.rating)}>
-                <Star className="w-3 h-3 mr-1 fill-current" />
+                <StarIcon  className="w-3 h-3 mr-1 fill-current" />
                 {agent.average_rating.toFixed(1)}
               </Badge>
             )}
@@ -208,7 +208,7 @@ export function AgentCardRedesigned({
             {agent.Name}
           </CardTitle>
           <CardDescription className="text-sm font-medium mt-1 flex items-center gap-1.5">
-            <Brain className="w-4 h-4" />
+            <CpuChipIcon  className="w-4 h-4" />
             {agent.Speciality}
           </CardDescription>
         </CardHeader>
@@ -218,7 +218,7 @@ export function AgentCardRedesigned({
           {/* Personality Section - Simplified */}
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-              <Heart className="w-4 h-4" />
+              <HeartIcon  className="w-4 h-4" />
               Personality
             </h4>
             <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
@@ -232,7 +232,7 @@ export function AgentCardRedesigned({
           {keyFeatures.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" />
+                <SparklesIcon  className="w-4 h-4" />
                 Key Capabilities
               </h4>
               <ScrollArea className="h-24 pr-2">
@@ -266,7 +266,7 @@ export function AgentCardRedesigned({
           >
             {isSelected ? (
               <>
-                <Check className="w-4 h-4 mr-2" />
+                <CheckIcon  className="w-4 h-4 mr-2" />
                 Selected
               </>
             ) : isAvailable ? (

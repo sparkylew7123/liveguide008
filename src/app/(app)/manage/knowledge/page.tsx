@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { AlertCircle, FileText, Upload, Search, Loader2 } from 'lucide-react'
+import { ExclamationCircleIcon, DocumentTextIcon, ArrowUpTrayIcon, MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/utils/supabase/client'
 
@@ -229,12 +229,12 @@ export default function KnowledgeManagementPage() {
               <Button type="submit" disabled={!file || uploading} className="w-full">
                 {uploading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                     Uploading...
                   </>
                 ) : (
                   <>
-                    <Upload className="mr-2 h-4 w-4" />
+                    <ArrowUpTrayIcon  className="mr-2 h-4 w-4" />
                     Upload Document
                   </>
                 )}
@@ -242,7 +242,7 @@ export default function KnowledgeManagementPage() {
 
               {uploadMessage && (
                 <Alert>
-                  <AlertCircle className="h-4 w-4" />
+                  <ExclamationCircleIcon  className="h-4 w-4" />
                   <AlertDescription>{uploadMessage}</AlertDescription>
                 </Alert>
               )}
@@ -269,9 +269,9 @@ export default function KnowledgeManagementPage() {
                 />
                 <Button onClick={handleSearch} disabled={searching}>
                   {searching ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <ArrowPathIcon  className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Search className="h-4 w-4" />
+                    <MagnifyingGlassIcon  className="h-4 w-4" />
                   )}
                 </Button>
               </div>
@@ -282,7 +282,7 @@ export default function KnowledgeManagementPage() {
                   {searchResults.map((result, index) => (
                     <Card key={result.id || index} className="p-3">
                       <div className="flex items-start gap-2">
-                        <FileText className="h-4 w-4 mt-1 text-muted-foreground" />
+                        <DocumentTextIcon  className="h-4 w-4 mt-1 text-muted-foreground" />
                         <div className="flex-1">
                           <h4 className="font-medium">{result.title}</h4>
                           <p className="text-sm text-muted-foreground mt-1">

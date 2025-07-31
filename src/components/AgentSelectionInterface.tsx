@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { Star, Sparkles, ChevronRight, Loader2, Brain, Heart, Play } from "lucide-react";
+import { StarIcon, SparklesIcon, ChevronRightIcon, ArrowPathIcon, CpuChipIcon, HeartIcon, PlayIcon } from '@heroicons/react/24/outline';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -188,7 +188,7 @@ function AgentCard({
               className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             >
               <div className="bg-white/90 rounded-full p-4 shadow-lg transform transition-transform group-hover:scale-110">
-                <Play className="w-8 h-8 text-gray-900" fill="currentColor" />
+                <PlayIcon  className="w-8 h-8 text-gray-900" fill="currentColor" />
               </div>
             </button>
           )}
@@ -249,7 +249,7 @@ function AgentCard({
           {agent.average_rating && (
             <div className="absolute top-3 right-3">
               <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
-                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400 mr-1" />
+                <StarIcon  className="w-3 h-3 fill-yellow-400 text-yellow-400 mr-1" />
                 {agent.average_rating.toFixed(1)}
               </Badge>
             </div>
@@ -274,7 +274,7 @@ function AgentCard({
                 variant="secondary" 
                 className="bg-background/80 backdrop-blur-sm"
               >
-                <Play className="w-3 h-3 mr-1" />
+                <PlayIcon  className="w-3 h-3 mr-1" />
                 Video
               </Badge>
             )}
@@ -283,7 +283,7 @@ function AgentCard({
                 variant="secondary" 
                 className="bg-purple-900/80 text-purple-100 backdrop-blur-sm"
               >
-                <Play className="w-3 h-3 mr-1" />
+                <PlayIcon  className="w-3 h-3 mr-1" />
                 Intro Available
               </Badge>
             )}
@@ -298,7 +298,7 @@ function AgentCard({
               {agent.Name}
             </h3>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Brain className="w-4 h-4" />
+              <CpuChipIcon  className="w-4 h-4" />
               <span>{agent.Speciality}</span>
             </div>
           </div>
@@ -306,7 +306,7 @@ function AgentCard({
           {/* Personality */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Heart className="w-4 h-4" />
+              <HeartIcon  className="w-4 h-4" />
               <span>Personality</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -318,7 +318,7 @@ function AgentCard({
           {keyFeatures.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
+                <SparklesIcon  className="w-4 h-4" />
                 Key Features
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -353,7 +353,7 @@ function AgentCard({
               <span className="relative z-10 flex items-center justify-center gap-2">
                 {isSelected ? "Selected" : agent.availability_status === 'available' ? "Select Agent" : "Unavailable"}
                 {!isSelected && agent.availability_status === 'available' && (
-                  <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  <ChevronRightIcon  className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 )}
               </span>
               {/* Shine effect */}
@@ -498,7 +498,7 @@ export function AgentSelectionInterface({
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <ArrowPathIcon  className="w-8 h-8 animate-spin text-primary" />
           <p className="text-muted-foreground">Loading coaching agents...</p>
         </div>
       </div>
@@ -598,7 +598,7 @@ export function AgentSelectionInterface({
               </div>
               <Button size="lg" className="ml-4">
                 Continue to Voice Chat
-                <ChevronRight className="w-4 h-4 ml-2" />
+                <ChevronRightIcon  className="w-4 h-4 ml-2" />
               </Button>
             </div>
           </motion.div>

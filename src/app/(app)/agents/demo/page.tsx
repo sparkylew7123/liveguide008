@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, Eye, Heart, Brain, Sparkles } from 'lucide-react';
+import { PaintBrushIcon, EyeIcon, HeartIcon, CpuChipIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 const colorPalettes = [
   {
@@ -114,7 +114,7 @@ export default function ColorPaletteDemo() {
                       {palette.description}
                     </CardDescription>
                   </div>
-                  <Palette className="w-6 h-6 text-gray-400" />
+                  <PaintBrushIcon  className="w-6 h-6 text-gray-400" />
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -140,13 +140,13 @@ export default function ColorPaletteDemo() {
                 {/* Psychology Principles */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Brain className="w-4 h-4" />
+                    <CpuChipIcon  className="w-4 h-4" />
                     <span>Psychological Principles</span>
                   </div>
                   <ul className="space-y-1">
                     {palette.psychologyPrinciples.map((principle, idx) => (
                       <li key={idx} className="text-sm text-gray-600 flex items-start gap-2">
-                        <Sparkles className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                        <SparklesIcon  className="w-3 h-3 mt-0.5 flex-shrink-0" />
                         <span>{principle}</span>
                       </li>
                     ))}
@@ -156,7 +156,7 @@ export default function ColorPaletteDemo() {
                 {/* Accessibility Info */}
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-gray-500" />
+                    <EyeIcon  className="w-4 h-4 text-gray-500" />
                     <span className="text-gray-600">WCAG {palette.accessibilityScore}</span>
                   </div>
                   <div className="text-gray-600">
@@ -179,7 +179,7 @@ export default function ColorPaletteDemo() {
         <Card className="mt-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Heart className="w-5 h-5" />
+              <HeartIcon  className="w-5 h-5" />
               Implementation Guide
             </CardTitle>
           </CardHeader>

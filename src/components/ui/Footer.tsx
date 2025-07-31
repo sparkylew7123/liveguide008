@@ -4,17 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Twitter, 
-  Facebook, 
-  Linkedin, 
-  Instagram,
-  Heart,
-  ExternalLink
-} from 'lucide-react';
+import { EnvelopeIcon, PhoneIcon, MapPinIcon, AtSymbolIcon, AtSymbolIcon, AtSymbolIcon, AtSymbolIcon, HeartIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 
 interface FooterProps {
   className?: string;
@@ -136,19 +126,19 @@ export default function Footer({ className = "" }: FooterProps) {
             {/* Contact Info */}
             <div className="space-y-3 mb-6">
               <div className="flex items-center gap-3 text-slate-400">
-                <Mail className="w-4 h-4" />
+                <EnvelopeIcon  className="w-4 h-4" />
                 <a href="mailto:hello@liveguide.ai" className="hover:text-white transition-colors">
                   hello@liveguide.ai
                 </a>
               </div>
               <div className="flex items-center gap-3 text-slate-400">
-                <Phone className="w-4 h-4" />
+                <PhoneIcon  className="w-4 h-4" />
                 <a href="tel:+1-555-0123" className="hover:text-white transition-colors">
                   +1 (555) 012-3456
                 </a>
               </div>
               <div className="flex items-center gap-3 text-slate-400">
-                <MapPin className="w-4 h-4" />
+                <MapPinIcon  className="w-4 h-4" />
                 <span>San Francisco, CA</span>
               </div>
             </div>
@@ -184,7 +174,7 @@ export default function Footer({ className = "" }: FooterProps) {
                   >
                     {link.name}
                     {link.href.startsWith('http') && (
-                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowTopRightOnSquareIcon  className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
                   </Link>
                 </li>
@@ -204,7 +194,7 @@ export default function Footer({ className = "" }: FooterProps) {
                   >
                     {link.name}
                     {link.href.startsWith('http') && (
-                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowTopRightOnSquareIcon  className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
                   </Link>
                 </li>
@@ -224,7 +214,7 @@ export default function Footer({ className = "" }: FooterProps) {
                   >
                     {link.name}
                     {link.href.startsWith('http') && (
-                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowTopRightOnSquareIcon  className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
                   </Link>
                 </li>
@@ -271,7 +261,7 @@ export default function Footer({ className = "" }: FooterProps) {
             {/* Copyright */}
             <div className="flex items-center gap-2 text-slate-400">
               <span>© 2024 LiveGuide AI. Made with</span>
-              <Heart className="w-4 h-4 text-red-400 fill-current" />
+              <HeartIcon  className="w-4 h-4 text-red-400 fill-current" />
               <span>in San Francisco</span>
             </div>
 

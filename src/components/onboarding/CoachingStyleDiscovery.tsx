@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Brain, Mic, MicOff, Loader2, CheckCircle, XCircle, Users } from 'lucide-react';
+import { CpuChipIcon, MicrophoneIcon, NoSymbolIcon, ArrowPathIcon, CheckCircleIcon, XCircleIcon, UsersIcon } from '@heroicons/react/24/outline';
 import { generateCallId, formatMetadata } from '@/hooks/useElevenLabsConversation';
 import { useRealtimeCoachingPreferences } from '@/hooks/useRealtimeCoachingPreferences';
 
@@ -256,7 +256,7 @@ export function CoachingStyleDiscovery({
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center space-y-4">
           <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-            <Brain className="w-10 h-10 text-purple-600" />
+            <CpuChipIcon  className="w-10 h-10 text-purple-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
             Coaching Style Discovery
@@ -269,7 +269,7 @@ export function CoachingStyleDiscovery({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+              <CheckCircleIcon  className="w-5 h-5 text-green-600" />
               How This Works
             </CardTitle>
             <CardDescription>
@@ -333,7 +333,7 @@ export function CoachingStyleDiscovery({
       <Card className="max-w-2xl mx-auto">
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2">
-            <Brain className="w-5 h-5 text-purple-600" />
+            <CpuChipIcon  className="w-5 h-5 text-purple-600" />
             Coaching Style Discovery with Maya
           </CardTitle>
           <CardDescription>
@@ -355,11 +355,11 @@ export function CoachingStyleDiscovery({
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-2">
               {conversation.status === 'connected' ? (
-                <Mic className="h-5 w-5 text-green-500" />
+                <MicrophoneIcon  className="h-5 w-5 text-green-500" />
               ) : conversation.status === 'connecting' ? (
-                <Loader2 className="h-5 w-5 text-purple-500 animate-spin" />
+                <ArrowPathIcon  className="h-5 w-5 text-purple-500 animate-spin" />
               ) : (
-                <MicOff className="h-5 w-5 text-gray-400" />
+                <NoSymbolIcon  className="h-5 w-5 text-gray-400" />
               )}
               <span className="text-sm font-medium">
                 Status: {conversation.status || 'disconnected'}
@@ -371,7 +371,7 @@ export function CoachingStyleDiscovery({
           {discoveredPreferences.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                <Brain className="w-4 h-4" />
+                <CpuChipIcon  className="w-4 h-4" />
                 Coaching Preferences I'm Discovering:
               </h3>
               <div className="grid grid-cols-1 gap-2">
@@ -428,12 +428,12 @@ export function CoachingStyleDiscovery({
                 >
                   {conversation.status === 'connecting' ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                       Connecting...
                     </>
                   ) : (
                     <>
-                      <Mic className="mr-2 h-4 w-4" />
+                      <MicrophoneIcon  className="mr-2 h-4 w-4" />
                       Start Discovery Conversation
                     </>
                   )}
@@ -507,7 +507,7 @@ export function CoachingStyleDiscovery({
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                 Saving Preferences...
               </>
             ) : (
@@ -534,7 +534,7 @@ export function CoachingStyleDiscovery({
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center space-y-4">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-            <Users className="w-10 h-10 text-gray-600" />
+            <UsersIcon  className="w-10 h-10 text-gray-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">
             No Problem!

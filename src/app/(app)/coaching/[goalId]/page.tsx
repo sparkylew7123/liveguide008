@@ -9,17 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { 
-  ArrowLeft,
-  Target,
-  Calendar,
-  Clock,
-  Trophy,
-  Activity,
-  Mic,
-  MessageSquare,
-  CheckCircle
-} from 'lucide-react'
+import { ArrowLeftIcon, ViewfinderCircleIcon, CalendarIcon, ClockIcon, TrophyIcon, ChartBarIcon, MicrophoneIcon, ChatBubbleLeftRightIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 
@@ -121,7 +111,7 @@ export default function CoachingSessionPage() {
               onClick={() => router.push('/lobby')}
               className="flex items-center gap-2 text-gray-300 hover:text-white"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeftIcon  className="w-4 h-4" />
               Back to Lobby
             </Button>
             
@@ -147,12 +137,12 @@ export default function CoachingSessionPage() {
                   </h1>
                   <div className="flex items-center gap-4 text-gray-300">
                     <span className="flex items-center gap-1">
-                      <Target className="w-4 h-4" />
+                      <ViewfinderCircleIcon  className="w-4 h-4" />
                       {goal.category}
                     </span>
                     {goal.target_date && (
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
+                        <CalendarIcon  className="w-4 h-4" />
                         Target: {new Date(goal.target_date).toLocaleDateString()}
                       </span>
                     )}
@@ -181,7 +171,7 @@ export default function CoachingSessionPage() {
                         <p className="text-sm text-gray-400">Sessions</p>
                         <p className="text-2xl font-bold text-white">{goal.session_count}</p>
                       </div>
-                      <MessageSquare className="w-8 h-8 text-blue-400" />
+                      <ChatBubbleLeftRightIcon  className="w-8 h-8 text-blue-400" />
                     </div>
                   </CardContent>
                 </Card>
@@ -195,7 +185,7 @@ export default function CoachingSessionPage() {
                           {Math.floor(goal.total_duration_minutes / 60)}h {goal.total_duration_minutes % 60}m
                         </p>
                       </div>
-                      <Clock className="w-8 h-8 text-purple-400" />
+                      <ClockIcon  className="w-8 h-8 text-purple-400" />
                     </div>
                   </CardContent>
                 </Card>
@@ -207,7 +197,7 @@ export default function CoachingSessionPage() {
                         <p className="text-sm text-gray-400">Accomplishments</p>
                         <p className="text-2xl font-bold text-white">{goal.accomplishment_count}</p>
                       </div>
-                      <Trophy className="w-8 h-8 text-amber-400" />
+                      <TrophyIcon  className="w-8 h-8 text-amber-400" />
                     </div>
                   </CardContent>
                 </Card>
@@ -223,7 +213,7 @@ export default function CoachingSessionPage() {
                             : 'No sessions yet'}
                         </p>
                       </div>
-                      <Activity className="w-8 h-8 text-green-400" />
+                      <ChartBarIcon  className="w-8 h-8 text-green-400" />
                     </div>
                   </CardContent>
                 </Card>
@@ -245,7 +235,7 @@ export default function CoachingSessionPage() {
                       size="lg"
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                     >
-                      <Mic className="mr-2 h-5 w-5" />
+                      <MicrophoneIcon  className="mr-2 h-5 w-5" />
                       Start Voice Session with Maya
                     </Button>
                   </div>
@@ -261,7 +251,7 @@ export default function CoachingSessionPage() {
                       <Card key={accomplishment.id} className="bg-slate-800/50 border-slate-700">
                         <CardContent className="py-4">
                           <div className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+                            <CheckCircleIcon  className="w-5 h-5 text-green-400 mt-0.5" />
                             <div>
                               <h4 className="font-medium text-white">{accomplishment.label}</h4>
                               {accomplishment.description && (
@@ -288,7 +278,7 @@ export default function CoachingSessionPage() {
                 onClick={handleEndSession}
                 className="text-gray-300 hover:text-white mb-4"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeftIcon  className="w-4 h-4 mr-2" />
                 End Session
               </Button>
               <h2 className="text-2xl font-bold text-white mb-2">

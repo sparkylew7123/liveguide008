@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function PrivacyPolicy() {
   return (
@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
       <div className="container mx-auto px-4 py-12 max-w-4xl">
         <Link href="/">
           <Button variant="ghost" className="mb-8 text-white hover:text-blue-300">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeftIcon  className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
         </Link>

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Star, MessageCircle, CheckCircle, Loader2, Sparkles } from 'lucide-react';
+import { UsersIcon, StarIcon, ChatBubbleLeftRightIcon, CheckCircleIcon, ArrowPathIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { createClient } from '@/utils/supabase/client';
 
 interface AgentMatchingPresentationProps {
@@ -201,7 +201,7 @@ export function AgentMatchingPresentation({
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center space-y-4">
           <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-            <Users className="w-10 h-10 text-blue-600" />
+            <UsersIcon  className="w-10 h-10 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
             Finding Your Perfect Coach
@@ -231,7 +231,7 @@ export function AgentMatchingPresentation({
               </div>
               
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon  className="w-4 h-4 animate-spin" />
                 <span>Analyzing compatibility...</span>
               </div>
             </div>
@@ -242,7 +242,7 @@ export function AgentMatchingPresentation({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-green-500" />
+                <CheckCircleIcon  className="w-5 h-5 text-green-500" />
                 <span className="text-sm font-medium">Goals Analyzed</span>
               </div>
               <p className="text-xs text-gray-600 mt-1">
@@ -254,7 +254,7 @@ export function AgentMatchingPresentation({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-green-500" />
+                <CheckCircleIcon  className="w-5 h-5 text-green-500" />
                 <span className="text-sm font-medium">Preferences Processed</span>
               </div>
               <p className="text-xs text-gray-600 mt-1">
@@ -271,7 +271,7 @@ export function AgentMatchingPresentation({
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center space-y-4">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-          <Sparkles className="w-10 h-10 text-green-600" />
+          <SparklesIcon  className="w-10 h-10 text-green-600" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900">
           Meet Your Matched Coaches
@@ -356,14 +356,14 @@ export function AgentMatchingPresentation({
                 <div className="flex items-center justify-between pt-2">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 text-yellow-500" />
+                      <StarIcon  className="w-4 h-4 text-yellow-500" />
                       <span className="text-sm font-medium">
                         {agent.average_rating || 4.8}
                       </span>
                     </div>
                     
                     <div className="flex items-center space-x-1">
-                      <MessageCircle className="w-4 h-4 text-gray-500" />
+                      <ChatBubbleLeftRightIcon  className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-600">
                         {agent['Tone and Style'] || agent.JSONB?.tone_and_style || 'Adaptive Style'}
                       </span>
@@ -379,7 +379,7 @@ export function AgentMatchingPresentation({
                         // TODO: Play video intro
                       }}
                     >
-                      <MessageCircle className="w-4 h-4 mr-1" />
+                      <ChatBubbleLeftRightIcon  className="w-4 h-4 mr-1" />
                       Preview Voice
                     </Button>
                   )}
@@ -427,7 +427,7 @@ export function AgentMatchingPresentation({
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <ArrowPathIcon  className="mr-2 h-4 w-4 animate-spin" />
                   Starting...
                 </>
               ) : (

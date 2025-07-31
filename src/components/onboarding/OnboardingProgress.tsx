@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Target, Brain, Users } from 'lucide-react';
+import { CheckIcon, ViewfinderCircleIcon, CpuChipIcon, UsersIcon } from '@heroicons/react/24/outline';
 import { OnboardingPhase } from './VoiceGuidedOnboarding';
 
 interface OnboardingProgressProps {
@@ -64,7 +64,7 @@ export function OnboardingProgress({
                   }
                 `}>
                   {phase.completed ? (
-                    <Check className="w-5 h-5 text-white" />
+                    <CheckIcon  className="w-5 h-5 text-white" />
                   ) : phase.active ? (
                     <phase.icon className="w-5 h-5 text-white" />
                   ) : (

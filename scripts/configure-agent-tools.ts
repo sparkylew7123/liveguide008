@@ -2,7 +2,7 @@ import { ElevenLabsClient } from "@elevenlabs/client"
 
 // Initialize ElevenLabs client
 const elevenlabs = new ElevenLabsClient({
-  apiKey: process.env.ELEVENLABS_API_KEY || '***REMOVED***'
+  apiKey: process.env.ELEVENLABS_API_KEY || ''
 })
 
 // Agent IDs

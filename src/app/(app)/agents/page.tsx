@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AgentSelectionInterfaceFeminine } from '@/components/AgentSelectionInterfaceFeminine';
 import { SimpleVoiceOnboarding } from '@/components/SimpleVoiceOnboarding';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { createClient } from '@/utils/supabase/client';
 
 interface AgentDetails {
@@ -99,7 +99,7 @@ export default function AgentsPage() {
             onClick={handleBack}
             className="flex items-center gap-2 hover:bg-rose-100/50 text-rose-700"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon  className="w-4 h-4" />
             {showVoiceOnboarding ? 'Back to Agent Selection' : 'Back to Home'}
           </Button>
         </div>

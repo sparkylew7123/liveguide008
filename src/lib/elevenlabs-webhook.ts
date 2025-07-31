@@ -128,7 +128,7 @@ export class ElevenLabsWebhookManager {
         'message_sent',
         'error'
       ],
-      secret: process.env.ELEVENLABS_WEBHOOK_SECRET || '***REMOVED***'
+      secret: process.env.ELEVENLABS_WEBHOOK_SECRET || ''
     });
 
     return success;

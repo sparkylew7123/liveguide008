@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Moon, Sun, Monitor } from "lucide-react";
+import { MoonIcon, SunIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,9 +96,9 @@ export function ThemeToggle({
 
   const getCurrentIcon = () => {
     if (theme === "system") {
-      return <Monitor className="h-4 w-4" />;
+      return <ComputerDesktopIcon  className="h-4 w-4" />;
     }
-    return theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
+    return theme === "dark" ? <MoonIcon  className="h-4 w-4" /> : <SunIcon  className="h-4 w-4" />;
   };
 
   const sizeClasses = {
@@ -135,7 +135,7 @@ export function ThemeToggle({
           className="flex items-center justify-between"
         >
           <span className="flex items-center">
-            <Sun className="mr-2 h-4 w-4" />
+            <SunIcon  className="mr-2 h-4 w-4" />
             Light
           </span>
           {theme === "light" && (
@@ -147,7 +147,7 @@ export function ThemeToggle({
           className="flex items-center justify-between"
         >
           <span className="flex items-center">
-            <Moon className="mr-2 h-4 w-4" />
+            <MoonIcon  className="mr-2 h-4 w-4" />
             Dark
           </span>
           {theme === "dark" && (
@@ -159,7 +159,7 @@ export function ThemeToggle({
           className="flex items-center justify-between"
         >
           <span className="flex items-center">
-            <Monitor className="mr-2 h-4 w-4" />
+            <ComputerDesktopIcon  className="mr-2 h-4 w-4" />
             System
           </span>
           {theme === "system" && (
