@@ -1,0 +1,13 @@
+# Stackbit configuration for Netlify Visual Editor
+stackbitVersion: ~0.6.0
+ssgName: nextjs
+nodeVersion: '22'
+cmsName: git
+publishDir: .next
+buildCommand: npm run build
+assets:
+  referenceType: static
+  staticDir: public
+  uploadDir: images
+  publicPath: /
+models: {}
