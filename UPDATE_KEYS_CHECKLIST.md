@@ -3,8 +3,8 @@
 ## 1. ElevenLabs Dashboard
 - [ ] Log in to https://elevenlabs.io/
 - [ ] Revoke old API keys:
-  - `***REMOVED***`
-  - `***REMOVED***`
+  - `sk_e8ceabd5643db57e9705819fee38276e139b7dd9eee23530`
+  - `sk_f084342b4b7d26a0b93f8f3703df6f7a325502416b043a65`
 - [ ] Generate new API key
 - [ ] Generate new webhook secret
 
