@@ -29,6 +29,7 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
 
   // Fetch graph data
   const fetchGraphData = useCallback(async () => {
+    console.log('fetchGraphData called');
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -55,6 +56,9 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
       }
 
       const result = await response.json();
+      console.log('Graph data received:', result);
+      console.log('Nodes:', result.data.nodes);
+      console.log('Edges:', result.data.edges);
       setNodes(result.data.nodes);
       setEdges(result.data.edges);
       
