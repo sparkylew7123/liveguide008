@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/contexts/ToastContext';
 import GraphCanvasGravity from './GraphCanvasGravity';
-import NodeDetailsPanel from './NodeDetailsPanel';
+import DraggableNodeDetails from './DraggableNodeDetails';
 import GraphToolbar from './GraphToolbar';
 import { cn } from '@/lib/utils';
 
@@ -389,15 +389,13 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
       />
       
       {selectedNode && (
-        <div className="absolute top-0 right-0 h-full w-96 shadow-lg">
-          <NodeDetailsPanel
-            node={selectedNode}
-            onClose={() => setSelectedNode(null)}
-            onUpdate={handleNodeUpdate}
-            onDelete={handleNodeDelete}
-            onCreateEdge={handleCreateEdge}
-          />
-        </div>
+        <DraggableNodeDetails
+          node={selectedNode}
+          onClose={() => setSelectedNode(null)}
+          onUpdate={handleNodeUpdate}
+          onDelete={handleNodeDelete}
+          onCreateEdge={handleCreateEdge}
+        />
       )}
     </div>
   );

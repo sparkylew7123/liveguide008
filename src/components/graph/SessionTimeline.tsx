@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 
 interface SessionTimelineProps {
@@ -42,6 +43,7 @@ export default function SessionTimeline({ userId, onSessionSelect, className }: 
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     fetchSessions();
@@ -61,7 +63,22 @@ export default function SessionTimeline({ userId, onSessionSelect, className }: 
 
       if (error) throw error;
 
-      setSessions(data || []);
+      // If no sessions exist, create a mock onboarding session
+      if (!data || data.length === 0) {
+        const onboardingSession: Session = {
+          id: 'onboarding-session',
+          created_at: new Date().toISOString(),
+          label: 'Onboarding Session',
+          properties: {
+            emotions: ['excited', 'motivated'],
+            progress: 100,
+            type: 'onboarding'
+          }
+        };
+        setSessions([onboardingSession]);
+      } else {
+        setSessions(data);
+      }
     } catch (error) {
       console.error('Error fetching sessions:', error);
     } finally {
@@ -101,7 +118,7 @@ export default function SessionTimeline({ userId, onSessionSelect, className }: 
   };
 
   const handleNext = () => {
-    setCurrentIndex(Math.min(sessions.length - 1, currentIndex + 1));
+    setCurrentIndex(Math.min(sessions.length, currentIndex + 1)); // Include schedule button
   };
 
   if (loading) {
@@ -112,13 +129,9 @@ export default function SessionTimeline({ userId, onSessionSelect, className }: 
     );
   }
 
-  if (sessions.length === 0) {
-    return (
-      <div className={cn("p-4 text-center text-gray-500 dark:text-gray-400", className)}>
-        No sessions found. Start a new session to see your progress timeline.
-      </div>
-    );
-  }
+  const handleScheduleClick = () => {
+    router.push('/schedule');
+  };
 
   return (
     <div className={cn("bg-white dark:bg-gray-800 rounded-lg shadow-sm", className)}>
@@ -144,7 +157,7 @@ export default function SessionTimeline({ userId, onSessionSelect, className }: 
             </button>
             
             <div className="flex-1">
-              {sessions[currentIndex] && (
+              {currentIndex < sessions.length ? (
                 <SessionCard
                   session={sessions[currentIndex]}
                   isSelected={selectedSessionId === sessions[currentIndex].id}
@@ -152,15 +165,30 @@ export default function SessionTimeline({ userId, onSessionSelect, className }: 
                   formatDate={formatDate}
                   getEmotions={getSessionEmotions}
                 />
+              ) : (
+                <button
+                  onClick={handleScheduleClick}
+                  className={cn(
+                    "w-full flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
+                    "border-dashed border-gray-300 dark:border-gray-600",
+                    "hover:border-blue-400 dark:hover:border-blue-500",
+                    "hover:bg-gray-50 dark:hover:bg-gray-800"
+                  )}
+                >
+                  <PlusIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                  <span className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Schedule Session
+                  </span>
+                </button>
               )}
             </div>
             
             <button
               onClick={handleNext}
-              disabled={currentIndex === sessions.length - 1}
+              disabled={currentIndex === sessions.length}
               className={cn(
                 "p-1 rounded-full",
-                currentIndex === sessions.length - 1
+                currentIndex === sessions.length
                   ? "text-gray-300 dark:text-gray-600" 
                   : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
               )}
@@ -182,6 +210,21 @@ export default function SessionTimeline({ userId, onSessionSelect, className }: 
               getEmotions={getSessionEmotions}
             />
           ))}
+          {/* Add Schedule Button */}
+          <button
+            onClick={handleScheduleClick}
+            className={cn(
+              "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all min-w-[140px]",
+              "border-dashed border-gray-300 dark:border-gray-600",
+              "hover:border-blue-400 dark:hover:border-blue-500",
+              "hover:bg-gray-50 dark:hover:bg-gray-800"
+            )}
+          >
+            <PlusIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            <span className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+              Schedule Session
+            </span>
+          </button>
         </div>
         
         {selectedSessionId && (

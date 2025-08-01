@@ -86,7 +86,13 @@ export default function NodeDetailsPanel({
 
   return (
     <Card className={cn("h-full flex flex-col", className)}>
-      <CardHeader className="flex-shrink-0">
+      <CardHeader className="flex-shrink-0 relative border-b-2 border-gray-100 dark:border-gray-800">
+        {/* Drag indicator dots */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-1 opacity-20 pointer-events-none">
+          <div className="w-1 h-1 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+          <div className="w-1 h-1 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+          <div className="w-1 h-1 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+        </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{getNodeTypeIcon(node.type)}</span>
