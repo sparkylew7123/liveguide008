@@ -32,35 +32,62 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
     console.log('fetchGraphData called');
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!session) {
+      if (!user) {
         showToast('Please sign in to view your graph', 'error');
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/get-graph-data`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nodeTypes: nodeTypeFilters,
-          includeDeleted: false
-        })
-      });
+      // Direct database queries like the working test pages
+      let nodesQuery = supabase
+        .from('graph_nodes')
+        .select('*')
+        .eq('user_id', user.id)
+        .is('deleted_at', null);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch graph data');
+      if (nodeTypeFilters.length > 0) {
+        nodesQuery = nodesQuery.in('node_type', nodeTypeFilters);
       }
 
-      const result = await response.json();
-      console.log('Graph data received:', result);
-      console.log('Nodes:', result.data.nodes);
-      console.log('Edges:', result.data.edges);
-      setNodes(result.data.nodes);
-      setEdges(result.data.edges);
+      const { data: nodes, error: nodesError } = await nodesQuery;
+
+      const { data: edges, error: edgesError } = await supabase
+        .from('graph_edges')
+        .select('*')
+        .eq('user_id', user.id)
+        .is('valid_to', null);
+
+      if (nodesError) throw nodesError;
+      if (edgesError) throw edgesError;
+
+      // Transform to Cytoscape format
+      const cytoscapeNodes = (nodes || []).map(node => ({
+        data: {
+          id: node.id,
+          label: node.label,
+          type: node.node_type,
+          description: node.description,
+          properties: node.properties,
+          status: node.status
+        }
+      }));
+
+      const cytoscapeEdges = (edges || []).map(edge => ({
+        data: {
+          id: edge.id,
+          source: edge.source_node_id,
+          target: edge.target_node_id,
+          type: edge.edge_type,
+          label: edge.label,
+          weight: edge.weight,
+          properties: edge.properties
+        }
+      }));
+
+      console.log('Graph data transformed:', { nodes: cytoscapeNodes, edges: cytoscapeEdges });
+      setNodes(cytoscapeNodes);
+      setEdges(cytoscapeEdges);
       
     } catch (error) {
       console.error('Error fetching graph data:', error);

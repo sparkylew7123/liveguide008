@@ -1,19 +1,8 @@
 'use client';
 
 import React, { useRef, useEffect, useCallback, useState } from 'react';
-import cytoscape, { Core, NodeSingular, EdgeSingular, EventObject } from 'cytoscape';
-// @ts-ignore - No types available for layout extensions
-import cola from 'cytoscape-cola';
-// @ts-ignore - No types available for layout extensions
-import fcose from 'cytoscape-fcose';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
-
-// Register layout extensions
-if (typeof window !== 'undefined' && typeof cytoscape !== 'undefined') {
-  cytoscape.use(cola);
-  cytoscape.use(fcose);
-}
 
 interface GraphCanvasProps {
   nodes: any[];
@@ -25,6 +14,12 @@ interface GraphCanvasProps {
   onGraphChange?: (elements: any[]) => void;
   className?: string;
 }
+
+// Define types locally to avoid import issues
+type Core = any;
+type NodeSingular = any;
+type EdgeSingular = any;
+type EventObject = any;
 
 export default function GraphCanvas({
   nodes,
@@ -73,7 +68,23 @@ export default function GraphCanvas({
   useEffect(() => {
     if (!containerRef.current || isInitialized) return;
 
-    const cy = cytoscape({
+    // Dynamically import cytoscape
+    import('cytoscape').then((cytoscapeModule) => {
+      const cytoscape = cytoscapeModule.default;
+      
+      // Import layout extensions
+      Promise.all([
+        import('cytoscape-cola'),
+        import('cytoscape-fcose')
+      ]).then(([colaModule, fcoseModule]) => {
+        const cola = colaModule.default;
+        const fcose = fcoseModule.default;
+        
+        // Register extensions
+        cytoscape.use(cola);
+        cytoscape.use(fcose);
+        
+        const cy = cytoscape({
       container: containerRef.current,
       elements: [],
       style: [
@@ -230,11 +241,153 @@ export default function GraphCanvas({
       }
     });
 
-    cyRef.current = cy;
-    setIsInitialized(true);
+        cyRef.current = cy;
+        setIsInitialized(true);
+      }).catch(err => {
+        console.error('Error loading cytoscape extensions:', err);
+        // Fallback to basic grid layout if extensions fail
+        const cy = cytoscape({
+          container: containerRef.current,
+          elements: [],
+          style: [
+            // Node styles
+            {
+              selector: 'node',
+              style: {
+                'background-color': (ele: any) => getNodeColor(ele.data('type')),
+                'border-color': (ele: any) => getNodeColor(ele.data('type')),
+                'border-width': 2,
+                'border-style': (ele: any) => ele.data('status') === 'draft_verbal' ? 'dashed' : 'solid',
+                'opacity': (ele: any) => ele.data('status') === 'draft_verbal' ? 0.7 : 1,
+                'label': 'data(label)',
+                'text-valign': 'center',
+                'text-halign': 'center',
+                'color': isDark ? '#ffffff' : '#111827',
+                'font-size': '12px',
+                'font-weight': '600',
+                'width': 48,
+                'height': 48,
+                'text-wrap': 'wrap',
+                'text-max-width': '80px'
+              }
+            },
+            // Edge styles
+            {
+              selector: 'edge',
+              style: {
+                'line-color': (ele: any) => getEdgeColor(ele.data('type')),
+                'target-arrow-color': (ele: any) => getEdgeColor(ele.data('type')),
+                'target-arrow-shape': 'triangle',
+                'curve-style': 'bezier',
+                'width': 2,
+                'line-style': (ele: any) => {
+                  const type = ele.data('type');
+                  return type === 'derived_from' ? 'dashed' : 'solid';
+                },
+                'label': 'data(label)',
+                'font-size': '10px',
+                'text-rotation': 'autorotate',
+                'text-background-color': isDark ? '#111827' : '#ffffff',
+                'text-background-opacity': 0.8,
+                'text-background-padding': '2px'
+              }
+            },
+            // Selected state
+            {
+              selector: 'node:selected',
+              style: {
+                'border-width': 4,
+                'border-color': isDark ? '#ffffff' : '#111827'
+              }
+            },
+            {
+              selector: 'edge:selected',
+              style: {
+                'line-color': isDark ? '#ffffff' : '#111827',
+                'target-arrow-color': isDark ? '#ffffff' : '#111827',
+                'width': 4
+              }
+            },
+            // Hover state
+            {
+              selector: 'node:hover',
+              style: {
+                'overlay-color': isDark ? '#ffffff' : '#111827',
+                'overlay-padding': 8,
+                'overlay-opacity': 0.1
+              }
+            }
+          ],
+          layout: {
+            name: 'grid'
+          },
+          // Interaction options
+          minZoom: 0.3,
+          maxZoom: 3,
+          wheelSensitivity: 0.2,
+          boxSelectionEnabled: true,
+          selectionType: 'single',
+          touchTapThreshold: 8,
+          desktopTapThreshold: 4,
+          autolock: false,
+          autoungrabify: false,
+          autounselectify: false
+        });
+        
+        // Event handlers
+        cy.on('tap', 'node', (evt: EventObject) => {
+          const node = evt.target;
+          if (onNodeClick) {
+            onNodeClick(node.data());
+          }
+        });
+
+        cy.on('tap', 'edge', (evt: EventObject) => {
+          const edge = evt.target;
+          if (onEdgeClick) {
+            onEdgeClick(edge.data());
+          }
+        });
+
+        cy.on('dblclick', 'node', (evt: EventObject) => {
+          const node = evt.target;
+          if (onNodeDoubleClick) {
+            onNodeDoubleClick(node.data());
+          }
+        });
+
+        cy.on('cxttap', (evt: EventObject) => {
+          evt.preventDefault();
+          if (onContextMenu && evt.target !== cy) {
+            const element = evt.target;
+            const position = evt.renderedPosition || evt.position;
+            onContextMenu(element.data(), { x: position.x, y: position.y });
+          }
+        });
+
+        // Track graph changes
+        cy.on('add remove data', () => {
+          if (onGraphChange) {
+            const elements = cy.elements().map(ele => ({
+              group: ele.group(),
+              data: ele.data(),
+              position: ele.position()
+            }));
+            onGraphChange(elements);
+          }
+        });
+        
+        cyRef.current = cy;
+        setIsInitialized(true);
+      });
+    }).catch(err => {
+      console.error('Error loading cytoscape:', err);
+    });
 
     return () => {
-      cy.destroy();
+      if (cyRef.current) {
+        cyRef.current.destroy();
+      }
     };
   }, [isDark, onNodeClick, onEdgeClick, onNodeDoubleClick, onContextMenu, onGraphChange, getNodeColor, getEdgeColor, isInitialized]);
 
@@ -253,13 +406,17 @@ export default function GraphCanvas({
 
     // Re-run layout if we have elements
     if (nodes.length > 0) {
+      // Check if fcose is available, otherwise use grid
+      const layoutName = cy.layout ? 'fcose' : 'grid';
       cy.layout({
-        name: 'fcose',
+        name: layoutName,
         animate: true,
         animationDuration: 500,
-        nodeRepulsion: 4500,
-        idealEdgeLength: 80,
-        edgeElasticity: 0.45
+        ...(layoutName === 'fcose' ? {
+          nodeRepulsion: 4500,
+          idealEdgeLength: 80,
+          edgeElasticity: 0.45
+        } : {})
       }).run();
     }
   }, [nodes, edges, isInitialized]);
