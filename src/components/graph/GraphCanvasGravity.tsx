@@ -27,8 +27,8 @@ export default function GraphCanvasGravity({
 
   // Calculate node importance/size based on connections
   const calculateNodeImportance = (nodeId: string) => {
-    const incomingEdges = edges.filter(e => e.data.target === nodeId).length;
-    const outgoingEdges = edges.filter(e => e.data.source === nodeId).length;
+    const incomingEdges = edges.filter(e => (e.data || e).target === nodeId).length;
+    const outgoingEdges = edges.filter(e => (e.data || e).source === nodeId).length;
     const totalConnections = incomingEdges + outgoingEdges;
     
     // Base size + connection bonus
@@ -118,7 +118,7 @@ export default function GraphCanvasGravity({
               'text-max-width': '120px',
               'border-width': 2,
               'border-color': isDark ? '#1e293b' : '#e2e8f0',
-              'transition-property': 'width, height, background-color',
+              'transition-property': 'background-color, border-color',
               'transition-duration': '0.3s',
               'transition-timing-function': 'ease-in-out'
             }
@@ -299,31 +299,46 @@ export default function GraphCanvasGravity({
       cy.fit(50);
       cy.center();
 
-      // Add floating animation for nodes
+      // Store original positions and add subtle floating animation
       let animationFrame: number;
-      const animateFloat = () => {
-        const time = Date.now() * 0.0001; // Convert to seconds (10% speed - was 0.001)
-        
+      const nodePositions = new Map();
+      
+      // Wait for layout to finish, then store positions
+      cy.on('layoutstop', () => {
         cy.nodes().forEach((node: any) => {
-          if (!node.grabbed()) { // Only animate if not being dragged
-            const basePos = node.position();
-            const floatAmount = 5 + (node.data('importance') / 20); // Larger nodes float more
-            const speed = 0.05 + (Math.random() * 0.05); // Vary speed per node (10% - was 0.5)
-            
-            node.position({
-              x: basePos.x + Math.sin(time * speed) * floatAmount * 0.3,
-              y: basePos.y + Math.cos(time * speed * 0.8) * floatAmount
-            });
-          }
+          const pos = node.position();
+          nodePositions.set(node.id(), { 
+            x: pos.x, 
+            y: pos.y,
+            floatSpeed: 0.5 + Math.random() * 0.5,
+            floatPhase: Math.random() * Math.PI * 2
+          });
         });
         
-        animationFrame = requestAnimationFrame(animateFloat);
-      };
-
-      // Start floating animation after layout settles
-      setTimeout(() => {
-        animateFloat();
-      }, 2500);
+        // Start floating animation
+        const animateFloat = () => {
+          const time = Date.now() * 0.00002; // Very slow time progression
+          
+          cy.nodes().forEach((node: any) => {
+            if (!node.grabbed() && nodePositions.has(node.id())) {
+              const basePos = nodePositions.get(node.id());
+              const floatAmount = 2 + (node.data('importance') / 50); // Subtle float amount
+              
+              node.position({
+                x: basePos.x + Math.sin(time * basePos.floatSpeed + basePos.floatPhase) * floatAmount * 0.3,
+                y: basePos.y + Math.cos(time * basePos.floatSpeed * 0.8 + basePos.floatPhase) * floatAmount
+              });
+            }
+          });
+          
+          animationFrame = requestAnimationFrame(animateFloat);
+        };
+        
+        // Start animation after a delay
+        setTimeout(() => {
+          animateFloat();
+        }, 500);
+      });
 
       setCyInstance(cy);
 
@@ -335,6 +350,97 @@ export default function GraphCanvasGravity({
       };
     }).catch(err => {
       console.error('Error loading cytoscape:', err);
+      // Fallback to simple canvas if extensions fail
+      import('cytoscape').then((cytoscapeModule) => {
+        const cytoscape = cytoscapeModule.default;
+        
+        const cy = cytoscape({
+          container: containerRef.current,
+          elements: [
+            ...nodes.map(node => ({
+              group: 'nodes',
+              data: {
+                ...(node.data || node),
+                importance: calculateNodeImportance((node.data || node).id)
+              }
+            })),
+            ...edges.map(edge => ({
+              group: 'edges',
+              data: edge.data || edge
+            }))
+          ],
+          style: [
+            {
+              selector: 'node',
+              style: {
+                'width': 'data(importance)',
+                'height': 'data(importance)',
+                'background-color': '#3b82f6',
+                'label': 'data(label)',
+                'text-valign': 'center',
+                'text-halign': 'center',
+                'color': isDark ? '#ffffff' : '#111827',
+                'font-size': '12px',
+                'text-wrap': 'wrap',
+                'text-max-width': '80px'
+              }
+            },
+            {
+              selector: 'node[type="goal"]',
+              style: {
+                'background-color': isDark ? '#fbbf24' : '#f59e0b'
+              }
+            },
+            {
+              selector: 'node[type="skill"]',
+              style: {
+                'background-color': isDark ? '#059669' : '#10b981'
+              }
+            },
+            {
+              selector: 'node[type="emotion"]',
+              style: {
+                'background-color': isDark ? '#7c3aed' : '#8b5cf6'
+              }
+            },
+            {
+              selector: 'node[type="session"]',
+              style: {
+                'background-color': isDark ? '#ea580c' : '#f97316'
+              }
+            },
+            {
+              selector: 'node[type="accomplishment"]',
+              style: {
+                'background-color': isDark ? '#0891b2' : '#06b6d4'
+              }
+            },
+            {
+              selector: 'edge',
+              style: {
+                'width': 2,
+                'line-color': isDark ? '#6b7280' : '#9ca3af',
+                'target-arrow-color': isDark ? '#6b7280' : '#9ca3af',
+                'target-arrow-shape': 'triangle',
+                'curve-style': 'bezier'
+              }
+            }
+          ],
+          layout: {
+            name: 'grid',
+            rows: Math.ceil(Math.sqrt(nodes.length)),
+            cols: Math.ceil(Math.sqrt(nodes.length))
+          }
+        });
+        
+        if (onNodeClick) {
+          cy.on('tap', 'node', (evt: any) => {
+            onNodeClick(evt.target.data());
+          });
+        }
+        
+        setCyInstance(cy);
+      });
     });
   }, [nodes, edges, isDark, onNodeClick, onEdgeClick]);
 
