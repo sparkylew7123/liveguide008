@@ -161,11 +161,11 @@ export default function GraphCanvas({
         },
         // Hover state
         {
-          selector: 'node:hover',
+          selector: 'node',
           style: {
-            'overlay-color': isDark ? '#ffffff' : '#111827',
-            'overlay-padding': 8,
-            'overlay-opacity': 0.1
+            'overlay-color': 'transparent',
+            'overlay-padding': 0,
+            'overlay-opacity': 0
           }
         }
       ],
@@ -310,11 +310,11 @@ export default function GraphCanvas({
             },
             // Hover state
             {
-              selector: 'node:hover',
+              selector: 'node',
               style: {
-                'overlay-color': isDark ? '#ffffff' : '#111827',
-                'overlay-padding': 8,
-                'overlay-opacity': 0.1
+                'overlay-color': 'transparent',
+                'overlay-padding': 0,
+                'overlay-opacity': 0
               }
             }
           ],
@@ -324,7 +324,6 @@ export default function GraphCanvas({
           // Interaction options
           minZoom: 0.3,
           maxZoom: 3,
-          wheelSensitivity: 0.2,
           boxSelectionEnabled: true,
           selectionType: 'single',
           touchTapThreshold: 8,
