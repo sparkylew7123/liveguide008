@@ -9,7 +9,12 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import { MicrophoneIcon, CpuChipIcon, UsersIcon, BoltIcon, StarIcon, ArrowRightIcon, CheckCircleIcon, PlayCircleIcon, ShieldCheckIcon, ClockIcon, ArrowPathIcon, ViewfinderCircleIcon, PlayIcon, PhoneIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
+import { useUser } from '@/contexts/UserContext'
+import { useRouter } from 'next/navigation'
+
 export default function LandingPage() {
+  const router = useRouter()
+  const { user, isLoading } = useUser()
   const videoRef = useRef<HTMLDivElement>(null)
   const videoElementRef = useRef<HTMLVideoElement>(null)
   const [showOverlay, setShowOverlay] = useState(false)
@@ -17,6 +22,13 @@ export default function LandingPage() {
   const [hasEnded, setHasEnded] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [showButtonPulse, setShowButtonPulse] = useState(false)
+
+  useEffect(() => {
+    // Redirect authenticated users to lobby
+    if (!isLoading && user) {
+      router.push('/lobby')
+    }
+  }, [user, isLoading, router])
 
   useEffect(() => {
     // Parallax scroll effect
@@ -177,6 +189,27 @@ export default function LandingPage() {
       rating: 5
     }
   ]
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    )
+  }
+
+  // Redirect will happen in useEffect if user is authenticated
+  if (user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-white mb-4">Redirecting to your lobby...</h2>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">

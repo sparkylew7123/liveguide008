@@ -35,9 +35,12 @@ export default function AuthCallbackPage() {
             const { data: { session } } = await supabase.auth.getSession()
             
             if (session) {
-              console.log('Session exists despite PKCE error, redirecting...')
+              console.log('Session exists despite PKCE error, redirecting to:', params.get('next') || '/lobby')
               const next = params.get('next') || '/lobby'
-              router.push(next)
+              // Small delay to ensure session is properly established
+              setTimeout(() => {
+                router.push(next)
+              }, 100)
               return
             }
             
@@ -51,7 +54,11 @@ export default function AuthCallbackPage() {
           if (session) {
             // Successfully authenticated, redirect to lobby or requested page
             const next = params.get('next') || '/lobby'
-            router.push(next)
+            console.log('Successfully authenticated, redirecting to:', next)
+            // Small delay to ensure session is properly established
+            setTimeout(() => {
+              router.push(next)
+            }, 100)
           } else {
             router.push('/login?error=Failed to establish session')
           }
@@ -62,9 +69,12 @@ export default function AuthCallbackPage() {
           const { data: { session } } = await supabase.auth.getSession()
           
           if (session) {
-            console.log('Session exists despite error, redirecting...')
+            console.log('Session exists despite error, redirecting to:', params.get('next') || '/lobby')
             const next = params.get('next') || '/lobby'
-            router.push(next)
+            // Small delay to ensure session is properly established
+            setTimeout(() => {
+              router.push(next)
+            }, 100)
           } else {
             router.push(`/login?error=${encodeURIComponent(error?.message || 'Authentication failed')}`)
           }
