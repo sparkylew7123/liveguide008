@@ -59,6 +59,10 @@ export async function signInWithProvider(provider: 'google' | 'github') {
     options: {
       redirectTo: `${window.location.origin}/auth/callback`,
       skipBrowserRedirect: false,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
     },
   });
   return { data, error };
