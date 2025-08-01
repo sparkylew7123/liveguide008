@@ -138,7 +138,10 @@ export default function GraphCanvasGravity({
               'text-wrap': 'wrap',
               'text-max-width': '120px',
               'border-width': 2,
-              'border-color': isDark ? '#1e293b' : '#e2e8f0'
+              'border-color': isDark ? '#1e293b' : '#e2e8f0',
+              'transition-property': 'border-width, border-color',
+              'transition-duration': '2s',
+              'transition-timing-function': 'ease-in-out'
             }
           },
           {
@@ -147,7 +150,10 @@ export default function GraphCanvasGravity({
               'background-color': isDark ? '#fbbf24' : '#f59e0b', // Gold/yellow like sun
               'border-color': isDark ? '#d97706' : '#f97316',
               'border-width': 3,
-              'z-index': 10
+              'z-index': 10,
+              'overlay-color': isDark ? '#fbbf24' : '#f59e0b',
+              'overlay-padding': 20,
+              'overlay-opacity': 0.2
             }
           },
           {
@@ -244,39 +250,48 @@ export default function GraphCanvasGravity({
       let animationFrame: number;
       const nodeData = new Map();
       
-      // Store initial data for each node
-      cy.nodes().forEach((node: any) => {
-        const pos = node.position();
-        nodeData.set(node.id(), { 
-          x: pos.x, 
-          y: pos.y,
-          floatSpeed: 0.5 + Math.random() * 0.5, // Variable speed per node
-          floatPhase: Math.random() * Math.PI * 2,
-          floatAmount: 8 + (node.data('importance') / 15) // More visible movement (8-15 pixels)
-        });
-      });
-      
-      // Floating animation
-      const animateFloat = () => {
-        const time = Date.now() * 0.0001; // Slightly faster than before but still subtle
-        
+      // Wait a moment for the graph to stabilize
+      setTimeout(() => {
+        // Store initial data for each node
         cy.nodes().forEach((node: any) => {
-          if (!node.grabbed() && nodeData.has(node.id())) {
-            const data = nodeData.get(node.id());
-            
-            node.position({
-              x: data.x + Math.sin(time * data.floatSpeed + data.floatPhase) * data.floatAmount,
-              y: data.y + Math.cos(time * data.floatSpeed * 0.7 + data.floatPhase) * data.floatAmount
-            });
-          }
+          const pos = node.position();
+          nodeData.set(node.id(), { 
+            x: pos.x, 
+            y: pos.y,
+            floatSpeed: 0.5 + Math.random() * 0.5, // Variable speed per node
+            floatPhase: Math.random() * Math.PI * 2,
+            floatAmount: 10 + (node.data('importance') / 10) // Even more visible movement (10-20 pixels)
+          });
         });
         
-        animationFrame = requestAnimationFrame(animateFloat);
-      };
-      
-      // Start animation
-      animateFloat();
-      console.log('Floating animation started for', cy.nodes().length, 'nodes');
+        // Floating animation
+        const animateFloat = () => {
+          const time = Date.now() * 0.0002; // Faster animation
+          
+          cy.nodes().forEach((node: any) => {
+            if (!node.grabbed() && nodeData.has(node.id())) {
+              const data = nodeData.get(node.id());
+              
+              // Update position
+              node.position({
+                x: data.x + Math.sin(time * data.floatSpeed + data.floatPhase) * data.floatAmount,
+                y: data.y + Math.cos(time * data.floatSpeed * 0.7 + data.floatPhase) * data.floatAmount
+              });
+              
+              // Pulse effect on border
+              const pulse = Math.sin(time * 0.5) * 0.5 + 0.5; // 0 to 1
+              node.style('border-width', 2 + pulse * 2); // 2 to 4 pixels
+            }
+          });
+          
+          animationFrame = requestAnimationFrame(animateFloat);
+        };
+        
+        // Start animation
+        animateFloat();
+        console.log('Floating animation started for', cy.nodes().length, 'nodes with positions:', 
+          Array.from(nodeData.values()).map(d => ({ x: d.x, y: d.y })));
+      }, 500); // Wait 500ms for layout to settle
 
       setCyInstance(cy);
 
