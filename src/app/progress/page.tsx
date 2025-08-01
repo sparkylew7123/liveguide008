@@ -25,10 +25,20 @@ const SampleGraphView = dynamic(() => import('@/components/graph/SampleGraphView
   ),
 });
 
+const SessionTimeline = dynamic(() => import('@/components/graph/SessionTimeline'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-24 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+    </div>
+  ),
+});
+
 export default function ProgressPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showSampleGraph, setShowSampleGraph] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -101,12 +111,25 @@ export default function ProgressPage() {
       </header>
 
       {/* Graph Explorer or Sample View */}
-      <main className="flex-1 overflow-hidden">
-        {showSampleGraph ? (
-          <SampleGraphView className="w-full h-full" />
-        ) : (
-          <GraphExplorer userId={user.id} className="w-full h-full" />
+      <main className="flex-1 overflow-hidden flex flex-col">
+        {!showSampleGraph && (
+          <SessionTimeline 
+            userId={user.id} 
+            onSessionSelect={setSelectedSessionId}
+            className="flex-shrink-0 m-4"
+          />
         )}
+        <div className="flex-1 overflow-hidden">
+          {showSampleGraph ? (
+            <SampleGraphView className="w-full h-full" />
+          ) : (
+            <GraphExplorer 
+              userId={user.id} 
+              selectedSessionId={selectedSessionId}
+              className="w-full h-full" 
+            />
+          )}
+        </div>
       </main>
     </div>
   );

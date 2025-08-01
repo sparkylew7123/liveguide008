@@ -161,7 +161,11 @@ export default function NodeDetailsPanel({
                           {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
                         </span>
                         <span className="font-medium">
-                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                          {value === null || value === undefined 
+                            ? 'Not set' 
+                            : typeof value === 'object' 
+                              ? JSON.stringify(value, null, 2) 
+                              : String(value)}
                         </span>
                       </div>
                     ))}
@@ -173,9 +177,28 @@ export default function NodeDetailsPanel({
             <Separator />
 
             <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-              <div>Created: {new Date(node.createdAt || node.created_at).toLocaleString()}</div>
+              <div>
+                Created: {node.createdAt || node.created_at 
+                  ? new Date(node.createdAt || node.created_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'Unknown'
+                }
+              </div>
               {(node.updatedAt || node.updated_at) && (
-                <div>Updated: {new Date(node.updatedAt || node.updated_at).toLocaleString()}</div>
+                <div>
+                  Updated: {new Date(node.updatedAt || node.updated_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
               )}
             </div>
           </div>

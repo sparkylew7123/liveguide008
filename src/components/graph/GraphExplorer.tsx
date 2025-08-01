@@ -10,10 +10,11 @@ import { cn } from '@/lib/utils';
 
 interface GraphExplorerProps {
   userId: string;
+  selectedSessionId?: string | null;
   className?: string;
 }
 
-export default function GraphExplorer({ userId, className }: GraphExplorerProps) {
+export default function GraphExplorer({ userId, selectedSessionId, className }: GraphExplorerProps) {
   const [nodes, setNodes] = useState<any[]>([]);
   const [edges, setEdges] = useState<any[]>([]);
   const [selectedNode, setSelectedNode] = useState<any>(null);
@@ -48,13 +49,35 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
         nodesQuery = nodesQuery.in('node_type', nodeTypeFilters);
       }
 
-      const { data: nodes, error: nodesError } = await nodesQuery;
+      let { data: nodes, error: nodesError } = await nodesQuery;
 
-      const { data: edges, error: edgesError } = await supabase
+      let { data: edges, error: edgesError } = await supabase
         .from('graph_edges')
         .select('*')
         .eq('user_id', user.id)
         .is('valid_to', null);
+        
+      // If a session is selected, filter to show only nodes and edges related to that session
+      if (selectedSessionId && nodes && edges) {
+        // Get all nodes connected to the session
+        const sessionEdges = edges.filter(e => 
+          e.source_node_id === selectedSessionId || e.target_node_id === selectedSessionId
+        );
+        
+        const connectedNodeIds = new Set([selectedSessionId]);
+        sessionEdges.forEach(e => {
+          connectedNodeIds.add(e.source_node_id);
+          connectedNodeIds.add(e.target_node_id);
+        });
+        
+        // Filter nodes to only include the session and connected nodes
+        nodes = nodes.filter(n => connectedNodeIds.has(n.id));
+        
+        // Filter edges to only include those between the filtered nodes
+        edges = edges.filter(e => 
+          connectedNodeIds.has(e.source_node_id) && connectedNodeIds.has(e.target_node_id)
+        );
+      }
 
       if (nodesError) throw nodesError;
       if (edgesError) throw edgesError;
@@ -87,13 +110,21 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
       setNodes(cytoscapeNodes);
       setEdges(cytoscapeEdges);
       
+      // Auto-select first goal node if no node is selected
+      if (!selectedNode && cytoscapeNodes.length > 0) {
+        const firstGoal = cytoscapeNodes.find(n => n.data.type === 'goal');
+        if (firstGoal) {
+          setSelectedNode(firstGoal.data);
+        }
+      }
+      
     } catch (error) {
       console.error('Error fetching graph data:', error);
       showToast('Failed to load graph data', 'error');
     } finally {
       setLoading(false);
     }
-  }, [supabase, showToast, nodeTypeFilters]);
+  }, [supabase, showToast, nodeTypeFilters, selectedSessionId]);
 
   // Set up real-time subscriptions
   useEffect(() => {
@@ -111,16 +142,25 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
           console.log('Node change:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setNodes(prev => [...prev, {
-              data: {
-                id: payload.new.id,
-                label: payload.new.label,
-                type: payload.new.node_type,
-                description: payload.new.description,
-                properties: payload.new.properties,
-                status: payload.new.status
+            setNodes(prev => {
+              // Check if node already exists to prevent duplicates
+              const exists = prev.some(node => node.data.id === payload.new.id);
+              if (exists) {
+                console.log('Node already exists, skipping insert:', payload.new.id);
+                return prev;
               }
-            }]);
+              
+              return [...prev, {
+                data: {
+                  id: payload.new.id,
+                  label: payload.new.label,
+                  type: payload.new.node_type,
+                  description: payload.new.description,
+                  properties: payload.new.properties,
+                  status: payload.new.status
+                }
+              }];
+            });
             showToast('New node added to your graph', 'info');
           } else if (payload.eventType === 'UPDATE') {
             setNodes(prev => prev.map(node => 
@@ -171,16 +211,25 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
           console.log('Edge change:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setEdges(prev => [...prev, {
-              data: {
-                id: payload.new.id,
-                source: payload.new.source_node_id,
-                target: payload.new.target_node_id,
-                type: payload.new.edge_type,
-                label: payload.new.label,
-                properties: payload.new.properties
+            setEdges(prev => {
+              // Check if edge already exists to prevent duplicates
+              const exists = prev.some(edge => edge.data.id === payload.new.id);
+              if (exists) {
+                console.log('Edge already exists, skipping insert:', payload.new.id);
+                return prev;
               }
-            }]);
+              
+              return [...prev, {
+                data: {
+                  id: payload.new.id,
+                  source: payload.new.source_node_id,
+                  target: payload.new.target_node_id,
+                  type: payload.new.edge_type,
+                  label: payload.new.label,
+                  properties: payload.new.properties
+                }
+              }];
+            });
           } else if (payload.eventType === 'UPDATE') {
             setEdges(prev => prev.map(edge => 
               edge.data.id === payload.new.id
@@ -322,6 +371,7 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
       <GraphCanvasGravity
         nodes={nodes}
         edges={edges}
+        selectedNodeId={selectedNode?.id}
         onNodeClick={setSelectedNode}
         className="absolute inset-0"
       />

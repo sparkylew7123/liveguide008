@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 interface GraphCanvasGravityProps {
   nodes: any[];
   edges: any[];
+  selectedNodeId?: string | null;
   onNodeClick?: (node: any) => void;
   onEdgeClick?: (edge: any) => void;
   className?: string;
@@ -15,6 +16,7 @@ interface GraphCanvasGravityProps {
 export default function GraphCanvasGravity({
   nodes,
   edges,
+  selectedNodeId,
   onNodeClick,
   onEdgeClick,
   className
@@ -150,10 +152,7 @@ export default function GraphCanvasGravity({
               'background-color': isDark ? '#fbbf24' : '#f59e0b', // Gold/yellow like sun
               'border-color': isDark ? '#d97706' : '#f97316',
               'border-width': 3,
-              'z-index': 10,
-              'overlay-color': isDark ? '#fbbf24' : '#f59e0b',
-              'overlay-padding': 20,
-              'overlay-opacity': 0.2
+              'z-index': 10
             }
           },
           {
@@ -239,6 +238,19 @@ export default function GraphCanvasGravity({
         });
       }
 
+      // Handle node dragging - update stored position when drag ends
+      cy.on('dragfree', 'node', (evt: any) => {
+        const node = evt.target;
+        const newPos = node.position();
+        if (nodeData.has(node.id())) {
+          const data = nodeData.get(node.id());
+          // Update the base position to the new dragged position
+          data.x = newPos.x;
+          data.y = newPos.y;
+          console.log(`Node ${node.id()} dragged to new position:`, newPos);
+        }
+      });
+
       // Center and fit the graph
       cy.fit(50);
       cy.center();
@@ -250,20 +262,20 @@ export default function GraphCanvasGravity({
       let animationFrame: number;
       const nodeData = new Map();
       
+      // Store initial data for each node
+      cy.nodes().forEach((node: any) => {
+        const pos = node.position();
+        nodeData.set(node.id(), { 
+          x: pos.x, 
+          y: pos.y,
+          floatSpeed: 0.5 + Math.random() * 0.5, // Variable speed per node
+          floatPhase: Math.random() * Math.PI * 2,
+          floatAmount: 10 + (node.data('importance') / 10) // Even more visible movement (10-20 pixels)
+        });
+      });
+      
       // Wait a moment for the graph to stabilize
       setTimeout(() => {
-        // Store initial data for each node
-        cy.nodes().forEach((node: any) => {
-          const pos = node.position();
-          nodeData.set(node.id(), { 
-            x: pos.x, 
-            y: pos.y,
-            floatSpeed: 0.5 + Math.random() * 0.5, // Variable speed per node
-            floatPhase: Math.random() * Math.PI * 2,
-            floatAmount: 10 + (node.data('importance') / 10) // Even more visible movement (10-20 pixels)
-          });
-        });
-        
         // Floating animation
         const animateFloat = () => {
           const time = Date.now() * 0.0002; // Faster animation
@@ -305,6 +317,50 @@ export default function GraphCanvasGravity({
       console.error('Error loading cytoscape:', err);
     });
   }, [nodes, edges, isDark, onNodeClick, onEdgeClick]);
+  
+  // Update selected node styling when selectedNodeId changes
+  useEffect(() => {
+    if (cyInstance && selectedNodeId) {
+      // Remove previous selection
+      cyInstance.nodes().removeClass('selected');
+      
+      // Add selection to the current node
+      const selectedNode = cyInstance.getElementById(selectedNodeId);
+      if (selectedNode) {
+        selectedNode.addClass('selected');
+        
+        // Update the container background with a lighter shade of the node color
+        const nodeType = selectedNode.data('type');
+        const bgColors = {
+          goal: isDark ? 'rgba(251, 191, 36, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+          skill: isDark ? 'rgba(5, 150, 105, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+          emotion: isDark ? 'rgba(124, 58, 237, 0.1)' : 'rgba(139, 92, 246, 0.1)',
+          session: isDark ? 'rgba(234, 88, 12, 0.1)' : 'rgba(249, 115, 22, 0.1)',
+          accomplishment: isDark ? 'rgba(8, 145, 178, 0.1)' : 'rgba(6, 182, 212, 0.1)'
+        };
+        
+        if (containerRef.current) {
+          const baseGradient = isDark 
+            ? 'radial-gradient(ellipse at center, #1e1b4b 0%, #0f0a1f 100%)' 
+            : 'radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%)';
+          
+          containerRef.current.style.background = nodeType && bgColors[nodeType as keyof typeof bgColors]
+            ? `${baseGradient}, ${bgColors[nodeType as keyof typeof bgColors]}`
+            : baseGradient;
+        }
+      }
+    } else if (cyInstance) {
+      // Clear selection if no node is selected
+      cyInstance.nodes().removeClass('selected');
+      
+      // Reset background
+      if (containerRef.current) {
+        containerRef.current.style.background = isDark 
+          ? 'radial-gradient(ellipse at center, #1e1b4b 0%, #0f0a1f 100%)' 
+          : 'radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%)';
+      }
+    }
+  }, [cyInstance, selectedNodeId, isDark]);
 
   return (
     <div 
