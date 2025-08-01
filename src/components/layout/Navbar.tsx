@@ -85,7 +85,7 @@ export function Navbar() {
                 alt="LiveGuide" 
                 width={199} 
                 height={53} 
-                className="w-auto"
+                className="h-8 w-auto md:h-10"
                 priority
                 unoptimized
               />
@@ -135,7 +135,7 @@ export function Navbar() {
                 alt="LiveGuide" 
                 width={199} 
                 height={53} 
-                className="w-auto"
+                className="h-8 w-auto md:h-10"
                 priority
                 unoptimized
               />
@@ -211,7 +211,7 @@ export function Navbar() {
                 alt="LiveGuide" 
                 width={166} 
                 height={46} 
-                className="w-auto"
+                className="h-8 w-auto"
                 priority
                 unoptimized
               />
