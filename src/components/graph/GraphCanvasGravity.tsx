@@ -302,13 +302,13 @@ export default function GraphCanvasGravity({
       // Add floating animation for nodes
       let animationFrame: number;
       const animateFloat = () => {
-        const time = Date.now() * 0.001; // Convert to seconds
+        const time = Date.now() * 0.0001; // Convert to seconds (10% speed - was 0.001)
         
         cy.nodes().forEach((node: any) => {
           if (!node.grabbed()) { // Only animate if not being dragged
             const basePos = node.position();
             const floatAmount = 5 + (node.data('importance') / 20); // Larger nodes float more
-            const speed = 0.5 + (Math.random() * 0.5); // Vary speed per node
+            const speed = 0.05 + (Math.random() * 0.05); // Vary speed per node (10% - was 0.5)
             
             node.position({
               x: basePos.x + Math.sin(time * speed) * floatAmount * 0.3,
