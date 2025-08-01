@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/contexts/ToastContext';
-import GraphCanvas from './GraphCanvas';
+import GraphCanvasSimple from './GraphCanvasSimple';
 import NodeDetailsPanel from './NodeDetailsPanel';
 import GraphToolbar from './GraphToolbar';
-import { Core } from 'cytoscape';
 import { cn } from '@/lib/utils';
 
 interface GraphExplorerProps {
@@ -23,7 +22,6 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
     'goal', 'skill', 'emotion', 'session', 'accomplishment'
   ]);
   
-  const cyRef = useRef<Core | null>(null);
   const supabase = createClient();
   const { showToast } = useToast();
 
@@ -321,11 +319,10 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
 
   return (
     <div className={cn("relative w-full h-full", className)}>
-      <GraphCanvas
+      <GraphCanvasSimple
         nodes={nodes}
         edges={edges}
         onNodeClick={setSelectedNode}
-        onNodeDoubleClick={handleAddNode}
         className="absolute inset-0"
       />
       
