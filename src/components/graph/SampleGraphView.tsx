@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import GraphCanvasSimple from './GraphCanvasSimple';
+import GraphCanvasGravity from './GraphCanvasGravity';
 import { cn } from '@/lib/utils';
 
 interface SampleGraphViewProps {
@@ -220,7 +220,7 @@ export default function SampleGraphView({ className }: SampleGraphViewProps) {
 
   return (
     <div className={cn("relative w-full h-full", className)}>
-      <GraphCanvasSimple
+      <GraphCanvasGravity
         nodes={SAMPLE_NODES}
         edges={SAMPLE_EDGES}
         onNodeClick={handleNodeClick}
@@ -229,44 +229,49 @@ export default function SampleGraphView({ className }: SampleGraphViewProps) {
       />
       
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
-        <h3 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Graph Legend</h3>
+      <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4">
+        <h3 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Solar System Legend</h3>
         <div className="space-y-1 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="text-gray-700 dark:text-gray-300">Goals</span>
+            <div className="w-4 h-4 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50"></div>
+            <span className="text-gray-700 dark:text-gray-300">Goals (Center/Sun)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-gray-700 dark:text-gray-300">Skills</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-            <span className="text-gray-700 dark:text-gray-300">Emotions</span>
+            <span className="text-gray-700 dark:text-gray-300">Skills (Inner Orbit)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-gray-700 dark:text-gray-300">Sessions</span>
+            <span className="text-gray-700 dark:text-gray-300">Sessions (Middle Orbit)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <span className="text-gray-700 dark:text-gray-300">Accomplishments</span>
+            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+            <span className="text-gray-700 dark:text-gray-300">Emotions (Outer Orbit)</span>
           </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+            <span className="text-gray-700 dark:text-gray-300">Accomplishments (Far Orbit)</span>
+          </div>
+        </div>
+        <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-xs text-gray-600 dark:text-gray-400">Node size = importance</p>
         </div>
       </div>
       
       {/* Info Panel */}
-      <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm">
-        <h3 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Sample Graph Overview</h3>
+      <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 max-w-sm">
+        <h3 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Solar System Graph</h3>
         <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-          This sample graph demonstrates how different elements in your knowledge graph connect:
+          Your knowledge graph is organized like a solar system:
         </p>
         <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
-          <li><strong>Goals</strong> require specific <strong>Skills</strong></li>
-          <li><strong>Sessions</strong> help develop <strong>Skills</strong></li>
-          <li><strong>Emotions</strong> are felt during <strong>Sessions</strong></li>
-          <li><strong>Accomplishments</strong> contribute to achieving <strong>Goals</strong></li>
-          <li>Everything is interconnected to show your learning journey</li>
+          <li><strong>Goals</strong> are the sun at the center - everything revolves around them</li>
+          <li><strong>Skills</strong> orbit closest, directly supporting your goals</li>
+          <li><strong>Sessions</strong> in the middle layer connect skills with practice</li>
+          <li><strong>Emotions</strong> float in outer orbits, influencing your journey</li>
+          <li><strong>Accomplishments</strong> mark milestones in the furthest orbit</li>
+          <li>Larger nodes have more connections and importance</li>
+          <li>Nodes gently float to create a living, breathing system</li>
         </ul>
       </div>
     </div>

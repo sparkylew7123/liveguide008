@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/contexts/ToastContext';
-import GraphCanvasSimple from './GraphCanvasSimple';
+import GraphCanvasGravity from './GraphCanvasGravity';
 import NodeDetailsPanel from './NodeDetailsPanel';
 import GraphToolbar from './GraphToolbar';
 import { cn } from '@/lib/utils';
@@ -319,7 +319,7 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
 
   return (
     <div className={cn("relative w-full h-full", className)}>
-      <GraphCanvasSimple
+      <GraphCanvasGravity
         nodes={nodes}
         edges={edges}
         onNodeClick={setSelectedNode}
