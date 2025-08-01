@@ -57,7 +57,8 @@ export async function signInWithProvider(provider: 'google' | 'github') {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      // redirectTo is pre-configured in Supabase dashboard
+      // Including it here can cause PKCE issues
       skipBrowserRedirect: false,
       queryParams: {
         access_type: 'offline',

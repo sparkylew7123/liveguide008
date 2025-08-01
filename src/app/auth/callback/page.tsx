@@ -24,24 +24,50 @@ export default function AuthCallbackPage() {
       }
       
       if (code) {
-        // Exchange code for session
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-        
-        if (exchangeError) {
-          console.error('Code exchange error:', exchangeError)
-          router.push(`/login?error=${encodeURIComponent(exchangeError.message)}`)
-          return
-        }
-        
-        // Check if we have a session
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session) {
-          // Successfully authenticated, redirect to lobby or requested page
-          const next = params.get('next') || '/lobby'
-          router.push(next)
-        } else {
-          router.push('/login?error=Failed to establish session')
+        try {
+          // Exchange code for session
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          
+          if (exchangeError) {
+            console.error('Code exchange error:', exchangeError)
+            
+            // Check if we actually have a session despite the error (PKCE workaround)
+            const { data: { session } } = await supabase.auth.getSession()
+            
+            if (session) {
+              console.log('Session exists despite PKCE error, redirecting...')
+              const next = params.get('next') || '/lobby'
+              router.push(next)
+              return
+            }
+            
+            router.push(`/login?error=${encodeURIComponent(exchangeError.message)}`)
+            return
+          }
+          
+          // Check if we have a session
+          const { data: { session } } = await supabase.auth.getSession()
+          
+          if (session) {
+            // Successfully authenticated, redirect to lobby or requested page
+            const next = params.get('next') || '/lobby'
+            router.push(next)
+          } else {
+            router.push('/login?error=Failed to establish session')
+          }
+        } catch (error) {
+          console.error('Auth callback error:', error)
+          
+          // Try to get session as a fallback
+          const { data: { session } } = await supabase.auth.getSession()
+          
+          if (session) {
+            console.log('Session exists despite error, redirecting...')
+            const next = params.get('next') || '/lobby'
+            router.push(next)
+          } else {
+            router.push(`/login?error=${encodeURIComponent(error?.message || 'Authentication failed')}`)
+          }
         }
       } else {
         router.push('/login?error=No authorization code received')
