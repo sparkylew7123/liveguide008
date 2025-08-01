@@ -46,6 +46,12 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
   // Check if user has already completed onboarding
   useEffect(() => {
     const checkOnboardingStatus = async () => {
+      // Skip profile check for anonymous users
+      if (user.id?.startsWith('anon_')) {
+        setLoading(false);
+        return;
+      }
+      
       const supabase = createClient();
       const { data: profile } = await supabase
         .from('profiles')
@@ -108,14 +114,19 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
                 confidence: goal.confidence || 0.8
               }));
               
-              // Save goals to profile (for backward compatibility)
-              await supabase
-                .from('profiles')
-                .update({
-                  selected_goals: goalInfo,
-                  goals_updated_at: new Date().toISOString()
-                })
-                .eq('id', user.id);
+              // Check if this is an anonymous user
+              const isAnonymousUser = user.id?.startsWith('anon_');
+              
+              // Save goals to profile (for backward compatibility) - skip for anonymous users
+              if (!isAnonymousUser) {
+                await supabase
+                  .from('profiles')
+                  .update({
+                    selected_goals: goalInfo,
+                    goals_updated_at: new Date().toISOString()
+                  })
+                  .eq('id', user.id);
+              }
               
               // Save goals to user_goals table for the app to use
               const goalInserts = data.selectedGoals.map((goal: any) => ({
@@ -140,6 +151,15 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
               // NEW: Create Goal nodes in graph model
               const goalNodePromises = data.selectedGoals.map(async (goal: any) => {
                 try {
+                  // Check if this is an anonymous user
+                  const isAnonymousUser = user.id?.startsWith('anon_');
+                  
+                  // Skip creating goal nodes for anonymous users
+                  if (isAnonymousUser) {
+                    console.log('Skipping goal node creation for anonymous user');
+                    return null;
+                  }
+                  
                   // Create goal node using the database function
                   const { data: goalNode, error: goalNodeError } = await supabase
                     .rpc('create_goal_node', {
@@ -164,21 +184,23 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
                     return null;
                   }
                   
-                  // Track initial confidence as emotion
-                  const confidence = goal.confidence || 0.8;
-                  const emotionType = confidence >= 0.7 ? 'confident' : confidence >= 0.4 ? 'motivated' : 'uncertain';
-                  const emotionIntensity = confidence >= 0.7 ? confidence : confidence >= 0.4 ? 0.6 : 0.4;
-                  
-                  const { error: emotionError } = await supabase
-                    .rpc('track_emotion', {
-                      p_user_id: user.id,
-                      p_emotion: emotionType,
-                      p_intensity: emotionIntensity,
-                      p_context: `Initial confidence for goal: ${goal.title || goal}`
-                    });
-                  
-                  if (emotionError) {
-                    console.error('Error tracking emotion:', emotionError);
+                  // Track initial confidence as emotion (only for authenticated users)
+                  if (!isAnonymousUser) {
+                    const confidence = goal.confidence || 0.8;
+                    const emotionType = confidence >= 0.7 ? 'confident' : confidence >= 0.4 ? 'motivated' : 'uncertain';
+                    const emotionIntensity = confidence >= 0.7 ? confidence : confidence >= 0.4 ? 0.6 : 0.4;
+                    
+                    const { error: emotionError } = await supabase
+                      .rpc('track_emotion', {
+                        p_user_id: user.id,
+                        p_emotion: emotionType,
+                        p_intensity: emotionIntensity,
+                        p_context: `Initial confidence for goal: ${goal.title || goal}`
+                      });
+                    
+                    if (emotionError) {
+                      console.error('Error tracking emotion:', emotionError);
+                    }
                   }
                   
                   return goalNode;
@@ -210,14 +232,19 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
           };
           setOnboardingData(withCoachingData);
           
-          // Save coaching preferences to profile (for backward compatibility)
-          await supabase
-            .from('profiles')
-            .update({
-              coaching_preferences: data.coachingPreferences,
-              onboarding_method: 'voice'
-            })
-            .eq('id', user.id);
+          // Check if this is an anonymous user
+          const isAnonymousUser = user.id?.startsWith('anon_');
+          
+          // Save coaching preferences to profile (for backward compatibility) - skip for anonymous users
+          if (!isAnonymousUser) {
+            await supabase
+              .from('profiles')
+              .update({
+                coaching_preferences: data.coachingPreferences,
+                onboarding_method: 'voice'
+              })
+              .eq('id', user.id);
+          }
           
           // NEW: Track emotions based on coaching preferences
           // Analyze preferences to determine initial emotional state
@@ -251,23 +278,25 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
               emotionIntensity = 0.7;
             }
             
-            // Track the initial emotional state
-            const { error: emotionError } = await supabase
-              .rpc('track_emotion', {
-                p_user_id: user.id,
-                p_emotion: emotionType,
-                p_intensity: emotionIntensity,
-                p_context: `Initial emotional state based on coaching preferences: Energy=${energyLevel}, Structure=${structureLevel}`
-              });
-            
-            if (emotionError) {
-              console.error('Error tracking coaching preference emotion:', emotionError);
-            } else {
-              console.log(`Tracked initial emotion: ${emotionType} (${emotionIntensity})`);
+            // Track the initial emotional state (only for authenticated users)
+            if (!isAnonymousUser) {
+              const { error: emotionError } = await supabase
+                .rpc('track_emotion', {
+                  p_user_id: user.id,
+                  p_emotion: emotionType,
+                  p_intensity: emotionIntensity,
+                  p_context: `Initial emotional state based on coaching preferences: Energy=${energyLevel}, Structure=${structureLevel}`
+                });
+              
+              if (emotionError) {
+                console.error('Error tracking coaching preference emotion:', emotionError);
+              } else {
+                console.log(`Tracked initial emotion: ${emotionType} (${emotionIntensity})`);
+              }
             }
             
             // Also track if user has specific concerns
-            if (prefs.Information?.level === 'high') {
+            if (prefs.Information?.level === 'high' && !isAnonymousUser) {
               // User wants lots of information - might indicate uncertainty
               await supabase
                 .rpc('track_emotion', {
@@ -294,25 +323,30 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
           };
           setOnboardingData(finalData);
           
-          // Mark onboarding as completed
-          await supabase
-            .from('profiles')
-            .update({
-              onboarding_completed_at: new Date().toISOString()
-            })
-            .eq('id', user.id);
+          // Check if this is an anonymous user
+          const isAnonymousUser = user.id?.startsWith('anon_');
           
-          // Create agent matching session record
-          await supabase
-            .from('agent_matching_sessions')
-            .insert({
-              user_id: user.id,
-              user_goals: finalData.selectedGoals,
-              coaching_preferences: finalData.coachingPreferences || {},
-              matched_agents: data.matchedAgents || [],
-              selected_agent_id: data.selectedAgent?.uuid,
-              matching_algorithm_version: '2.0'
-            });
+          // Mark onboarding as completed (skip for anonymous users)
+          if (!isAnonymousUser) {
+            await supabase
+              .from('profiles')
+              .update({
+                onboarding_completed_at: new Date().toISOString()
+              })
+              .eq('id', user.id);
+            
+            // Create agent matching session record
+            await supabase
+              .from('agent_matching_sessions')
+              .insert({
+                user_id: user.id,
+                user_goals: finalData.selectedGoals,
+                coaching_preferences: finalData.coachingPreferences || {},
+                matched_agents: data.matchedAgents || [],
+                selected_agent_id: data.selectedAgent?.uuid,
+                matching_algorithm_version: '2.0'
+              });
+          }
           
           // Redirect to agent conversation
           router.push('/agents');

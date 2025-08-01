@@ -8,7 +8,7 @@ import { useRealtimeGoalDetection } from '@/hooks/useRealtimeGoalDetection'
 import { useMicrophoneAccess } from '@/hooks/useMicrophoneAccess'
 import { ConversationWaveforms, WaveformGlow } from '@/components/ui/waveform-animation'
 import { useUser } from '@/contexts/UserContext'
-import { goalService, PREDEFINED_GOALS, GOAL_CATEGORY_ICONS } from '@/lib/goals'
+import { goalService, PREDEFINED_GOALS } from '@/lib/goals'
 import { createClient } from '@/utils/supabase/client'
 import { useElevenLabsConversation, generateCallId, formatMetadata } from '@/hooks/useElevenLabsConversation'
 import { MicrophoneIcon, NoSymbolIcon, CheckIcon, XMarkIcon, ChevronDownIcon, ChevronUpIcon, SpeakerWaveIcon, SpeakerXMarkIcon, ViewfinderCircleIcon, SparklesIcon, UsersIcon, HeartIcon, BriefcaseIcon, CurrencyDollarIcon, PaintBrushIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
@@ -335,11 +335,14 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
         // Save agent's speech to conversation history
         if (effectiveUserId) {
           const { agentName } = getVoiceConfig()
+          // Determine if this is an anonymous user
+          const isAnonymousUser = effectiveUserId.startsWith('anon_')
+          
           supabase
             .from('voice_chat_events')
             .insert({
-              user_id: effectiveUserId,
-              anonymous_id: anonymousId,
+              user_id: isAnonymousUser ? null : effectiveUserId,
+              anonymous_id: isAnonymousUser ? effectiveUserId : null,
               conversation_id: conversationSessionId.current,
               event_type: 'agent_speech',
               event_data: {
@@ -675,16 +678,16 @@ export default function TypeformGoalSelection({ onComplete, onSkip, userPreferen
   
   const getIconForCategory = (category: string) => {
     const iconMap: Record<string, any> = {
-      'Personal Growth': Target,
-      'Professional': Briefcase,
-      'Health & Wellness': Heart,
-      'Relationships': Users,
-      'Financial': DollarSign,
-      'Creative': Palette,
-      'Spiritual': Sparkles,
-      'Education': GraduationCap
+      'Personal Growth': ViewfinderCircleIcon,
+      'Professional': BriefcaseIcon,
+      'Health & Wellness': HeartIcon,
+      'Relationships': UsersIcon,
+      'Financial': CurrencyDollarIcon,
+      'Creative': PaintBrushIcon,
+      'Spiritual': SparklesIcon,
+      'Education': AcademicCapIcon
     }
-    return iconMap[category] || Target
+    return iconMap[category] || ViewfinderCircleIcon
   }
 
   const completeSelection = () => {

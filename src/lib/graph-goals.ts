@@ -42,8 +42,8 @@ export class GraphGoalService {
 
   async getUserGoalsWithProgress(userId: string): Promise<GraphGoal[]> {
     // Return empty array for anonymous users or if no userId
-    if (!userId) {
-      console.log('No userId provided to getUserGoalsWithProgress, returning empty goals')
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Anonymous user or no userId provided to getUserGoalsWithProgress, returning empty goals')
       return []
     }
     
@@ -68,6 +68,12 @@ export class GraphGoalService {
     category: string,
     properties: Record<string, any> = {}
   ): Promise<string | null> {
+    // Don't create nodes for anonymous users
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Cannot create goal node for anonymous user')
+      return null
+    }
+
     const { data, error } = await this.supabase
       .rpc('create_goal_node', {
         p_user_id: userId,
@@ -90,6 +96,12 @@ export class GraphGoalService {
     level: 'beginner' | 'intermediate' | 'advanced' | 'expert' = 'beginner',
     transferableFrom: string[] = []
   ): Promise<string | null> {
+    // Don't create nodes for anonymous users
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Cannot create skill node for anonymous user')
+      return null
+    }
+
     const { data, error } = await this.supabase
       .rpc('create_skill_node', {
         p_user_id: userId,
@@ -112,6 +124,12 @@ export class GraphGoalService {
     intensity: number = 0.5,
     context?: string
   ): Promise<string | null> {
+    // Don't track emotions for anonymous users
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Cannot track emotion for anonymous user')
+      return null
+    }
+
     const { data, error } = await this.supabase
       .rpc('track_emotion', {
         p_user_id: userId,
@@ -135,6 +153,12 @@ export class GraphGoalService {
     summary: string,
     properties: Record<string, any> = {}
   ): Promise<string | null> {
+    // Don't create sessions for anonymous users
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Cannot create session node for anonymous user')
+      return null
+    }
+
     const { data, error } = await this.supabase
       .rpc('create_session_node', {
         p_user_id: userId,
@@ -154,8 +178,8 @@ export class GraphGoalService {
 
   async getRecentSessions(userId: string, limit: number = 5): Promise<GraphNode[]> {
     // Return empty array for anonymous users or if no userId
-    if (!userId) {
-      console.log('No userId provided to getRecentSessions, returning empty sessions')
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Anonymous user or no userId provided to getRecentSessions, returning empty sessions')
       return []
     }
 
@@ -180,8 +204,8 @@ export class GraphGoalService {
 
   async getEmotionalJourney(userId: string, days: number = 30): Promise<GraphNode[]> {
     // Return empty array for anonymous users or if no userId
-    if (!userId) {
-      console.log('No userId provided, returning empty emotional journey')
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Anonymous user or no userId provided, returning empty emotional journey')
       return []
     }
 
@@ -206,6 +230,12 @@ export class GraphGoalService {
   }
 
   async getUserSkills(userId: string): Promise<any[]> {
+    // Return empty array for anonymous users
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Anonymous user or no userId provided, returning empty skills')
+      return []
+    }
+
     const { data, error } = await this.supabase
       .rpc('get_user_skills_graph', { p_user_id: userId })
 
@@ -218,6 +248,12 @@ export class GraphGoalService {
   }
 
   async getGoalAccomplishments(userId: string, goalId: string): Promise<GraphNode[]> {
+    // Return empty array for anonymous users
+    if (!userId || userId.startsWith('anon_')) {
+      console.log('Anonymous user or no userId provided, returning empty accomplishments')
+      return []
+    }
+
     // First, get accomplishment nodes for this user
     const { data: accomplishments, error: accomplishmentsError } = await this.supabase
       .from('graph_nodes')

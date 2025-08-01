@@ -34,7 +34,7 @@ export function GoalCategoriesDisplay({ selectedGoals, onGoalSelect }: GoalCateg
       id: 'personal_growth',
       title: 'Personal Growth',
       description: 'Develop yourself and build confidence',
-      icon: Target,
+      icon: ViewfinderCircleIcon,
       color: 'text-blue-600',
       goals: [
         {

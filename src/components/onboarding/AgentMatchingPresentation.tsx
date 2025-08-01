@@ -123,7 +123,8 @@ export function AgentMatchingPresentation({
         // Personality compatibility
         if (agentPersonality) {
           score += 20; // Base score for having personality info
-          reasoning += `${agentPersonality.split('.')[0]}. `;
+          const personalityFirstSentence = agentPersonality.split('.')[0] || agentPersonality;
+          reasoning += `${personalityFirstSentence}. `;
         }
 
         // Experience and rating
@@ -298,7 +299,7 @@ export function AgentMatchingPresentation({
                   <Avatar className="w-16 h-16">
                     <AvatarImage src={agent.Image} alt={agent.Name} />
                     <AvatarFallback className="text-lg font-semibold">
-                      {(agent.Name || '').split(' ').map((n: string) => n[0]).join('')}
+                      {(agent.Name || 'A').split(' ').filter(n => n).map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   
@@ -345,11 +346,16 @@ export function AgentMatchingPresentation({
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-2">Key Features:</h4>
                   <div className="flex flex-wrap gap-2">
-                    {(agent.JSONB?.key_features || agent['Key Features']?.split(',') || []).map((feature: string, index: number) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {feature.trim()}
-                      </Badge>
-                    ))}
+                    {(() => {
+                      const features = agent.JSONB?.key_features || 
+                                     (agent['Key Features'] ? agent['Key Features'].split(',') : []) || 
+                                     [];
+                      return features.map((feature: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {typeof feature === 'string' ? feature.trim() : String(feature)}
+                        </Badge>
+                      ));
+                    })()}
                   </div>
                 </div>
                 
@@ -408,13 +414,13 @@ export function AgentMatchingPresentation({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Avatar className="w-10 h-10">
-                <AvatarImage src={selectedAgent.avatar_url} alt={selectedAgent.name} />
+                <AvatarImage src={selectedAgent.Image || selectedAgent.avatar_url} alt={selectedAgent.Name || selectedAgent.name} />
                 <AvatarFallback>
-                  {selectedAgent.name.split(' ').map(n => n[0]).join('')}
+                  {((selectedAgent.Name || selectedAgent.name || 'A').split(' ').filter(n => n).map(n => n[0]).join('')) || 'A'}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-gray-900">{selectedAgent.name}</p>
+                <p className="font-medium text-gray-900">{selectedAgent.Name || selectedAgent.name}</p>
                 <p className="text-sm text-gray-600">Selected as your coach</p>
               </div>
             </div>
@@ -432,7 +438,7 @@ export function AgentMatchingPresentation({
                 </>
               ) : (
                 <>
-                  Start Coaching with {selectedAgent.name}
+                  Start Coaching with {selectedAgent.Name || selectedAgent.name}
                 </>
               )}
             </Button>

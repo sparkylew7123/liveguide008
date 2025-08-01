@@ -20,16 +20,16 @@ export const GOAL_CATEGORY_COLORS: Record<string, string> = {
   'Education': '#14B8A6', // teal
 }
 
-// Icon mapping for goal categories
+// Icon mapping for goal categories (icon names as strings)
 export const GOAL_CATEGORY_ICONS: Record<string, string> = {
-  'Personal Growth': 'Target',
-  'Professional': 'Briefcase',
-  'Health & Wellness': 'Heart',
-  'Relationships': 'Users',
-  'Financial': 'DollarSign',
-  'Creative': 'Palette',
-  'Spiritual': 'Sparkles',
-  'Education': 'GraduationCap',
+  'Personal Growth': 'viewfinder-circle',
+  'Professional': 'briefcase',
+  'Health & Wellness': 'heart',
+  'Relationships': 'users',
+  'Financial': 'currency-dollar',
+  'Creative': 'paint-brush',
+  'Spiritual': 'sparkles',
+  'Education': 'academic-cap',
 }
 
 // Predefined goals for each category (as fallback)

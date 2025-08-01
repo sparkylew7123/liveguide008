@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useRealtimeGoalDetection } from '@/hooks/useRealtimeGoalDetection'
-import { goalService, GOAL_CATEGORY_COLORS, GOAL_CATEGORY_ICONS } from '@/lib/goals'
+import { goalService, GOAL_CATEGORY_COLORS } from '@/lib/goals'
 import { cn } from '@/lib/utils'
 import { ViewfinderCircleIcon, BriefcaseIcon, HeartIcon, UsersIcon, SparklesIcon, CheckIcon, SpeakerWaveIcon, ChevronRightIcon, BoltIcon } from '@heroicons/react/24/outline'
 
