@@ -10,7 +10,7 @@ import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
 // Register layout extensions
-if (typeof cytoscape !== 'undefined') {
+if (typeof window !== 'undefined' && typeof cytoscape !== 'undefined') {
   cytoscape.use(cola);
   cytoscape.use(fcose);
 }
