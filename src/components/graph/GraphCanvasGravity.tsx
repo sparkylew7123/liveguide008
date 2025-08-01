@@ -69,17 +69,17 @@ export default function GraphCanvasGravity({
       
       // Place goals at center
       nodesByType.goal.forEach((nodeData: any, index: number) => {
-        const angle = (index / nodesByType.goal.length) * 2 * Math.PI;
-        const distance = index === 0 ? 0 : 30; // First goal at exact center, others slightly offset
+        const angle = (index / Math.max(nodesByType.goal.length, 1)) * 2 * Math.PI;
+        const distance = nodesByType.goal.length > 1 ? 50 : 0; // If multiple goals, space them out
         enhancedNodes.push({
           group: 'nodes',
           data: {
             ...nodeData,
-            importance: calculateNodeImportance(nodeData.id)
+            importance: calculateNodeImportance(nodeData.id) || 60 // Default size if no edges
           },
           position: {
-            x: centerX + distance * Math.cos(angle),
-            y: centerY + distance * Math.sin(angle)
+            x: centerX + distance * Math.cos(angle + Math.PI/4), // Offset angle for better spacing
+            y: centerY + distance * Math.sin(angle + Math.PI/4)
           }
         });
       });
@@ -236,6 +236,9 @@ export default function GraphCanvasGravity({
       // Center and fit the graph
       cy.fit(50);
       cy.center();
+      
+      // Debug: Log what we have
+      console.log('Graph initialized with', cy.nodes().length, 'nodes and', cy.edges().length, 'edges');
 
       // Add subtle floating animation
       let animationFrame: number;
@@ -247,23 +250,23 @@ export default function GraphCanvasGravity({
         nodeData.set(node.id(), { 
           x: pos.x, 
           y: pos.y,
-          floatSpeed: 0.3 + Math.random() * 0.3,
+          floatSpeed: 0.2 + Math.random() * 0.2, // Slower speed
           floatPhase: Math.random() * Math.PI * 2,
-          floatAmount: 2 + (node.data('importance') / 30)
+          floatAmount: 5 + (node.data('importance') / 20) // More visible movement (5-10 pixels)
         });
       });
       
       // Floating animation
       const animateFloat = () => {
-        const time = Date.now() * 0.00002; // Very slow
+        const time = Date.now() * 0.0001; // Slightly faster than before but still subtle
         
         cy.nodes().forEach((node: any) => {
           if (!node.grabbed() && nodeData.has(node.id())) {
             const data = nodeData.get(node.id());
             
             node.position({
-              x: data.x + Math.sin(time * data.floatSpeed + data.floatPhase) * data.floatAmount * 0.3,
-              y: data.y + Math.cos(time * data.floatSpeed * 0.8 + data.floatPhase) * data.floatAmount
+              x: data.x + Math.sin(time * data.floatSpeed + data.floatPhase) * data.floatAmount,
+              y: data.y + Math.cos(time * data.floatSpeed * 0.7 + data.floatPhase) * data.floatAmount
             });
           }
         });
