@@ -1,6 +1,6 @@
 {
   "customContentReload": true,
-  "configPath": "stackbit.config.ts",
+  "configPath": "stackbit.config.js",
   "telemetry": {
     "disabled": false
   }
