@@ -76,6 +76,9 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
     try {
       const supabase = createClient();
       
+      // Check if this is an anonymous user (declare once for the entire function)
+      const isAnonymousUser = user.id?.startsWith('anon_');
+      
       // This function now integrates with both the traditional tables and the new graph model:
       // 1. goal_discovery: Creates Goal nodes and tracks initial confidence as Emotion nodes
       // 2. coaching_style: Tracks emotional state based on preferences (confident, motivated, anxious, uncertain)
@@ -114,9 +117,6 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
                 confidence: goal.confidence || 0.8
               }));
               
-              // Check if this is an anonymous user
-              const isAnonymousUser = user.id?.startsWith('anon_');
-              
               // Save goals to profile (for backward compatibility) - skip for anonymous users
               if (!isAnonymousUser) {
                 await supabase
@@ -151,9 +151,6 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
               // NEW: Create Goal nodes in graph model
               const goalNodePromises = data.selectedGoals.map(async (goal: any) => {
                 try {
-                  // Check if this is an anonymous user
-                  const isAnonymousUser = user.id?.startsWith('anon_');
-                  
                   // Skip creating goal nodes for anonymous users
                   if (isAnonymousUser) {
                     console.log('Skipping goal node creation for anonymous user');
@@ -231,9 +228,6 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
             coachingPreferences: data.coachingPreferences
           };
           setOnboardingData(withCoachingData);
-          
-          // Check if this is an anonymous user
-          const isAnonymousUser = user.id?.startsWith('anon_');
           
           // Save coaching preferences to profile (for backward compatibility) - skip for anonymous users
           if (!isAnonymousUser) {
@@ -322,9 +316,6 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
             selectedAgent: data.selectedAgent
           };
           setOnboardingData(finalData);
-          
-          // Check if this is an anonymous user
-          const isAnonymousUser = user.id?.startsWith('anon_');
           
           // Mark onboarding as completed (skip for anonymous users)
           if (!isAnonymousUser) {
