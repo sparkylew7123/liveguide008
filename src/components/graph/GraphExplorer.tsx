@@ -20,7 +20,7 @@ export default function GraphExplorer({ userId, className }: GraphExplorerProps)
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [nodeTypeFilters, setNodeTypeFilters] = useState<string[]>([
-    'goal', 'skill', 'emotion', 'session', 'accomplishment', 'insight'
+    'goal', 'skill', 'emotion', 'session', 'accomplishment'
   ]);
   
   const cyRef = useRef<Core | null>(null);

@@ -41,8 +41,7 @@ const NODE_TYPES = [
   { value: 'skill', label: 'Skills', icon: '🎓' },
   { value: 'emotion', label: 'Emotions', icon: '💭' },
   { value: 'session', label: 'Sessions', icon: '⏱️' },
-  { value: 'accomplishment', label: 'Accomplishments', icon: '🏆' },
-  { value: 'insight', label: 'Insights', icon: '💡' }
+  { value: 'accomplishment', label: 'Accomplishments', icon: '🏆' }
 ];
 
 const LAYOUT_OPTIONS = [
