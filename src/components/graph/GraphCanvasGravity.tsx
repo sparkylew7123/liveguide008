@@ -250,9 +250,9 @@ export default function GraphCanvasGravity({
         nodeData.set(node.id(), { 
           x: pos.x, 
           y: pos.y,
-          floatSpeed: 0.2 + Math.random() * 0.2, // Slower speed
+          floatSpeed: 0.5 + Math.random() * 0.5, // Variable speed per node
           floatPhase: Math.random() * Math.PI * 2,
-          floatAmount: 5 + (node.data('importance') / 20) // More visible movement (5-10 pixels)
+          floatAmount: 8 + (node.data('importance') / 15) // More visible movement (8-15 pixels)
         });
       });
       
@@ -276,6 +276,7 @@ export default function GraphCanvasGravity({
       
       // Start animation
       animateFloat();
+      console.log('Floating animation started for', cy.nodes().length, 'nodes');
 
       setCyInstance(cy);
 

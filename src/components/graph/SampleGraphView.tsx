@@ -159,6 +159,25 @@ const SAMPLE_EDGES = [
       label: 'develops'
     }
   },
+  // Additional connections for richer graph
+  {
+    data: {
+      id: 'edge-11',
+      source: 'goal-2',
+      target: 'skill-2',
+      type: 'works_on',
+      label: 'requires'
+    }
+  },
+  {
+    data: {
+      id: 'edge-12',
+      source: 'skill-1',
+      target: 'skill-2',
+      type: 'derived_from',
+      label: 'complements'
+    }
+  },
   // Emotions connected to sessions
   {
     data: {
