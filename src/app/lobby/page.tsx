@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { ViewfinderCircleIcon, MicrophoneIcon, CalendarIcon, TrendingUpIcon, UsersIcon, HeartIcon, BriefcaseIcon, SparklesIcon, CheckCircleIcon, ClockIcon, ArrowRightIcon, TrophyIcon, ChartBarIcon } from '@heroicons/react/24/outline'
+import { ViewfinderCircleIcon, MicrophoneIcon, CalendarIcon, ArrowTrendingUpIcon, UsersIcon, HeartIcon, BriefcaseIcon, SparklesIcon, CheckCircleIcon, ClockIcon, ArrowRightIcon, TrophyIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -373,7 +373,7 @@ export default function LobbyPage() {
                       )}
                       {session.confidence_level && (
                         <div className="flex items-center gap-2 text-sm">
-                          <TrendingUpIcon  className="h-4 w-4 text-green-400" />
+                          <ArrowTrendingUpIcon  className="h-4 w-4 text-green-400" />
                           <span className="text-gray-300">Confidence: {(session.confidence_level * 100).toFixed(0)}%</span>
                         </div>
                       )}
@@ -397,7 +397,7 @@ export default function LobbyPage() {
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <TrendingUpIcon />
+                  <ArrowTrendingUpIcon />
                   Confidence Trend
                 </CardTitle>
                 <CardDescription className="text-gray-300">
