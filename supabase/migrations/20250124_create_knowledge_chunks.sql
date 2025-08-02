@@ -60,15 +60,6 @@ BEGIN
 END;
 $$;
 
--- Create or replace the handle_updated_at function
-CREATE OR REPLACE FUNCTION public.handle_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = timezone('utc'::text, now());
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
 -- Update trigger for updated_at
 CREATE TRIGGER update_knowledge_chunks_updated_at
     BEFORE UPDATE ON public.knowledge_chunks

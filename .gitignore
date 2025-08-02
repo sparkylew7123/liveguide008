@@ -51,3 +51,4 @@ next-env.d.ts
 # Generated files
 repomix-output.txt
 stackbit.config.js
+/.env.development

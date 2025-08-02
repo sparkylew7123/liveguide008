@@ -8,10 +8,13 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:branch": "cp .env.development .env.local && next dev",
     "build": "npm run build:stackbit && next build",
     "build:stackbit": "tsc stackbit.config.ts --outDir . --module commonjs --target es2015 --skipLibCheck --allowJs --esModuleInterop",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "use:dev": "cp .env.development .env.local && echo 'Switched to development branch'",
+    "use:prod": "cp .env.production .env.local && echo 'Switched to production database'"
   },
   "dependencies": {
     "@elevenlabs/client": "^0.3.0",
