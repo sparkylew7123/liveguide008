@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/call-scheduler.css";
 
 /* Pulse animation for buttons */
 @keyframes buttonPulse {
@@ -359,4 +360,94 @@ html, body {
   100% {
     transform: translate(0%, 0%) scale(1);
   }
+}
+
+/* Calendar Component Styles */
+.rdp-button_day {
+  @apply h-10 w-10 p-0 font-medium rounded-lg transition-colors cursor-pointer;
+  @apply text-gray-700 dark:text-white;
+  @apply hover:bg-gray-200 dark:hover:bg-slate-600 hover:text-gray-900 dark:hover:text-white;
+}
+
+.rdp-button_day[data-selected] {
+  @apply bg-blue-500 text-white hover:bg-blue-600 font-bold;
+}
+
+.rdp-button_day[data-today] {
+  @apply bg-gray-300 dark:bg-slate-600 text-gray-900 dark:text-white font-bold ring-2 ring-blue-500 dark:ring-blue-400;
+}
+
+.rdp-button_day[data-disabled] {
+  @apply text-gray-300 dark:text-gray-600 opacity-50 dark:opacity-20 cursor-not-allowed hover:bg-transparent;
+}
+
+.rdp-button_day[data-outside] {
+  @apply text-gray-400 dark:text-gray-500 opacity-40;
+}
+
+/* Light theme calendar styles */
+.light-theme .rdp-button_day {
+  @apply text-slate-700 hover:bg-slate-200 hover:text-slate-900;
+}
+
+.light-theme .rdp-button_day[data-selected] {
+  @apply bg-blue-600 text-white hover:bg-blue-700;
+}
+
+.light-theme .rdp-button_day[data-today] {
+  @apply bg-slate-300 text-slate-900 ring-blue-600;
+}
+
+.light-theme .rdp-button_day[data-disabled] {
+  @apply text-slate-300 opacity-50 hover:bg-transparent;
+}
+
+.light-theme .rdp-nav button {
+  @apply bg-slate-200 hover:bg-slate-300 text-slate-700 hover:text-slate-900;
+}
+
+/* Scheduler Calendar Specific Styles */
+.scheduler-calendar button[name="day"]:not([disabled]) {
+  @apply cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-white;
+}
+
+.scheduler-calendar button[name="day"][data-selected="true"] {
+  @apply !bg-blue-500 !text-white hover:!bg-blue-600 !font-bold;
+}
+
+.scheduler-calendar button[name="day"][data-today="true"] {
+  @apply bg-gray-300 dark:bg-slate-600 text-gray-900 dark:text-white font-bold ring-2 ring-blue-500 dark:ring-blue-400;
+}
+
+.scheduler-calendar button[name="day"][disabled] {
+  @apply text-gray-300 dark:text-gray-600 opacity-50 dark:opacity-20 cursor-not-allowed hover:bg-transparent;
+}
+
+/* Light theme scheduler calendar */
+.light-theme .scheduler-calendar button[name="day"]:not([disabled]) {
+  @apply hover:bg-slate-200 text-slate-700 hover:text-slate-900;
+}
+
+.light-theme .scheduler-calendar button[name="day"][data-selected="true"] {
+  @apply !bg-blue-600 !text-white hover:!bg-blue-700;
+}
+
+.light-theme .scheduler-calendar button[name="day"][data-today="true"] {
+  @apply bg-slate-300 text-slate-900 ring-blue-600;
+}
+
+/* DraggableNodeDetails text contrast fixes */
+.light-theme .bg-white\/70,
+.light-theme .bg-white\/90 {
+  color: #1e293b !important; /* Ensure dark text on light backgrounds */
+}
+
+/* Ensure all labels and headings have proper contrast */
+.light-theme h1, .light-theme h2, .light-theme h3, 
+.light-theme h4, .light-theme h5, .light-theme h6 {
+  color: #1e293b !important;
+}
+
+.light-theme label {
+  color: #475569 !important;
 }

@@ -27,7 +27,7 @@ interface AgentCardProps {
   isSelected?: boolean;
   enableAnimations?: boolean;
   className?: string;
-  theme?: 'rose-quartz' | 'lavender' | 'peachy' | 'mauve';
+  theme?: 'rose-quartz' | 'lavender' | 'peachy' | 'mauve' | 'standard';
 }
 
 // Theme-specific styling configurations
@@ -87,6 +87,20 @@ const themeStyles = {
     shimmer: "from-transparent via-purple-300/20 to-transparent",
     introButton: "bg-rose-900/80 text-rose-100",
     videoBadge: "bg-purple-100/80 text-purple-800"
+  },
+  'standard': {
+    cardBorder: "border-slate-600",
+    cardHoverBorder: "hover:border-blue-500",
+    glassOverlay: "bg-slate-800/70",
+    statusAvailable: "border-green-500 text-green-400 bg-green-500/20",
+    statusUnavailable: "border-gray-500 text-gray-400 bg-gray-500/20",
+    ratingBadge: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+    featureBadge: "bg-slate-700/70 text-slate-200 border-slate-500",
+    primaryButton: "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg",
+    selectedRing: "ring-blue-400",
+    shimmer: "from-transparent via-blue-400/20 to-transparent",
+    introButton: "bg-purple-600/30 text-purple-300 border-purple-500/50",
+    videoBadge: "bg-purple-600/30 text-purple-300"
   }
 };
 
@@ -96,7 +110,7 @@ function AgentCard({
   isSelected = false,
   enableAnimations = true,
   className,
-  theme = 'rose-quartz'
+  theme = 'standard'
 }: AgentCardProps) {
   const [rotation, setRotation] = React.useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = React.useState(false);
@@ -198,8 +212,8 @@ function AgentCard({
         transformStyle: "preserve-3d"
       } : {}}
       className={cn(
-        "relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-sm shadow-lg transition-all duration-300",
-        "hover:shadow-xl group h-[720px] flex flex-col",
+        "relative overflow-hidden rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-lg transition-all duration-300",
+        "hover:shadow-xl dark:hover:shadow-2xl group h-[720px] flex flex-col",
         styles.cardBorder,
         styles.cardHoverBorder,
         isSelected && `ring-2 ${styles.selectedRing} ring-offset-2 ring-offset-background`,
@@ -353,22 +367,22 @@ function AgentCard({
         <div className="flex-1 p-6 flex flex-col">
           {/* Name and specialty */}
           <div className="space-y-2 mb-4">
-            <h3 className="text-xl font-bold text-foreground leading-tight">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
               {agent.Name}
             </h3>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CpuChipIcon  className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <CpuChipIcon  className="w-4 h-4 text-blue-500 dark:text-blue-400" />
               <span>{agent.Speciality}</span>
             </div>
           </div>
 
           {/* Personality */}
           <div className="space-y-2 mb-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <HeartIcon  className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+              <HeartIcon  className="w-4 h-4 text-rose-500 dark:text-rose-400" />
               <span>Personality</span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
               {agent.Personality}
             </p>
           </div>
@@ -376,8 +390,8 @@ function AgentCard({
           {/* Key features */}
           {keyFeatures.length > 0 && (
             <div className="space-y-2 mb-4">
-              <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                <SparklesIcon  className="w-4 h-4" />
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                <SparklesIcon  className="w-4 h-4 text-amber-500 dark:text-amber-400" />
                 Key Features
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -439,7 +453,7 @@ interface AgentSelectionInterfaceProps {
   selectedAgentId?: string;
   enableAnimations?: boolean;
   className?: string;
-  theme?: 'rose-quartz' | 'lavender' | 'peachy' | 'mauve';
+  theme?: 'rose-quartz' | 'lavender' | 'peachy' | 'mauve' | 'standard';
 }
 
 export function AgentSelectionInterfaceFeminine({
@@ -447,7 +461,7 @@ export function AgentSelectionInterfaceFeminine({
   selectedAgentId,
   enableAnimations = true,
   className,
-  theme = 'rose-quartz'
+  theme = 'standard'
 }: AgentSelectionInterfaceProps) {
   const [agents, setAgents] = React.useState<AgentPersona[]>([]);
   const [selectedAgent, setSelectedAgent] = React.useState<string | null>(selectedAgentId || null);
@@ -567,14 +581,16 @@ export function AgentSelectionInterfaceFeminine({
     'rose-quartz': 'text-rose-900',
     'lavender': 'text-purple-900',
     'peachy': 'text-orange-900',
-    'mauve': 'text-purple-900'
+    'mauve': 'text-purple-900',
+    'standard': 'text-gray-900 dark:text-white'
   };
 
   const subheaderColors = {
     'rose-quartz': 'text-rose-700',
     'lavender': 'text-purple-700',
     'peachy': 'text-orange-700',
-    'mauve': 'text-purple-700'
+    'mauve': 'text-purple-700',
+    'standard': 'text-gray-600 dark:text-gray-300'
   };
 
   if (isLoading) {
@@ -671,7 +687,8 @@ export function AgentSelectionInterfaceFeminine({
               theme === 'rose-quartz' && "bg-rose-50/50 border-rose-200",
               theme === 'lavender' && "bg-purple-50/50 border-purple-200",
               theme === 'peachy' && "bg-orange-50/50 border-orange-200",
-              theme === 'mauve' && "bg-purple-50/50 border-purple-300"
+              theme === 'mauve' && "bg-purple-50/50 border-purple-300",
+              theme === 'standard' && "bg-blue-500/10 dark:bg-blue-500/20 border-blue-500/30 dark:border-blue-400/50"
             )}
           >
             <div className="flex items-center justify-between">

@@ -85,7 +85,7 @@ export default function NodeDetailsPanel({
   };
 
   return (
-    <Card className={cn("h-full flex flex-col", className)}>
+    <Card className={cn("h-full flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100", className)}>
       <CardHeader className="flex-shrink-0 relative border-b-2 border-gray-100 dark:border-gray-800">
         {/* Drag indicator dots */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-1 opacity-20 pointer-events-none">
@@ -123,7 +123,7 @@ export default function NodeDetailsPanel({
         {isEditing ? (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="node-label">Label</Label>
+              <Label htmlFor="node-label" className="text-gray-700 dark:text-gray-200">Label</Label>
               <Input
                 id="node-label"
                 value={editedNode?.label || ''}
@@ -133,7 +133,7 @@ export default function NodeDetailsPanel({
               />
             </div>
             <div>
-              <Label htmlFor="node-description">Description</Label>
+              <Label htmlFor="node-description" className="text-gray-700 dark:text-gray-200">Description</Label>
               <Textarea
                 id="node-description"
                 value={editedNode?.description || ''}
@@ -147,7 +147,7 @@ export default function NodeDetailsPanel({
         ) : (
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold">{node.label}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{node.label}</h3>
               {node.description && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                   {node.description}
@@ -159,14 +159,14 @@ export default function NodeDetailsPanel({
               <>
                 <Separator />
                 <div>
-                  <h4 className="text-sm font-medium mb-2">Properties</h4>
+                  <h4 className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">Properties</h4>
                   <div className="space-y-2">
                     {Object.entries(node.properties).map(([key, value]) => (
                       <div key={key} className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-gray-400">
                           {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
                         </span>
-                        <span className="font-medium">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
                           {value === null || value === undefined 
                             ? 'Not set' 
                             : typeof value === 'object' 
@@ -183,7 +183,7 @@ export default function NodeDetailsPanel({
             <Separator />
 
             <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-              <div>
+              <div className="text-gray-600 dark:text-gray-400">
                 Created: {node.createdAt || node.created_at 
                   ? new Date(node.createdAt || node.created_at).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -196,7 +196,7 @@ export default function NodeDetailsPanel({
                 }
               </div>
               {(node.updatedAt || node.updated_at) && (
-                <div>
+                <div className="text-gray-600 dark:text-gray-400">
                   Updated: {new Date(node.updatedAt || node.updated_at).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',

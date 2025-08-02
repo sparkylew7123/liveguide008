@@ -28,6 +28,7 @@ export function useMicrophoneAccess() {
   const analyserRef = useRef<AnalyserNode | null>(null)
   const animationFrameRef = useRef<number>()
   const recognitionRef = useRef<any>(null)
+  const isListeningRef = useRef<boolean>(false)
 
   const startListening = useCallback(async () => {
     try {
@@ -93,6 +94,12 @@ export function useMicrophoneAccess() {
         recognition.continuous = true
         recognition.interimResults = true
         recognition.lang = 'en-US'
+        recognition.maxAlternatives = 1
+        
+        // Increase timeout to reduce no-speech errors
+        if ('speechRecognitionTimeout' in recognition) {
+          (recognition as any).speechRecognitionTimeout = 10000 // 10 seconds
+        }
         
         recognition.onstart = () => {
           console.log('🎤 Speech recognition started')
@@ -122,18 +129,50 @@ export function useMicrophoneAccess() {
         }
         
         recognition.onerror = (event: any) => {
-          // Don't log "aborted" errors as they're expected when stopping manually
-          if (event.error !== 'aborted') {
+          // Handle different error types
+          if (event.error === 'aborted') {
+            // Aborted is normal when we stop recognition manually
+            setMicrophoneState(prev => ({
+              ...prev,
+              isRecognizing: false
+            }))
+          } else if (event.error === 'no-speech') {
+            // No speech detected is not really an error, just restart if still listening
+            console.log('🔇 No speech detected, waiting...')
+            if (isListeningRef.current) {
+              // Automatically restart recognition to continue listening
+              setTimeout(() => {
+                if (isListeningRef.current && recognitionRef.current) {
+                  try {
+                    recognitionRef.current.start()
+                  } catch (e) {
+                    // Ignore if already started
+                  }
+                }
+              }, 100)
+            }
+          } else if (event.error === 'audio-capture') {
+            console.error('🎤 Microphone access error')
+            setMicrophoneState(prev => ({
+              ...prev,
+              error: 'Microphone access denied or unavailable',
+              isRecognizing: false,
+              hasPermission: false
+            }))
+          } else if (event.error === 'not-allowed') {
+            console.error('🚫 Microphone permission denied')
+            setMicrophoneState(prev => ({
+              ...prev,
+              error: 'Microphone permission denied',
+              isRecognizing: false,
+              hasPermission: false
+            }))
+          } else {
+            // Log other errors
             console.error('❌ Speech recognition error:', event.error)
             setMicrophoneState(prev => ({
               ...prev,
               error: `Speech recognition error: ${event.error}`,
-              isRecognizing: false
-            }))
-          } else {
-            // Aborted is normal when we stop recognition manually
-            setMicrophoneState(prev => ({
-              ...prev,
               isRecognizing: false
             }))
           }
@@ -165,6 +204,8 @@ export function useMicrophoneAccess() {
         isListening: true,
         error: null
       }))
+      
+      isListeningRef.current = true
 
       // Start audio level monitoring with throttling
       let lastUpdate = 0
@@ -225,6 +266,8 @@ export function useMicrophoneAccess() {
   }, [])
 
   const stopListening = useCallback(() => {
+    isListeningRef.current = false
+    
     // Cancel animation frame
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current)

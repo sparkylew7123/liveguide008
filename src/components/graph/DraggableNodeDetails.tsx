@@ -134,7 +134,7 @@ export default function DraggableNodeDetails({
       ref={panelRef}
       className={cn(
         "absolute z-50 w-96 h-[600px] shadow-xl",
-        "bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm rounded-lg",
+        "bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg",
         isDragging && "cursor-grabbing",
         className
       )}

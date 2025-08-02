@@ -90,14 +90,17 @@ export default function AgentsPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 rose-quartz-theme theme-gradient-bg">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      {/* Spacer for fixed navbar */}
+      <div className="h-16" />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Navigation */}
         <div className="mb-8">
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="flex items-center gap-2 hover:bg-rose-100/50 text-rose-700"
+            className="flex items-center gap-2 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
           >
             <ArrowLeftIcon  className="w-4 h-4" />
             {showVoiceOnboarding ? 'Back to Agent Selection' : 'Back to Home'}
@@ -110,15 +113,14 @@ export default function AgentsPage() {
             <AgentSelectionInterfaceFeminine
               onAgentSelect={handleAgentSelect}
               selectedAgentId={selectedAgentId}
-              theme="rose-quartz"
             />
             
           </div>
         ) : (
           <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2 text-rose-900">Voice Onboarding</h2>
-              <p className="text-rose-700">
+              <h2 className="text-2xl font-bold mb-2 text-white">Voice Onboarding</h2>
+              <p className="text-gray-300">
                 You&apos;re now connected with {selectedAgentName}
               </p>
             </div>
