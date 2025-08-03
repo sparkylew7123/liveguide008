@@ -25,34 +25,3 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Visual Editor configuration
-[context.visual-editor]
-  command = "npm run build"
-  
-# Visual Editor preview settings
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "ALLOWALL"
-    
-# Additional headers for Visual Editor
-[[headers]]
-  for = "/_next/*"
-  [headers.values]
-    X-Frame-Options = "ALLOWALL"
-    
-# Stackbit/Visual Editor configuration
-[build.processing]
-  skip_processing = false
-
-[build.processing.css]
-  minify = false
-
-[build.processing.js]
-  minify = false
-
-[build.processing.html]
-  pretty_urls = true
-
-[build.processing.images]
-  compress = true

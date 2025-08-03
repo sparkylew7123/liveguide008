@@ -5,88 +5,80 @@
    ▲ Next.js 15.3.5
    - Local:        http://localhost:3000
    - Network:      http://192.168.1.30:3000
-   - Environments: .env.local
+   - Environments: .env.local, .env.development, .env
 
  ✓ Starting...
- ✓ Ready in 1068ms
- ✓ Compiled /middleware in 369ms (224 modules)
+ ✓ Ready in 1187ms
+ ✓ Compiled /middleware in 213ms (224 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.1s (1958 modules)
+ GET /plasmic-host 404 in 2305ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 50ms
+ ✓ Compiled /favicon.ico in 303ms (1026 modules)
+ GET /favicon.ico 200 in 356ms
  ○ Compiling / ...
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled / in 2.8s (2018 modules)
- GET / 200 in 3052ms
- GET / 200 in 58ms
- ✓ Compiled /favicon.ico in 193ms (1062 modules)
- GET /favicon.ico 200 in 250ms
- ✓ Compiled /theme-test in 345ms (2028 modules)
+ ✓ Compiled / in 516ms (2033 modules)
  ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- GET /theme-test 200 in 466ms
- GET / 200 in 88ms
- GET / 200 in 69ms
- GET /theme-test 200 in 43ms
- ✓ Compiled in 452ms (2012 modules)
- GET / 200 in 67ms
- GET /theme-test 200 in 66ms
- ✓ Compiled in 300ms (2012 modules)
- GET / 200 in 56ms
- GET /theme-test 200 in 57ms
- GET / 200 in 143ms
- ✓ Compiled /favicon.ico in 92ms (1067 modules)
- GET /favicon.ico 200 in 150ms
- GET / 200 in 136ms
- GET /favicon.ico 200 in 3ms
- GET / 200 in 58ms
- GET /favicon.ico 200 in 3ms
- GET / 200 in 75ms
- GET /favicon.ico 200 in 3ms
- ✓ Compiled in 477ms (2028 modules)
- GET /theme-test 200 in 44ms
- GET / 200 in 44ms
- GET / 200 in 112ms
- GET /favicon.ico 200 in 8ms
- GET / 200 in 56ms
- GET /favicon.ico 200 in 4ms
- GET / 200 in 53ms
- GET /favicon.ico 200 in 4ms
- GET / 200 in 15ms
- GET / 200 in 11ms
- GET / 200 in 17ms
- ✓ Compiled /login in 390ms (2036 modules)
- GET /login 200 in 442ms
- ✓ Compiled in 434ms (2034 modules)
- GET /theme-test 200 in 73ms
- GET / 200 in 72ms
- GET / 200 in 146ms
- ✓ Compiled /favicon.ico in 101ms (1086 modules)
- GET /favicon.ico 200 in 149ms
- GET /favicon.ico 200 in 14ms
- ✓ Compiled in 698ms (2034 modules)
- GET /theme-test 200 in 98ms
- GET / 200 in 97ms
- GET / 200 in 146ms
- ✓ Compiled /favicon.ico in 104ms (1086 modules)
- GET /favicon.ico 200 in 153ms
- GET / 200 in 148ms
- GET /favicon.ico 200 in 5ms
- ✓ Compiled in 449ms (2034 modules)
- GET /theme-test 200 in 70ms
- GET / 200 in 71ms
- GET / 200 in 112ms
- ✓ Compiled /favicon.ico in 91ms (1086 modules)
- GET /favicon.ico 200 in 134ms
- GET / 200 in 115ms
- GET /favicon.ico 200 in 4ms
- ✓ Compiled in 384ms (2050 modules)
- GET /theme-test 200 in 28ms
- GET / 200 in 28ms
- ✓ Compiled in 396ms (2034 modules)
- GET /theme-test 200 in 72ms
- GET / 200 in 73ms
- ✓ Compiled in 411ms (2034 modules)
- GET / 200 in 50ms
- GET /theme-test 200 in 50ms
- ✓ Compiled in 162ms (964 modules)
- GET / 200 in 10ms
- GET /theme-test 200 in 11ms
- GET / 200 in 233ms
- ✓ Compiled /favicon.ico in 154ms (1086 modules)
- GET /favicon.ico 200 in 208ms
+ GET / 200 in 705ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 19ms
+ ✓ Compiled /login in 393ms (2041 modules)
+ GET /login 200 in 462ms
+ GET /login 200 in 106ms
+Middleware auth check: {
+  path: '/api/debug/auth',
+  authenticated: false,
+  error: 'Auth session missing!',
+  cookies: []
+}
+ ✓ Compiled /api/debug/auth in 495ms (2059 modules)
+ GET /api/debug/auth 200 in 561ms
+Middleware auth check: {
+  path: '/api/test-auth',
+  authenticated: false,
+  error: 'Auth session missing!',
+  cookies: []
+}
+ ✓ Compiled /api/test-auth in 180ms (2061 modules)
+ POST /api/test-auth 405 in 206ms
+ ✓ Compiled in 596ms (2036 modules)
+Middleware auth check: {
+  path: '/api/debug/auth',
+  authenticated: false,
+  error: 'Auth session missing!',
+  cookies: []
+}
+ ✓ Compiled /api/debug/auth in 117ms (1108 modules)
+ GET /api/debug/auth 200 in 206ms
+ ✓ Compiled in 402ms (2073 modules)
+ ✓ Compiled in 258ms (965 modules)
+ ✓ Compiled in 181ms (2283 modules)
+ ✓ Compiled /test-oauth in 440ms (2029 modules)
+ GET /test-oauth 200 in 582ms
+ GET /test-oauth 200 in 19ms
+ GET /test-oauth 200 in 33ms
+ ✓ Compiled in 670ms (2043 modules)
+ GET /test-oauth 200 in 141ms
+ GET /?code=2234dcc0-b10b-4e09-878e-9ac278d03255 200 in 39ms
+ ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /lobby ...
+ ✓ Compiled /lobby in 840ms (2066 modules)
+ GET /lobby 200 in 898ms
+ GET /lobby 200 in 7ms
+ GET /lobby 200 in 24ms
+ GET /lobby 200 in 13ms
+ ○ Compiling /progress ...
+ ✓ Compiled /progress in 699ms (2151 modules)
+ GET /progress 200 in 772ms
+ ○ Compiling /schedule ...
+ ✓ Compiled /schedule in 599ms (3005 modules)
+ GET /schedule 200 in 642ms
+ ✓ Compiled in 894ms (3225 modules)
+ GET /schedule 200 in 321ms
+ GET /schedule 200 in 10ms
+ ✓ Compiled in 632ms (1450 modules)
+ GET /schedule 200 in 16ms
+ ✓ Compiled in 249ms (1450 modules)
+ GET /schedule 200 in 11ms
+ ✓ Compiled in 310ms (1450 modules)
+ GET /schedule 200 in 8ms

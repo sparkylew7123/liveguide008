@@ -9,8 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:branch": "cp .env.development .env.local && next dev",
-    "build": "npm run build:stackbit && next build",
-    "build:stackbit": "tsc stackbit.config.ts --outDir . --module commonjs --target es2015 --skipLibCheck --allowJs --esModuleInterop",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "use:dev": "cp .env.development .env.local && echo 'Switched to development branch'",
@@ -54,7 +53,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@stackbit/types": "^2.1.14",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^24.0.13",
     "@types/react": "^18.3.23",

@@ -1,0 +1,79 @@
+{
+  "name": "liveguide-dev",
+  "description": "MCP server for LiveGuide development environment",
+  "version": "0.1.0",
+  "vendor": "LiveGuide",
+  "tools": [
+    {
+      "name": "execute_sql",
+      "description": "Execute raw SQL queries in the database",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "description": "The SQL query to execute",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "list_tables",
+      "description": "List all tables in specified schemas",
+      "parameters": {
+        "schemas": {
+          "type": "array",
+          "description": "List of schemas to include",
+          "default": ["public"]
+        }
+      }
+    },
+    {
+      "name": "apply_migration",
+      "description": "Apply a database migration",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "description": "The name of the migration in snake_case",
+          "required": true
+        },
+        "query": {
+          "type": "string",
+          "description": "The SQL query to apply",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "graph_operation",
+      "description": "Perform graph operations (create/update nodes and edges)",
+      "parameters": {
+        "operation": {
+          "type": "string",
+          "description": "The operation to perform",
+          "enum": ["createNode", "updateNode", "createEdge", "deleteNode", "deleteEdge"],
+          "required": true
+        },
+        "data": {
+          "type": "object",
+          "description": "Operation-specific data",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "search_knowledge",
+      "description": "Search knowledge base using semantic search",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "description": "Search query",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "Maximum results to return",
+          "default": 5
+        }
+      }
+    }
+  ]
+}
