@@ -12,7 +12,7 @@ export async function signUp(email: string, password: string) {
       email,
       password,
       options: { 
-        emailRedirectTo: `${window.location.origin}/verify-email`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/verify-email`,
         data: {
           // Add any additional user metadata here if needed
         }
@@ -48,7 +48,7 @@ export async function signOut() {
 
 export async function resetPassword(email: string) {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/reset-password`,
   });
   return { data, error };
 }
@@ -57,7 +57,7 @@ export async function signInWithProvider(provider: 'google' | 'github') {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
       skipBrowserRedirect: false,
       queryParams: {
         access_type: 'offline',
