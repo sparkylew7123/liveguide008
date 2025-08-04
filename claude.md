@@ -111,6 +111,32 @@
     
     ---
     
+    ## ⚠️ MCP Tool Usage Guidelines
+    
+    ### Database Environment Verification
+    - **ALWAYS VERIFY** which database you're targeting before ANY operations
+    - **Development Database**: LGtempo (dev) - Project ID: `hlwxmfwrksflvcacjafg`
+    - **Production Database**: LGtempo - Project ID: `aesefwyijcsynbbhozhb`
+    - **Rule of thumb**: All development work should target the dev database
+    - **Before any operation**: Confirm with user if unclear which environment to use
+    - **This applies to ALL database interactions**:
+      - MCP tool calls (`mcp__supabase__*`, `mcp__supabase-dev__*`)
+      - CLI commands (`supabase db push`, `psql`, etc.)
+      - SQL scripts and migrations
+      - Bash scripts that connect to databases
+      - Any generated code that includes database URLs or connection strings
+    - **Use dev-specific MCP tools** when available (e.g., `mcp__supabase-dev__*`)
+    - **In scripts**: Always use environment variables like `$DEV_DATABASE_URL` or `$PROD_DATABASE_URL`
+    
+    ### Supabase MCP Tools
+    - **NEVER** use `list_tables`, `list_branches`, or similar operations without filters/pagination
+    - These operations can exceed token limits and cause tool failures
+    - Always use specific filters or pagination parameters when querying large datasets
+    - For table listings, specify schemas: `list_tables(schemas: ["public"])`
+    - For SQL queries, use LIMIT clauses to prevent large result sets
+    
+    ---
+    
     ## 📍Maintainers
     This CLAUDE.md supports all Claude agents in `.claude/agents/` and provides global project memory across sessions.
     

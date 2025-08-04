@@ -45,11 +45,12 @@ const NODE_TYPES = [
 ];
 
 const LAYOUT_OPTIONS = [
+  { value: 'gravity', label: 'Solar System' },
   { value: 'fcose', label: 'Force-Directed' },
-  { value: 'cola', label: 'Cola' },
-  { value: 'circle', label: 'Circle' },
-  { value: 'grid', label: 'Grid' },
-  { value: 'concentric', label: 'Concentric' }
+  { value: 'cola', label: 'Constraint-Based' },
+  { value: 'concentric', label: 'Concentric Circles' },
+  { value: 'circle', label: 'Simple Circle' },
+  { value: 'grid', label: 'Grid Layout' }
 ];
 
 export default function GraphToolbar({
@@ -84,22 +85,23 @@ export default function GraphToolbar({
     <div className={cn(
       "absolute top-4 right-4 z-10",
       "flex flex-col gap-2",
+      "max-w-[calc(100vw-2rem)] md:max-w-none", // Responsive width
       className
     )}>
       {/* Search Bar */}
       {showSearch && (
         <form 
           onSubmit={handleSearch}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex gap-2"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex gap-2 flex-wrap sm:flex-nowrap"
         >
           <Input
             type="text"
             placeholder="Search nodes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-48"
+            className="w-full sm:w-48 min-w-0" // Responsive input width
           />
-          <Button type="submit" size="sm">
+          <Button type="submit" size="sm" className="flex-shrink-0">
             Search
           </Button>
         </form>

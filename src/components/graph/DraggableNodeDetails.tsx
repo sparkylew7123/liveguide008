@@ -133,8 +133,11 @@ export default function DraggableNodeDetails({
     <div
       ref={panelRef}
       className={cn(
-        "absolute z-50 w-96 h-[600px] shadow-xl",
+        "absolute z-50 shadow-xl",
         "bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg",
+        // Responsive sizing
+        "w-[calc(100vw-2rem)] max-w-96 h-[calc(100vh-4rem)] max-h-[600px]",
+        "sm:w-96 sm:h-[600px]",
         isDragging && "cursor-grabbing",
         className
       )}

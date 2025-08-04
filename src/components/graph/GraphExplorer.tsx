@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/contexts/ToastContext';
-import GraphCanvasGravity from './GraphCanvasGravity';
+import GraphCanvasGravity, { GraphCanvasRef } from './GraphCanvasGravity';
 import DraggableNodeDetails from './DraggableNodeDetails';
 import GraphToolbar from './GraphToolbar';
 import { cn } from '@/lib/utils';
@@ -19,21 +19,25 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
   const [edges, setEdges] = useState<any[]>([]);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [nodeTypeFilters, setNodeTypeFilters] = useState<string[]>([
     'goal', 'skill', 'emotion', 'session', 'accomplishment'
   ]);
   
   const supabase = createClient();
   const { showToast } = useToast();
+  const graphCanvasRef = useRef<GraphCanvasRef>(null);
 
   // Fetch graph data
   const fetchGraphData = useCallback(async () => {
     console.log('fetchGraphData called');
     try {
       setLoading(true);
+      setError(null);
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
+        setError('Please sign in to view your graph');
         showToast('Please sign in to view your graph', 'error');
         return;
       }
@@ -120,6 +124,8 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
       
     } catch (error) {
       console.error('Error fetching graph data:', error);
+      const errorMessage = 'Failed to load graph data. Please try refreshing the page.';
+      setError(errorMessage);
       showToast('Failed to load graph data', 'error');
     } finally {
       setLoading(false);
@@ -128,8 +134,11 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
 
   // Set up real-time subscriptions
   useEffect(() => {
+    // Only set up subscriptions if we have data loaded
+    if (loading) return;
+
     const nodesChannel = supabase
-      .channel('graph-nodes-changes')
+      .channel(`graph-nodes-changes-${userId}`)
       .on(
         'postgres_changes',
         {
@@ -150,7 +159,13 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
                 return prev;
               }
               
-              return [...prev, {
+              // Apply node type filters
+              if (nodeTypeFilters.length > 0 && !nodeTypeFilters.includes(payload.new.node_type)) {
+                console.log('Node type filtered out:', payload.new.node_type);
+                return prev;
+              }
+              
+              const newNode = {
                 data: {
                   id: payload.new.id,
                   label: payload.new.label,
@@ -159,9 +174,11 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
                   properties: payload.new.properties,
                   status: payload.new.status
                 }
-              }];
+              };
+              
+              showToast(`New ${payload.new.node_type} added to your graph`, 'info');
+              return [...prev, newNode];
             });
-            showToast('New node added to your graph', 'info');
           } else if (payload.eventType === 'UPDATE') {
             setNodes(prev => prev.map(node => 
               node.data.id === payload.new.id
@@ -198,7 +215,7 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
       .subscribe();
 
     const edgesChannel = supabase
-      .channel('graph-edges-changes')
+      .channel(`graph-edges-changes-${userId}`)
       .on(
         'postgres_changes',
         {
@@ -219,16 +236,20 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
                 return prev;
               }
               
-              return [...prev, {
+              const newEdge = {
                 data: {
                   id: payload.new.id,
                   source: payload.new.source_node_id,
                   target: payload.new.target_node_id,
                   type: payload.new.edge_type,
                   label: payload.new.label,
+                  weight: payload.new.weight,
                   properties: payload.new.properties
                 }
-              }];
+              };
+              
+              showToast(`New ${payload.new.edge_type} connection created`, 'info');
+              return [...prev, newEdge];
             });
           } else if (payload.eventType === 'UPDATE') {
             setEdges(prev => prev.map(edge => 
@@ -251,10 +272,11 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
       .subscribe();
 
     return () => {
+      console.log('Cleaning up real-time subscriptions');
       supabase.removeChannel(nodesChannel);
       supabase.removeChannel(edgesChannel);
     };
-  }, [userId, supabase, showToast, selectedNode]);
+  }, [userId, supabase, showToast, selectedNode, loading, nodeTypeFilters]);
 
   // Initial data fetch
   useEffect(() => {
@@ -328,40 +350,96 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
   };
 
   const handleSearch = (query: string) => {
-    // TODO: Implement search functionality
-    showToast(`Searching for: ${query}`, 'info');
+    if (query.trim()) {
+      graphCanvasRef.current?.searchNodes(query);
+      showToast(`Searching for: ${query}`, 'info');
+    }
   };
 
   const handleLayoutChange = (layout: string) => {
-    // TODO: Apply new layout to cytoscape instance
+    graphCanvasRef.current?.changeLayout(layout);
     showToast(`Switching to ${layout} layout`, 'info');
   };
 
   const handleExport = () => {
-    // TODO: Implement graph export
-    showToast('Export feature coming soon!', 'info');
+    const exportData = graphCanvasRef.current?.exportGraph();
+    if (exportData) {
+      // Create download link
+      const link = document.createElement('a');
+      link.href = exportData;
+      link.download = `graph-export-${new Date().toISOString().split('T')[0]}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Graph exported successfully!', 'success');
+    } else {
+      showToast('Failed to export graph', 'error');
+    }
   };
 
   // Zoom controls
   const handleZoomIn = () => {
-    // TODO: Implement zoom in
-    showToast('Zoom in', 'info');
+    graphCanvasRef.current?.zoomIn();
   };
 
   const handleZoomOut = () => {
-    // TODO: Implement zoom out
-    showToast('Zoom out', 'info');
+    graphCanvasRef.current?.zoomOut();
   };
 
   const handleResetView = () => {
-    // TODO: Implement reset view
-    showToast('View reset', 'info');
+    graphCanvasRef.current?.resetView();
+  };
+
+  // New event handlers for enhanced UX
+  const handleNodeHover = (node: any) => {
+    // Could show a tooltip or preview panel
+    console.log('Node hovered:', node.label);
+  };
+
+  const handleNodeRightClick = (node: any) => {
+    // Could show context menu
+    console.log('Node right-clicked:', node.label);
+    // For now, just select the node as a fallback
+    setSelectedNode(node);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex flex-col items-center justify-center h-full gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="text-gray-600 dark:text-gray-400">Loading your knowledge graph...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 p-8">
+        <div className="text-red-500 text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold mb-2">Unable to load graph</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <button
+            onClick={() => fetchGraphData()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (nodes.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 p-8">
+        <div className="text-gray-500 text-center">
+          <div className="text-6xl mb-4">🌱</div>
+          <h2 className="text-xl font-semibold mb-2">Your knowledge graph is growing</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Start a coaching session to begin building your personalized knowledge graph with goals, insights, and connections.
+          </p>
+        </div>
       </div>
     );
   }
@@ -369,10 +447,13 @@ export default function GraphExplorer({ userId, selectedSessionId, className }: 
   return (
     <div className={cn("relative w-full h-full", className)}>
       <GraphCanvasGravity
+        ref={graphCanvasRef}
         nodes={nodes}
         edges={edges}
         selectedNodeId={selectedNode?.id}
         onNodeClick={setSelectedNode}
+        onNodeHover={handleNodeHover}
+        onNodeRightClick={handleNodeRightClick}
         className="absolute inset-0"
       />
       

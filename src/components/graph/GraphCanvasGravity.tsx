@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
@@ -10,22 +10,213 @@ interface GraphCanvasGravityProps {
   selectedNodeId?: string | null;
   onNodeClick?: (node: any) => void;
   onEdgeClick?: (edge: any) => void;
+  onNodeHover?: (node: any) => void;
+  onNodeRightClick?: (node: any) => void;
   className?: string;
 }
 
-export default function GraphCanvasGravity({
+export interface GraphCanvasRef {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetView: () => void;
+  changeLayout: (layout: string) => void;
+  searchNodes: (query: string) => void;
+  exportGraph: () => string;
+}
+
+const GraphCanvasGravity = forwardRef<GraphCanvasRef, GraphCanvasGravityProps>(({
   nodes,
   edges,
   selectedNodeId,
   onNodeClick,
   onEdgeClick,
+  onNodeHover,
+  onNodeRightClick,
   className
-}: GraphCanvasGravityProps) {
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cyInstance, setCyInstance] = useState<any>(null);
+  const [currentLayout, setCurrentLayout] = useState<string>('gravity');
   const { theme, systemTheme } = useTheme();
   const currentTheme = theme === 'system' ? systemTheme : theme;
   const isDark = currentTheme === 'dark';
+
+  // Expose methods through ref
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => {
+      if (cyInstance) {
+        const zoom = cyInstance.zoom();
+        cyInstance.zoom(Math.min(zoom * 1.2, 3));
+      }
+    },
+    zoomOut: () => {
+      if (cyInstance) {
+        const zoom = cyInstance.zoom();
+        cyInstance.zoom(Math.max(zoom / 1.2, 0.1));
+      }
+    },
+    resetView: () => {
+      if (cyInstance) {
+        cyInstance.fit(50);
+        cyInstance.center();
+      }
+    },
+    changeLayout: (layout: string) => {
+      if (cyInstance) {
+        setCurrentLayout(layout);
+        applyLayout(cyInstance, layout);
+      }
+    },
+    searchNodes: (query: string) => {
+      if (cyInstance && query.trim()) {
+        const matchingNodes = cyInstance.nodes().filter((node: any) => {
+          const data = node.data();
+          return data.label?.toLowerCase().includes(query.toLowerCase()) ||
+                 data.description?.toLowerCase().includes(query.toLowerCase());
+        });
+        
+        if (matchingNodes.length > 0) {
+          cyInstance.fit(matchingNodes, 50);
+          // Highlight matching nodes temporarily
+          matchingNodes.addClass('highlighted');
+          setTimeout(() => {
+            matchingNodes.removeClass('highlighted');
+          }, 3000);
+        }
+      }
+    },
+    exportGraph: () => {
+      if (cyInstance) {
+        return cyInstance.png({ output: 'base64uri', bg: isDark ? '#1e293b' : '#f8fafc' });
+      }
+      return '';
+    }
+  }), [cyInstance, isDark]);
+
+  // Apply different layout algorithms
+  const applyLayout = (cy: any, layoutName: string) => {
+    let layoutOptions;
+    
+    switch (layoutName) {
+      case 'fcose':
+        layoutOptions = {
+          name: 'fcose',
+          quality: 'default',
+          randomize: false,
+          animate: true,
+          animationDuration: 1000,
+          nodeDimensionsIncludeLabels: true,
+          uniformNodeDimensions: false,
+          packComponents: true,
+          nodeRepulsion: (node: any) => 4500,
+          idealEdgeLength: (edge: any) => 50,
+          edgeElasticity: (edge: any) => 0.45,
+          nestingFactor: 0.1,
+          gravity: 0.25,
+          numIter: 2500
+        };
+        break;
+      case 'cola':
+        layoutOptions = {
+          name: 'cola',
+          animate: true,
+          animationDuration: 1000,
+          refresh: 1,
+          maxSimulationTime: 4000,
+          ungrabifyWhileSimulating: false,
+          fit: true,
+          padding: 30,
+          nodeDimensionsIncludeLabels: false,
+          randomize: false,
+          avoidOverlap: true,
+          handleDisconnected: true,
+          convergenceThreshold: 0.01,
+          nodeSpacing: (node: any) => 10,
+          edgeLength: 200,
+          edgeSymDiffLength: undefined,
+          edgeJaccardLength: undefined,
+          unconstrIter: 30,
+          userConstIter: 0,
+          allConstIter: 30
+        };
+        break;
+      case 'circle':
+        layoutOptions = {
+          name: 'circle',
+          fit: true,
+          padding: 30,
+          boundingBox: undefined,
+          avoidOverlap: true,
+          nodeDimensionsIncludeLabels: false,
+          spacingFactor: undefined,
+          radius: undefined,
+          startAngle: 3 / 2 * Math.PI,
+          sweep: undefined,
+          clockwise: true,
+          sort: undefined,
+          animate: true,
+          animationDuration: 1000
+        };
+        break;
+      case 'grid':
+        layoutOptions = {
+          name: 'grid',
+          fit: true,
+          padding: 30,
+          boundingBox: undefined,
+          avoidOverlap: true,
+          avoidOverlapPadding: 10,
+          nodeDimensionsIncludeLabels: false,
+          spacingFactor: undefined,
+          condense: false,
+          rows: undefined,
+          cols: undefined,
+          position: (node: any) => ({ row: undefined, col: undefined }),
+          sort: undefined,
+          animate: true,
+          animationDuration: 1000
+        };
+        break;
+      case 'concentric':
+        layoutOptions = {
+          name: 'concentric',
+          fit: true,
+          padding: 30,
+          startAngle: 3 / 2 * Math.PI,
+          sweep: undefined,
+          clockwise: true,
+          equidistant: false,
+          minNodeSpacing: 10,
+          boundingBox: undefined,
+          avoidOverlap: true,
+          nodeDimensionsIncludeLabels: false,
+          height: undefined,
+          width: undefined,
+          spacingFactor: undefined,
+          concentric: (node: any) => {
+            // Goals in center, then skills, emotions, sessions, accomplishments
+            const typeRanking = {
+              goal: 5,
+              skill: 4,
+              emotion: 3,
+              session: 2,
+              accomplishment: 1
+            };
+            return typeRanking[node.data('type') as keyof typeof typeRanking] || 1;
+          },
+          levelWidth: (nodes: any) => nodes.maxDegree() / 4,
+          animate: true,
+          animationDuration: 1000
+        };
+        break;
+      default: // gravity (custom solar system layout)
+        // Use the existing custom positioning logic
+        return;
+    }
+
+    const layout = cy.layout(layoutOptions);
+    layout.run();
+  };
 
   // Calculate node importance/size based on connections
   const calculateNodeImportance = (nodeId: string) => {
@@ -43,9 +234,21 @@ export default function GraphCanvasGravity({
   useEffect(() => {
     if (!containerRef.current || nodes.length === 0) return;
 
-    // Dynamically import cytoscape
-    import('cytoscape').then((cytoscapeModule) => {
+    // Dynamically import cytoscape and extensions
+    Promise.all([
+      import('cytoscape'),
+      import('cytoscape-fcose'),
+      import('cytoscape-cola')
+    ]).then(([cytoscapeModule, fcoseModule, colaModule]) => {
       const cytoscape = cytoscapeModule.default;
+      
+      // Register layout extensions
+      if (fcoseModule.default) {
+        cytoscape.use(fcoseModule.default);
+      }
+      if (colaModule.default) {
+        cytoscape.use(colaModule.default);
+      }
       
       // Group nodes by type
       const nodesByType = {
@@ -137,13 +340,25 @@ export default function GraphCanvasGravity({
                 const size = ele.data('importance');
                 return Math.max(10, Math.min(16, size / 5)) + 'px';
               },
+              'font-weight': (ele: any) => {
+                const status = ele.data('status');
+                return status === 'curated' ? 'bold' : 'normal';
+              },
               'text-wrap': 'wrap',
               'text-max-width': '120px',
-              'border-width': 2,
+              'border-width': (ele: any) => {
+                const status = ele.data('status');
+                return status === 'draft_verbal' ? 3 : 2;
+              },
+              'border-style': (ele: any) => {
+                const status = ele.data('status');
+                return status === 'draft_verbal' ? 'dashed' : 'solid';
+              },
               'border-color': isDark ? '#1e293b' : '#e2e8f0',
-              'transition-property': 'border-width, border-color',
-              'transition-duration': '2s',
-              'transition-timing-function': 'ease-in-out'
+              'transition-property': 'border-width, border-color, background-color',
+              'transition-duration': '300ms',
+              'transition-timing-function': 'ease-in-out',
+              'cursor': 'pointer'
             }
           },
           {
@@ -208,6 +423,33 @@ export default function GraphCanvasGravity({
               'line-color': isDark ? '#ffffff' : '#111827',
               'target-arrow-color': isDark ? '#ffffff' : '#111827'
             }
+          },
+          {
+            selector: 'node.hovered',
+            style: {
+              'border-width': 4,
+              'border-color': isDark ? '#60a5fa' : '#3b82f6',
+              'z-index': 999
+            }
+          },
+          {
+            selector: 'edge.hovered',
+            style: {
+              'width': 3,
+              'opacity': 0.8,
+              'line-color': isDark ? '#60a5fa' : '#3b82f6',
+              'target-arrow-color': isDark ? '#60a5fa' : '#3b82f6',
+              'z-index': 999
+            }
+          },
+          {
+            selector: 'node.highlighted',
+            style: {
+              'border-width': 5,
+              'border-color': isDark ? '#fbbf24' : '#f59e0b',
+              'background-color': isDark ? '#fef3c7' : '#fef3c7',
+              'z-index': 1000
+            }
           }
         ],
         layout: {
@@ -238,6 +480,40 @@ export default function GraphCanvasGravity({
         });
       }
 
+      // Hover effects
+      if (onNodeHover) {
+        cy.on('mouseover', 'node', (evt: any) => {
+          const node = evt.target;
+          node.addClass('hovered');
+          onNodeHover(node.data());
+        });
+
+        cy.on('mouseout', 'node', (evt: any) => {
+          const node = evt.target;
+          node.removeClass('hovered');
+        });
+      }
+
+      // Right-click context menu
+      if (onNodeRightClick) {
+        cy.on('cxttap', 'node', (evt: any) => {
+          evt.preventDefault();
+          const node = evt.target;
+          onNodeRightClick(node.data());
+        });
+      }
+
+      // Edge hover effects
+      cy.on('mouseover', 'edge', (evt: any) => {
+        const edge = evt.target;
+        edge.addClass('hovered');
+      });
+
+      cy.on('mouseout', 'edge', (evt: any) => {
+        const edge = evt.target;
+        edge.removeClass('hovered');
+      });
+
       // Handle node dragging - update stored position when drag ends
       cy.on('dragfree', 'node', (evt: any) => {
         const node = evt.target;
@@ -258,52 +534,58 @@ export default function GraphCanvasGravity({
       // Debug: Log what we have
       console.log('Graph initialized with', cy.nodes().length, 'nodes and', cy.edges().length, 'edges');
 
-      // Add subtle floating animation
+      // Performance optimization: only animate if we have less than 50 nodes
       let animationFrame: number;
       const nodeData = new Map();
+      const shouldAnimate = cy.nodes().length < 50;
       
-      // Store initial data for each node
-      cy.nodes().forEach((node: any) => {
-        const pos = node.position();
-        nodeData.set(node.id(), { 
-          x: pos.x, 
-          y: pos.y,
-          floatSpeed: 0.5 + Math.random() * 0.5, // Variable speed per node
-          floatPhase: Math.random() * Math.PI * 2,
-          floatAmount: 10 + (node.data('importance') / 10) // Even more visible movement (10-20 pixels)
+      if (shouldAnimate) {
+        // Store initial data for each node
+        cy.nodes().forEach((node: any) => {
+          const pos = node.position();
+          nodeData.set(node.id(), { 
+            x: pos.x, 
+            y: pos.y,
+            floatSpeed: 0.5 + Math.random() * 0.5,
+            floatPhase: Math.random() * Math.PI * 2,
+            floatAmount: Math.min(10 + (node.data('importance') / 10), 15) // Cap movement
+          });
         });
-      });
-      
-      // Wait a moment for the graph to stabilize
-      setTimeout(() => {
-        // Floating animation
-        const animateFloat = () => {
-          const time = Date.now() * 0.0002; // Faster animation
-          
-          cy.nodes().forEach((node: any) => {
-            if (!node.grabbed() && nodeData.has(node.id())) {
-              const data = nodeData.get(node.id());
+        
+        // Wait a moment for the graph to stabilize
+        setTimeout(() => {
+          // Floating animation with performance throttling
+          let lastFrame = 0;
+          const animateFloat = (currentTime: number) => {
+            // Throttle to 30fps instead of 60fps for better performance
+            if (currentTime - lastFrame >= 33) {
+              const time = currentTime * 0.0001; // Slower animation
               
-              // Update position
-              node.position({
-                x: data.x + Math.sin(time * data.floatSpeed + data.floatPhase) * data.floatAmount,
-                y: data.y + Math.cos(time * data.floatSpeed * 0.7 + data.floatPhase) * data.floatAmount
+              cy.nodes().forEach((node: any) => {
+                if (!node.grabbed() && nodeData.has(node.id())) {
+                  const data = nodeData.get(node.id());
+                  
+                  // Update position
+                  node.position({
+                    x: data.x + Math.sin(time * data.floatSpeed + data.floatPhase) * data.floatAmount,
+                    y: data.y + Math.cos(time * data.floatSpeed * 0.7 + data.floatPhase) * data.floatAmount
+                  });
+                }
               });
               
-              // Pulse effect on border
-              const pulse = Math.sin(time * 0.5) * 0.5 + 0.5; // 0 to 1
-              node.style('border-width', 2 + pulse * 2); // 2 to 4 pixels
+              lastFrame = currentTime;
             }
-          });
+            
+            animationFrame = requestAnimationFrame(animateFloat);
+          };
           
+          // Start animation
           animationFrame = requestAnimationFrame(animateFloat);
-        };
-        
-        // Start animation
-        animateFloat();
-        console.log('Floating animation started for', cy.nodes().length, 'nodes with positions:', 
-          Array.from(nodeData.values()).map(d => ({ x: d.x, y: d.y })));
-      }, 500); // Wait 500ms for layout to settle
+          console.log('Floating animation started for', cy.nodes().length, 'nodes');
+        }, 500);
+      } else {
+        console.log('Animation disabled for performance with', cy.nodes().length, 'nodes');
+      }
 
       setCyInstance(cy);
 
@@ -316,7 +598,7 @@ export default function GraphCanvasGravity({
     }).catch(err => {
       console.error('Error loading cytoscape:', err);
     });
-  }, [nodes, edges, isDark, onNodeClick, onEdgeClick]);
+  }, [nodes, edges, isDark, onNodeClick, onEdgeClick, onNodeHover, onNodeRightClick, currentLayout]);
   
   // Update selected node styling when selectedNodeId changes
   useEffect(() => {
@@ -379,4 +661,8 @@ export default function GraphCanvasGravity({
       }}
     />
   );
-}
+});
+
+GraphCanvasGravity.displayName = 'GraphCanvasGravity';
+
+export default GraphCanvasGravity;
