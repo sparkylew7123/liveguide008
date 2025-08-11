@@ -52,3 +52,4 @@ next-env.d.ts
 repomix-output.txt
 stackbit.config.js
 /.env.development
+lightrag-integration/
