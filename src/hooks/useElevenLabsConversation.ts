@@ -6,6 +6,7 @@ interface ElevenLabsConfig {
   userId?: string;
   customCallId?: string;
   metadata?: Record<string, any>;
+  ragContext?: string; // RAG context to pass to the agent
 }
 
 interface ConversationHandlers {
@@ -71,6 +72,13 @@ export function useElevenLabsConversation(
     onDisconnect: handlers.onDisconnect,
     onMessage: handlers.onMessage,
     onError: handlers.onError,
+    // Pass userId and RAG context as dynamic variables for webhooks/tools
+    dynamicVariables: {
+      userId: config.userId || '',
+      userName: config.metadata?.userName || '',
+      sessionType: config.metadata?.sessionType || '',
+      ragContext: config.ragContext || '',
+    }
   };
 
   // Add overrides if provided
@@ -84,9 +92,36 @@ export function useElevenLabsConversation(
   // Enhanced startSession that properly formats the WebSocket connection
   const startSession = async () => {
     try {
-      // Start session with proper agent configuration
+      // Get signed URL from server for authentication with all user details
+      const response = await fetch('/api/elevenlabs/signed-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agentId: config.agentId,
+          userId: config.userId,
+          customCallId: config.customCallId,
+          metadata: config.metadata,
+          ragContext: config.ragContext,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get signed URL');
+      }
+
+      const { signedUrl } = await response.json();
+      
+      console.log('🔐 Got signed URL with user details:', {
+        userId: config.userId,
+        customCallId: config.customCallId,
+        metadata: config.metadata
+      });
+      
+      // Start session with signed URL for authentication
       await conversation.startSession({
-        agentId: config.agentId
+        signedUrl: signedUrl,
       });
     } catch (error) {
       console.error('Failed to start ElevenLabs session:', error);

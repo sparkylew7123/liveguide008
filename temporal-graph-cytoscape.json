@@ -1,0 +1,620 @@
+{
+  "format_version": "1.0",
+  "generated_by": "LGtempo Graph Explorer",
+  "target_cytoscapejs_version": "~3.2",
+  "data": {
+    "shared_name": "Temporal Project Graph",
+    "name": "Temporal Project Graph",
+    "SUID": 1,
+    "__Annotations": [],
+    "selected": true
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "10000001-0000-0000-0000-000000000001",
+          "name": "Project Kickoff",
+          "label": "Project Kickoff",
+          "node_type": "session",
+          "created_at": "2025-07-05 20:46:33",
+          "shared_name": "Project Kickoff",
+          "SUID": 1001,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000002-0000-0000-0000-000000000002",
+          "name": "Define MVP Scope",
+          "label": "Define MVP Scope",
+          "node_type": "goal",
+          "created_at": "2025-07-08 20:46:33",
+          "shared_name": "Define MVP Scope",
+          "SUID": 1002,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000003-0000-0000-0000-000000000003",
+          "name": "Excited",
+          "label": "Excited",
+          "node_type": "emotion",
+          "created_at": "2025-07-08 22:46:33",
+          "shared_name": "Excited",
+          "SUID": 1003,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000004-0000-0000-0000-000000000004",
+          "name": "Team Assembly",
+          "label": "Team Assembly",
+          "node_type": "session",
+          "created_at": "2025-07-11 20:46:33",
+          "shared_name": "Team Assembly",
+          "SUID": 1004,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000005-0000-0000-0000-000000000005",
+          "name": "Leadership",
+          "label": "Leadership",
+          "node_type": "skill",
+          "created_at": "2025-07-11 21:46:33",
+          "shared_name": "Leadership",
+          "SUID": 1005,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000006-0000-0000-0000-000000000006",
+          "name": "Team Formed",
+          "label": "Team Formed",
+          "node_type": "accomplishment",
+          "created_at": "2025-07-14 20:46:33",
+          "shared_name": "Team Formed",
+          "SUID": 1006,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000007-0000-0000-0000-000000000007",
+          "name": "Sprint Planning",
+          "label": "Sprint Planning",
+          "node_type": "session",
+          "created_at": "2025-07-17 20:46:33",
+          "shared_name": "Sprint Planning",
+          "SUID": 1007,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000008-0000-0000-0000-000000000008",
+          "name": "Build Core Features",
+          "label": "Build Core Features",
+          "node_type": "goal",
+          "created_at": "2025-07-17 21:16:33",
+          "shared_name": "Build Core Features",
+          "SUID": 1008,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000009-0000-0000-0000-000000000009",
+          "name": "Focused",
+          "label": "Focused",
+          "node_type": "emotion",
+          "created_at": "2025-07-20 20:46:33",
+          "shared_name": "Focused",
+          "SUID": 1009,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000010-0000-0000-0000-000000000010",
+          "name": "React Development",
+          "label": "React Development",
+          "node_type": "skill",
+          "created_at": "2025-07-20 23:46:33",
+          "shared_name": "React Development",
+          "SUID": 1010,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000011-0000-0000-0000-000000000011",
+          "name": "Mid-Sprint Review",
+          "label": "Mid-Sprint Review",
+          "node_type": "session",
+          "created_at": "2025-07-23 20:46:33",
+          "shared_name": "Mid-Sprint Review",
+          "SUID": 1011,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000012-0000-0000-0000-000000000012",
+          "name": "Alpha Release",
+          "label": "Alpha Release",
+          "node_type": "accomplishment",
+          "created_at": "2025-07-23 22:46:33",
+          "shared_name": "Alpha Release",
+          "SUID": 1012,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000013-0000-0000-0000-000000000013",
+          "name": "User Feedback",
+          "label": "User Feedback",
+          "node_type": "goal",
+          "created_at": "2025-07-26 20:46:33",
+          "shared_name": "User Feedback",
+          "SUID": 1013,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000014-0000-0000-0000-000000000014",
+          "name": "Anxious",
+          "label": "Anxious",
+          "node_type": "emotion",
+          "created_at": "2025-07-26 21:46:33",
+          "shared_name": "Anxious",
+          "SUID": 1014,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000015-0000-0000-0000-000000000015",
+          "name": "Pivot Meeting",
+          "label": "Pivot Meeting",
+          "node_type": "session",
+          "created_at": "2025-07-29 20:46:33",
+          "shared_name": "Pivot Meeting",
+          "SUID": 1015,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000016-0000-0000-0000-000000000016",
+          "name": "Adaptability",
+          "label": "Adaptability",
+          "node_type": "skill",
+          "created_at": "2025-07-29 21:16:33",
+          "shared_name": "Adaptability",
+          "SUID": 1016,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000017-0000-0000-0000-000000000017",
+          "name": "New Direction Set",
+          "label": "New Direction Set",
+          "node_type": "accomplishment",
+          "created_at": "2025-08-01 20:46:33",
+          "shared_name": "New Direction Set",
+          "SUID": 1017,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000018-0000-0000-0000-000000000018",
+          "name": "Determined",
+          "label": "Determined",
+          "node_type": "emotion",
+          "created_at": "2025-08-01 22:46:33",
+          "shared_name": "Determined",
+          "SUID": 1018,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000019-0000-0000-0000-000000000019",
+          "name": "Final Push",
+          "label": "Final Push",
+          "node_type": "session",
+          "created_at": "2025-08-03 20:46:33",
+          "shared_name": "Final Push",
+          "SUID": 1019,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000020-0000-0000-0000-000000000020",
+          "name": "Launch Ready",
+          "label": "Launch Ready",
+          "node_type": "goal",
+          "created_at": "2025-08-03 21:46:33",
+          "shared_name": "Launch Ready",
+          "SUID": 1020,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000021-0000-0000-0000-000000000021",
+          "name": "Launch Day",
+          "label": "Launch Day",
+          "node_type": "session",
+          "created_at": "2025-08-04 18:46:33",
+          "shared_name": "Launch Day",
+          "SUID": 1021,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "10000022-0000-0000-0000-000000000022",
+          "name": "Triumphant",
+          "label": "Triumphant",
+          "node_type": "emotion",
+          "created_at": "2025-08-04 20:16:33",
+          "shared_name": "Triumphant",
+          "SUID": 1022,
+          "selected": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "522e6af6-41f2-47e6-af2d-9a90dbb35346",
+          "source": "10000001-0000-0000-0000-000000000001",
+          "target": "10000002-0000-0000-0000-000000000002",
+          "interaction": "works_on",
+          "name": "Project Kickoff (works_on) Define MVP Scope",
+          "label": "creates",
+          "weight": 0.9,
+          "SUID": 2001,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "9f8115cc-bb20-4bcc-bcbb-700169b8b4e6",
+          "source": "10000001-0000-0000-0000-000000000001",
+          "target": "10000003-0000-0000-0000-000000000003",
+          "interaction": "feels",
+          "name": "Project Kickoff (feels) Excited",
+          "label": "evokes",
+          "weight": 0.8,
+          "SUID": 2002,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "5aede94e-7f5e-4123-a5f8-f5397b897f6d",
+          "source": "10000004-0000-0000-0000-000000000004",
+          "target": "10000005-0000-0000-0000-000000000005",
+          "interaction": "has_skill",
+          "name": "Team Assembly (has_skill) Leadership",
+          "label": "develops",
+          "weight": 0.85,
+          "SUID": 2003,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "e4dd07c5-9f8a-454a-9a9d-d861bcce7ba8",
+          "source": "10000004-0000-0000-0000-000000000004",
+          "target": "10000006-0000-0000-0000-000000000006",
+          "interaction": "achieves",
+          "name": "Team Assembly (achieves) Team Formed",
+          "label": "achieves",
+          "weight": 0.95,
+          "SUID": 2004,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "a8a5c3bd-5d4e-4f65-a43d-78fc7aede26f",
+          "source": "10000007-0000-0000-0000-000000000007",
+          "target": "10000006-0000-0000-0000-000000000006",
+          "interaction": "derived_from",
+          "name": "Sprint Planning (derived_from) Team Formed",
+          "label": "enabled by",
+          "weight": 0.8,
+          "SUID": 2005,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "b544c426-6243-4af7-885c-d82bfd5f4b3b",
+          "source": "10000007-0000-0000-0000-000000000007",
+          "target": "10000008-0000-0000-0000-000000000008",
+          "interaction": "works_on",
+          "name": "Sprint Planning (works_on) Build Core Features",
+          "label": "plans",
+          "weight": 0.9,
+          "SUID": 2006,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "b798f9c0-48de-49a5-9e8f-7466f53063d4",
+          "source": "10000008-0000-0000-0000-000000000008",
+          "target": "10000002-0000-0000-0000-000000000002",
+          "interaction": "derived_from",
+          "name": "Build Core Features (derived_from) Define MVP Scope",
+          "label": "refines",
+          "weight": 0.8,
+          "SUID": 2007,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "4c0726a8-b937-49b5-96ca-cf7b44a09e7a",
+          "source": "10000007-0000-0000-0000-000000000007",
+          "target": "10000009-0000-0000-0000-000000000009",
+          "interaction": "feels",
+          "name": "Sprint Planning (feels) Focused",
+          "label": "feels",
+          "weight": 0.75,
+          "SUID": 2008,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "b5bf2516-8a66-49d7-bc8d-072ddd1060ef",
+          "source": "10000010-0000-0000-0000-000000000010",
+          "target": "10000008-0000-0000-0000-000000000008",
+          "interaction": "derived_from",
+          "name": "React Development (derived_from) Build Core Features",
+          "label": "required by",
+          "weight": 0.85,
+          "SUID": 2009,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "52851c01-e960-4259-8bb8-53023a21a4b1",
+          "source": "10000007-0000-0000-0000-000000000007",
+          "target": "10000010-0000-0000-0000-000000000010",
+          "interaction": "has_skill",
+          "name": "Sprint Planning (has_skill) React Development",
+          "label": "requires",
+          "weight": 0.8,
+          "SUID": 2010,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "e918f179-c97f-4d8f-9d56-608ec044759c",
+          "source": "10000011-0000-0000-0000-000000000011",
+          "target": "10000012-0000-0000-0000-000000000012",
+          "interaction": "achieves",
+          "name": "Mid-Sprint Review (achieves) Alpha Release",
+          "label": "produces",
+          "weight": 0.9,
+          "SUID": 2011,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "0a9a08f6-5ec0-4c01-bf7e-dcc2ba9d6c78",
+          "source": "10000012-0000-0000-0000-000000000012",
+          "target": "10000008-0000-0000-0000-000000000008",
+          "interaction": "derived_from",
+          "name": "Alpha Release (derived_from) Build Core Features",
+          "label": "delivers",
+          "weight": 0.85,
+          "SUID": 2012,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "5de1d3a3-200d-4eb4-ab99-c6974c26eccc",
+          "source": "10000011-0000-0000-0000-000000000011",
+          "target": "10000013-0000-0000-0000-000000000013",
+          "interaction": "works_on",
+          "name": "Mid-Sprint Review (works_on) User Feedback",
+          "label": "identifies",
+          "weight": 0.85,
+          "SUID": 2013,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "61dcc8dd-87be-4af4-8498-ebefed532322",
+          "source": "10000013-0000-0000-0000-000000000013",
+          "target": "10000012-0000-0000-0000-000000000012",
+          "interaction": "derived_from",
+          "name": "User Feedback (derived_from) Alpha Release",
+          "label": "follows",
+          "weight": 0.8,
+          "SUID": 2014,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "ae904b99-6530-4720-bf26-f73ae71bb2b1",
+          "source": "10000011-0000-0000-0000-000000000011",
+          "target": "10000014-0000-0000-0000-000000000014",
+          "interaction": "feels",
+          "name": "Mid-Sprint Review (feels) Anxious",
+          "label": "triggers",
+          "weight": 0.7,
+          "SUID": 2015,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "c76caae7-d312-4061-be0b-99cd59f07591",
+          "source": "10000015-0000-0000-0000-000000000015",
+          "target": "10000013-0000-0000-0000-000000000013",
+          "interaction": "derived_from",
+          "name": "Pivot Meeting (derived_from) User Feedback",
+          "label": "informed by",
+          "weight": 0.85,
+          "SUID": 2016,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "b92912ea-718d-4218-b7f0-e8047dd70736",
+          "source": "10000015-0000-0000-0000-000000000015",
+          "target": "10000016-0000-0000-0000-000000000016",
+          "interaction": "has_skill",
+          "name": "Pivot Meeting (has_skill) Adaptability",
+          "label": "develops",
+          "weight": 0.9,
+          "SUID": 2017,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "62255ac5-6674-4644-bd3c-861630510829",
+          "source": "10000015-0000-0000-0000-000000000015",
+          "target": "10000017-0000-0000-0000-000000000017",
+          "interaction": "achieves",
+          "name": "Pivot Meeting (achieves) New Direction Set",
+          "label": "results in",
+          "weight": 0.95,
+          "SUID": 2018,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "3dfe822b-17f9-4988-bf36-7eb53e9e027d",
+          "source": "10000015-0000-0000-0000-000000000015",
+          "target": "10000018-0000-0000-0000-000000000018",
+          "interaction": "feels",
+          "name": "Pivot Meeting (feels) Determined",
+          "label": "transforms to",
+          "weight": 0.8,
+          "SUID": 2019,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "99bf585f-bce5-43da-9f27-0f9605281e3c",
+          "source": "10000018-0000-0000-0000-000000000018",
+          "target": "10000014-0000-0000-0000-000000000014",
+          "interaction": "derived_from",
+          "name": "Determined (derived_from) Anxious",
+          "label": "evolves from",
+          "weight": 0.75,
+          "SUID": 2020,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "44c49989-2e97-468c-8909-c782d153add3",
+          "source": "10000019-0000-0000-0000-000000000019",
+          "target": "10000017-0000-0000-0000-000000000017",
+          "interaction": "derived_from",
+          "name": "Final Push (derived_from) New Direction Set",
+          "label": "enabled by",
+          "weight": 0.85,
+          "SUID": 2021,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "304f237b-4fa6-4421-b9ce-c1b2f8d12723",
+          "source": "10000020-0000-0000-0000-000000000020",
+          "target": "10000016-0000-0000-0000-000000000016",
+          "interaction": "derived_from",
+          "name": "Launch Ready (derived_from) Adaptability",
+          "label": "facilitated by",
+          "weight": 0.75,
+          "SUID": 2022,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "4cff797d-f2e4-4d92-bba9-8d7c53dac6ef",
+          "source": "10000019-0000-0000-0000-000000000019",
+          "target": "10000020-0000-0000-0000-000000000020",
+          "interaction": "works_on",
+          "name": "Final Push (works_on) Launch Ready",
+          "label": "targets",
+          "weight": 0.95,
+          "SUID": 2023,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "677e271e-d333-433b-9210-536900c70ec1",
+          "source": "10000021-0000-0000-0000-000000000021",
+          "target": "10000020-0000-0000-0000-000000000020",
+          "interaction": "achieves",
+          "name": "Launch Day (achieves) Launch Ready",
+          "label": "completes",
+          "weight": 0.9,
+          "SUID": 2024,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "59c52cea-dc00-4f5f-b90d-65dd0f896f9d",
+          "source": "10000022-0000-0000-0000-000000000022",
+          "target": "10000003-0000-0000-0000-000000000003",
+          "interaction": "derived_from",
+          "name": "Triumphant (derived_from) Excited",
+          "label": "culminates from",
+          "weight": 0.7,
+          "SUID": 2025,
+          "selected": false
+        }
+      },
+      {
+        "data": {
+          "id": "e5ccdf6a-9038-4f0b-81af-4fabc765d5c4",
+          "source": "10000021-0000-0000-0000-000000000021",
+          "target": "10000022-0000-0000-0000-000000000022",
+          "interaction": "feels",
+          "name": "Launch Day (feels) Triumphant",
+          "label": "feels",
+          "weight": 0.95,
+          "SUID": 2026,
+          "selected": false
+        }
+      }
+    ]
+  }
+}

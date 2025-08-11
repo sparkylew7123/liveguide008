@@ -1,0 +1,7 @@
+{
+  "summary": "{{evaluation_criteria_summary}}",
+  "goals": {{User_Goals}},
+  "insights": {{Key_Insights}},
+  "emotions": {{Emotional_Moments}},
+  "timescales": {{User_Goal_Timescales}}
+}

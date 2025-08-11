@@ -268,8 +268,8 @@ export default function LobbyPage() {
             </Card>
           ) : (
             <Accordion type="single" collapsible className="space-y-4">
-              {Object.entries(goalsByCategory).map(([category, goals]) => (
-                <AccordionItem key={category} value={category} className="border-slate-700">
+              {Object.entries(goalsByCategory).map(([category, goals], index) => (
+                <AccordionItem key={`category-${category}-${index}`} value={category} className="border-slate-700">
                   <AccordionTrigger className="bg-slate-800/50 px-6 py-4 rounded-lg hover:bg-slate-800/70 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${getCategoryColor(category)}`}>
@@ -286,8 +286,8 @@ export default function LobbyPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6 py-4">
                     <div className="space-y-3">
-                      {goals.map((goal) => (
-                        <div key={goal.goal_id} className="p-4 bg-slate-800/30 rounded-lg">
+                      {goals.map((goal, goalIndex) => (
+                        <div key={`goal-${goal.goal_id}-${goalIndex}`} className="p-4 bg-slate-800/30 rounded-lg">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
@@ -350,8 +350,8 @@ export default function LobbyPage() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-white mb-6">Recent Sessions</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recentSessions.map((session) => (
-                <Card key={session.session_id} className="bg-slate-800/50 border-slate-700">
+              {recentSessions.map((session, sessionIndex) => (
+                <Card key={`session-${session.session_id}-${sessionIndex}`} className="bg-slate-800/50 border-slate-700">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg text-white flex items-center gap-2">

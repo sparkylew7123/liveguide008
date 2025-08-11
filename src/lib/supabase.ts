@@ -54,10 +54,18 @@ export async function resetPassword(email: string) {
 }
 
 export async function signInWithProvider(provider: 'google' | 'github') {
+  // Force localhost for development
+  let redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`;
+  
+  // If we're on 127.0.0.1, force localhost
+  if (typeof window !== 'undefined' && window.location.hostname === '127.0.0.1') {
+    redirectUrl = redirectUrl.replace('127.0.0.1', 'localhost');
+  }
+  
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
+      redirectTo: redirectUrl,
       skipBrowserRedirect: false,
       queryParams: {
         access_type: 'offline',

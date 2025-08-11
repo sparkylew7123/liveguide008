@@ -1,0 +1,173 @@
+{
+  "name": "My workflow 5",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1088,
+        160
+      ],
+      "id": "3ef864f7-da0c-4cfd-8c5b-ec3bc70e0c08",
+      "name": "When chat message received",
+      "webhookId": "b3f3903e-749b-41f7-957a-b2f44526b932"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "you must call the eleven labs tool"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -896,
+        144
+      ],
+      "id": "5df75a4c-eae0-4cc4-9039-7fdddd9e1df6",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        320
+      ],
+      "id": "f8fca492-e11f-4cb6-88d1-88c90919c861",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q88zZ00G6VjBuWRJ",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -816,
+        400
+      ],
+      "id": "419182fd-225b-48c2-aef7-91721b33a5c2",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://lightrag.fly.dev/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "What is GraphRAG?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -672,
+        384
+      ],
+      "id": "418f2605-e065-4ade-b582-3e0f9ff84ce8",
+      "name": "eleven labs agent",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8YPQZhoZj6EYTmhL",
+          "name": "Header Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        []
+      ]
+    },
+    "eleven labs agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5a113b4e-08a0-4c70-8b8f-b4acf2c82bae",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36b7b2529f091f447a21f42c141128b397e13ee1cddb031788c149fe471e87e"
+  },
+  "id": "hNEIJJ2zqb0cX8xX",
+  "tags": []
+}

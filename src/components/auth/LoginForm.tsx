@@ -1,18 +1,25 @@
 "use client";
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useRef } from 'react';
 import { signIn, signInWithProvider } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import TurnstileComponent, { TurnstileRef } from '@/components/ui/turnstile';
 function LoginFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileRef>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  
+  // Disable Turnstile in development
+  const isDevelopment = process.env.NODE_ENV === 'development' || 
+                        (typeof window !== 'undefined' && window.location.hostname === 'localhost');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +28,12 @@ function LoginFormContent() {
     
     // Prevent double submission
     if (loading) {
+      return;
+    }
+    
+    // Verify Turnstile token (skip in development)
+    if (!isDevelopment && !turnstileToken) {
+      setError('Please complete the security verification');
       return;
     }
     
@@ -43,6 +56,9 @@ function LoginFormContent() {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
       setError(errorMessage);
       setLoading(false);
+      // Reset Turnstile on error
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
     }
   };
 
@@ -122,9 +138,30 @@ function LoginFormContent() {
           </Link>
         </div>
         
+        {!isDevelopment && (
+          <div className="mb-6 flex justify-center">
+            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+              <TurnstileComponent
+                ref={turnstileRef}
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onError={(error) => {
+                  console.error('Turnstile error:', error);
+                  setError('Security verification failed. Please try again.');
+                }}
+                onExpire={() => {
+                  setTurnstileToken(null);
+                  setError('Security verification expired. Please try again.');
+                }}
+                theme="dark"
+              />
+            )}
+          </div>
+        )}
+        
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || (!isDevelopment && !turnstileToken)}
           className="w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-md hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Signing in...' : 'Sign In'}

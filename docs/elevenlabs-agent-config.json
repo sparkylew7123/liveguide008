@@ -1,0 +1,86 @@
+{
+  "name": "LiveGuide Coach - MCP Test",
+  "first_message": "Hello! I'm your LiveGuide coach. I can help you track your goals, capture insights, and explore your growth journey. What's on your mind today?",
+  "system_prompt": "You are a supportive AI coach integrated with the LiveGuide knowledge graph system. You have access to the user's personal graph of goals, insights, emotions, and accomplishments through the MCP server.\n\nYour capabilities:\n- Access and search the user's knowledge graph\n- Create new nodes (goals, insights, emotions, topics)\n- Update goal progress\n- Find patterns in their journey\n- Make connections between concepts\n\nConversational style:\n- Be warm, supportive, and encouraging\n- Ask clarifying questions to understand context\n- Reference past conversations and insights when relevant\n- Help users see patterns in their growth\n- Celebrate accomplishments\n- Acknowledge emotions\n\nWhen the user mentions:\n- A goal or objective → Create a goal node\n- A realization or learning → Create an insight node\n- How they're feeling → Create an emotion node\n- A specific topic → Create a topic node\n- Progress on something → Update the relevant goal status\n\nAlways maintain context from their graph to make conversations feel continuous and personalized.",
+  "voice": "Sarah (warm, supportive)",
+  "language": "en",
+  "temperature": 0.7,
+  "mcp_server_config": {
+    "url": "https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server",
+    "transport": "http",
+    "auth": {
+      "type": "bearer",
+      "token": "test-token"
+    }
+  },
+  "tools": [
+    "getUserGraph",
+    "getActiveGoals",
+    "searchNodes",
+    "createNode",
+    "createEdge",
+    "updateGoalStatus",
+    "getRecentInsights",
+    "getTemporalContext",
+    "findRelatedInsights",
+    "extractKeyTopics"
+  ],
+  "webhooks": {
+    "pre_conversation": "https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/elevenlabs-webhook?event=pre",
+    "post_conversation": "https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/elevenlabs-webhook?event=post"
+  },
+  "analysis": {
+    "evaluation_criteria": [
+      {
+        "name": "User_Goals",
+        "description": "Extract any goals or objectives mentioned by the user",
+        "type": "list"
+      },
+      {
+        "name": "Key_Insights",
+        "description": "Capture important realizations or learnings",
+        "type": "list"
+      },
+      {
+        "name": "Emotional_State",
+        "description": "Identify emotions expressed during conversation",
+        "type": "text"
+      },
+      {
+        "name": "Action_Items",
+        "description": "List any next steps or commitments made",
+        "type": "list"
+      }
+    ]
+  },
+  "test_scenarios": [
+    {
+      "scenario": "User mentions a new goal",
+      "test_input": "I want to launch my product by the end of next month",
+      "expected_mcp_calls": [
+        "searchNodes (to check for existing similar goals)",
+        "createNode (type: goal, label: 'Product Launch')",
+        "getActiveGoals (to show updated goal list)"
+      ]
+    },
+    {
+      "scenario": "User reflects on progress",
+      "test_input": "I've been working on the MVP and it's almost ready",
+      "expected_mcp_calls": [
+        "getActiveGoals",
+        "searchNodes (query: 'MVP')",
+        "createNode (type: accomplishment, label: 'MVP Progress')",
+        "createEdge (linking to relevant goal)"
+      ]
+    },
+    {
+      "scenario": "User expresses emotion",
+      "test_input": "I'm feeling overwhelmed with all these tasks",
+      "expected_mcp_calls": [
+        "createNode (type: emotion, label: 'Overwhelmed')",
+        "getTemporalContext (to find patterns)",
+        "findRelatedInsights (to offer relevant advice)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "conversationId": "conv_2025_01_09_test",
+  "userId": "907f679d-b36a-42a8-8b60-ce0d9cc11726",
+  "agentId": "agent_elevenlabs_123",
+  "timestamp": "2025-01-09T10:30:00Z",
+  "transcript": "I've been thinking about my goals for this year. I really want to learn Spanish because I'm planning a trip to Barcelona in December. Also, I've been asked to give a presentation at work next quarter, so I need to improve my public speaking skills. I'm feeling excited but also a bit nervous about these challenges.",
+  "analysis": {
+    "summary": "User discussed two main goals: learning Spanish for travel and improving public speaking for work presentation.",
+    "goals": [
+      {
+        "id": "goal_spanish_2025",
+        "text": "Learn conversational Spanish for Barcelona trip",
+        "title": "Spanish Language Goal",
+        "timescale": "12 months",
+        "deadline": "December 2025",
+        "category": "personal_development"
+      },
+      {
+        "id": "goal_speaking_2025",
+        "text": "Improve public speaking skills for quarterly presentation",
+        "title": "Public Speaking Mastery",
+        "timescale": "3 months",
+        "deadline": "Q2 2025",
+        "category": "professional_development"
+      }
+    ],
+    "insights": [
+      {
+        "id": "insight_001",
+        "text": "Language learning and communication skills are interconnected - both involve expressing ideas clearly",
+        "title": "Communication Synergy",
+        "relatedGoals": ["goal_spanish_2025", "goal_speaking_2025"]
+      },
+      {
+        "id": "insight_002",
+        "text": "Having specific deadlines (Barcelona trip, work presentation) creates natural motivation",
+        "title": "Deadline-Driven Motivation"
+      }
+    ],
+    "emotions": [
+      {
+        "emotion": "excited",
+        "intensity": 0.8,
+        "context": "About learning opportunities"
+      },
+      {
+        "emotion": "nervous",
+        "intensity": 0.5,
+        "context": "About upcoming challenges"
+      }
+    ],
+    "actionItems": [
+      "Research Spanish learning apps",
+      "Find local Spanish conversation groups",
+      "Join Toastmasters or similar speaking group",
+      "Practice presentation in front of mirror daily"
+    ]
+  },
+  "metadata": {
+    "duration": 180,
+    "wordCount": 245,
+    "languageCode": "en-US",
+    "confidenceScore": 0.92
+  }
+}

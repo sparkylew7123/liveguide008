@@ -1,0 +1,82 @@
+{
+  "type": "webhook",
+  "name": "Lgwebhook01",
+  "description": "webhook to send and retrieve user goal details",
+  "api_schema": {
+    "url": "https://n8n-hatchdev.fly.dev/webhook/c389dc70-b6c9-4cd7-9520-bebe372c800a",
+    "method": "POST",
+    "path_params_schema": [],
+    "query_params_schema": [],
+    "request_body_schema": {
+      "id": "body",
+      "type": "object",
+      "description": "Webhook payload containing conversation data and analysis results to be sent to N8N for processing and graph node creation",
+      "required": true,
+      "properties": [
+        {
+          "id": "mode",
+          "type": "string",
+          "description": "Processing mode",
+          "dynamic_variable": "",
+          "constant_value": "direct",
+          "value_type": "constant",
+          "required": true
+        },
+        {
+          "id": "conversationId",
+          "type": "string",
+          "description": "Conversation ID",
+          "dynamic_variable": "conversation_id",
+          "constant_value": "",
+          "value_type": "dynamic_variable",
+          "required": true
+        },
+        {
+          "id": "userId",
+          "type": "string",
+          "description": "User ID",
+          "dynamic_variable": "userId",
+          "constant_value": "",
+          "value_type": "dynamic_variable",
+          "required": false
+        },
+        {
+          "id": "transcript",
+          "type": "string",
+          "description": "Transcript",
+          "dynamic_variable": "transcript",
+          "constant_value": "",
+          "value_type": "dynamic_variable",
+          "required": true
+        },
+        {
+          "id": "analysis",
+          "type": "string",
+          "description": "Extract and format the conversation analysis as a JSON object containing: 1) 'summary': a brief overview of the conversation, 2) 'goals': an array of user goals mentioned, each with 'text' (the goal description), 'title' (a short title), and 'timescale' (timeframe if mentioned), 3) 'insights': an array of key insights or learnings, each with 'text' (the insight) and 'title' (a short title), 4) 'emotions': an array of emotional moments, each with 'emotion' (the emotion type) and 'context' (what triggered it), and 5) 'timescales': an array of any timeframes mentioned. Format as valid JSON with these exact field names.",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "value_type": "llm_prompt",
+          "required": false
+        }
+      ],
+      "dynamic_variable": "",
+      "constant_value": "",
+      "value_type": "llm_prompt"
+    },
+    "request_headers": [],
+    "auth_connection": null
+  },
+  "assignments": [],
+  "disable_interruptions": false,
+  "response_timeout_secs": 20,
+  "force_pre_tool_speech": "auto",
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {
+      "conversation_id": "",
+      "userId": "",
+      "userName": "",
+      "sessionType": "",
+      "transcript": ""
+    }
+  }
+}

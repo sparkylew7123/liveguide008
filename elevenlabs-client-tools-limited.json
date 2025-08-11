@@ -1,0 +1,161 @@
+{
+  "client_tools": [
+    {
+      "name": "check_recommendation_eligibility",
+      "description": "Validates if an agent recommendation is appropriate at this moment",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "trigger_event": {
+            "type": "string",
+            "enum": ["onboarding_complete", "new_goal_created", "goal_status_changed", "context_shift_detected"],
+            "description": "The event that triggered the recommendation check"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "User identifier for cooldown checking"
+          },
+          "current_context": {
+            "type": "object",
+            "properties": {
+              "primary_goals": {"type": "array", "items": {"type": "string"}},
+              "current_phase": {"type": "string", "enum": ["onboarding", "exploration", "focused_work", "review"]},
+              "last_recommendation_timestamp": {"type": "string", "format": "date-time"},
+              "conversation_depth": {"type": "integer", "minimum": 1}
+            }
+          }
+        },
+        "required": ["trigger_event", "user_id", "current_context"]
+      }
+    },
+    {
+      "name": "recommend_specialist_agent",
+      "description": "Recommends a specialist agent based on user context and goals",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "recommendation_context": {
+            "type": "object",
+            "properties": {
+              "user_goals": {"type": "array", "items": {"type": "string"}},
+              "conversation_insights": {"type": "array", "items": {"type": "string"}},
+              "emotional_state": {"type": "string"},
+              "complexity_level": {"type": "string", "enum": ["basic", "intermediate", "advanced"]}
+            },
+            "required": ["user_goals"]
+          },
+          "eligibility_validated": {
+            "type": "boolean",
+            "description": "Must be true - indicates eligibility was checked first"
+          }
+        },
+        "required": ["recommendation_context", "eligibility_validated"]
+      }
+    },
+    {
+      "name": "prepare_handoff_context",
+      "description": "Prepares comprehensive context for seamless agent handoff",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target_agent_id": {"type": "string"},
+          "handoff_reason": {"type": "string"},
+          "context_package": {
+            "type": "object",
+            "properties": {
+              "conversation_summary": {"type": "string"},
+              "key_insights": {"type": "array", "items": {"type": "string"}},
+              "goals_status": {"type": "object"},
+              "emotional_journey": {"type": "array", "items": {"type": "object"}},
+              "next_steps": {"type": "array", "items": {"type": "string"}},
+              "conversation_metadata": {
+                "type": "object",
+                "properties": {
+                  "duration_minutes": {"type": "integer"},
+                  "topics_covered": {"type": "array", "items": {"type": "string"}},
+                  "breakthrough_moments": {"type": "array", "items": {"type": "string"}}
+                }
+              }
+            },
+            "required": ["conversation_summary", "goals_status"]
+          }
+        },
+        "required": ["target_agent_id", "handoff_reason", "context_package"]
+      }
+    },
+    {
+      "name": "update_user_interface",
+      "description": "Sends real-time UI updates during conversations",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "update_type": {
+            "type": "string",
+            "enum": ["goal_progress", "insight_created", "recommendation_available", "handoff_ready"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "message": {"type": "string"},
+              "action_required": {"type": "boolean"},
+              "ui_component": {"type": "string"},
+              "priority": {"type": "string", "enum": ["low", "medium", "high"]}
+            }
+          },
+          "session_id": {"type": "string"}
+        },
+        "required": ["update_type", "data", "session_id"]
+      }
+    },
+    {
+      "name": "log_tool_invocation",
+      "description": "Logs tool usage for analytics and debugging",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tool_name": {"type": "string"},
+          "parameters_hash": {"type": "string"},
+          "result_status": {"type": "string", "enum": ["success", "error", "throttled"]},
+          "execution_time_ms": {"type": "integer"},
+          "user_context": {
+            "type": "object",
+            "properties": {
+              "user_id": {"type": "string"},
+              "session_id": {"type": "string"},
+              "conversation_id": {"type": "string"}
+            }
+          }
+        },
+        "required": ["tool_name", "result_status", "user_context"]
+      }
+    }
+  ],
+  "tool_restrictions": {
+    "recommendation_cooldown_minutes": 30,
+    "max_recommendations_per_session": 2,
+    "max_recommendations_per_day": 5,
+    "required_conversation_depth": 10,
+    "allowed_recommendation_triggers": [
+      "onboarding_complete",
+      "new_goal_created", 
+      "goal_status_changed",
+      "context_shift_detected"
+    ],
+    "handoff_validation_required": true,
+    "ui_update_rate_limit_seconds": 5
+  },
+  "fallback_behaviors": {
+    "recommendation_blocked": {
+      "action": "continue_conversation",
+      "message": "I'll focus on helping you with your current goals for now."
+    },
+    "handoff_failed": {
+      "action": "graceful_continuation",
+      "message": "Let me continue supporting you while we resolve the connection."
+    },
+    "tool_error": {
+      "action": "log_and_continue",
+      "fallback_response": "I'll make note of that and we can continue our conversation."
+    }
+  }
+}

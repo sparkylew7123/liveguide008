@@ -3,9 +3,24 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Force redirect from 127.0.0.1 to localhost
+  const url = request.nextUrl.clone()
+  if (url.hostname === '127.0.0.1') {
+    url.hostname = 'localhost'
+    return NextResponse.redirect(url)
+  }
+  
   let supabaseResponse = NextResponse.next({
     request,
   })
+
+  // Add CSP headers for Plasmic Studio in development
+  if (process.env.NODE_ENV === 'development') {
+    supabaseResponse.headers.set(
+      'Content-Security-Policy',
+      "frame-ancestors 'self' https://studio.plasmic.app https://*.plasmic.app"
+    );
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

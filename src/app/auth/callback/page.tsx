@@ -9,11 +9,17 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleCallback = async () => {
+      // First, ensure we're on localhost, not 127.0.0.1
+      if (window.location.hostname === '127.0.0.1') {
+        const newUrl = window.location.href.replace('127.0.0.1', 'localhost')
+        window.location.href = newUrl
+        return
+      }
+      
       const supabase = createClient()
       
-      // Get the code from the URL
+      // Get error from URL if present
       const params = new URLSearchParams(window.location.search)
-      const code = params.get('code')
       const error = params.get('error')
       const errorDescription = params.get('error_description')
       
@@ -23,64 +29,41 @@ export default function AuthCallbackPage() {
         return
       }
       
-      if (code) {
-        try {
-          // Exchange code for session
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-          
-          if (exchangeError) {
-            console.error('Code exchange error:', exchangeError)
-            
-            // Check if we actually have a session despite the error (PKCE workaround)
-            const { data: { session } } = await supabase.auth.getSession()
-            
-            if (session) {
-              console.log('Session exists despite PKCE error, redirecting to:', params.get('next') || '/lobby')
-              const next = params.get('next') || '/lobby'
-              // Small delay to ensure session is properly established
-              setTimeout(() => {
-                router.push(next)
-              }, 100)
-              return
-            }
-            
-            router.push(`/login?error=${encodeURIComponent(exchangeError.message)}`)
-            return
-          }
-          
-          // Check if we have a session
-          const { data: { session } } = await supabase.auth.getSession()
-          
-          if (session) {
-            // Successfully authenticated, redirect to lobby or requested page
-            const next = params.get('next') || '/lobby'
-            console.log('Successfully authenticated, redirecting to:', next)
-            // Small delay to ensure session is properly established
-            setTimeout(() => {
-              router.push(next)
-            }, 100)
-          } else {
-            router.push('/login?error=Failed to establish session')
-          }
-        } catch (error) {
-          console.error('Auth callback error:', error)
-          
-          // Try to get session as a fallback
-          const { data: { session } } = await supabase.auth.getSession()
-          
-          if (session) {
-            console.log('Session exists despite error, redirecting to:', params.get('next') || '/lobby')
-            const next = params.get('next') || '/lobby'
-            // Small delay to ensure session is properly established
-            setTimeout(() => {
-              router.push(next)
-            }, 100)
-          } else {
-            router.push(`/login?error=${encodeURIComponent(error?.message || 'Authentication failed')}`)
-          }
+      try {
+        // Let Supabase handle the callback automatically
+        // The client is configured with detectSessionInUrl: true
+        // which will automatically exchange the code for a session
+        
+        // Wait a moment for Supabase to process the callback
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Check if we have a session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError)
+          router.push(`/login?error=${encodeURIComponent(sessionError.message)}`)
+          return
         }
-      } else {
-        router.push('/login?error=No authorization code received')
+        
+        if (session) {
+          // Successfully authenticated, redirect to lobby or requested page
+          const next = params.get('next') || '/lobby'
+          console.log('Successfully authenticated, redirecting to:', next)
+          
+          // Ensure we redirect to localhost, not 127.0.0.1
+          if (window.location.hostname === '127.0.0.1') {
+            window.location.href = `http://localhost:3000${next}`
+          } else {
+            router.push(next)
+          }
+        } else {
+          // No session found, redirect to login
+          router.push('/login?error=Failed to establish session')
+        }
+      } catch (error) {
+        console.error('Auth callback error:', error)
+        router.push(`/login?error=${encodeURIComponent(error?.message || 'Authentication failed')}`)
       }
     }
     

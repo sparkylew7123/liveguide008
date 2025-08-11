@@ -1,0 +1,37 @@
+# LightRAG Core
+lightrag>=0.1.0
+
+# LLM Providers
+openai>=1.0.0
+anthropic>=0.15.0
+
+# Vector Stores
+chromadb>=0.4.0
+pgvector>=0.2.0
+redis>=5.0.0
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn>=0.24.0
+python-multipart>=0.0.6
+
+# Database
+asyncpg>=0.29.0
+sqlalchemy>=2.0.0
+
+# Utils
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+httpx>=0.25.0
+aiofiles>=23.0.0
+
+# Document Processing
+pypdf>=3.0.0
+python-docx>=1.0.0
+beautifulsoup4>=4.12.0
+markdown>=3.5.0
+
+# Embeddings
+tiktoken>=0.5.0
+numpy>=1.24.0
+scikit-learn>=1.3.0

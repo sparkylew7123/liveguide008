@@ -1,0 +1,464 @@
+{
+  "name": "My workflow 6",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.body.mode }}",
+              "rightValue": "direct",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "id": "2c8adae2-30a5-4e99-8a62-df8dc3675832"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        656,
+        128
+      ],
+      "id": "cb10ae47-e7b9-42df-826b-284f7ea6985d",
+      "name": "Route by Mode"
+    },
+    {
+      "parameters": {
+        "jsCode": "// BRANCH 1: Direct tool execution\\n// Parse ElevenLabs webhook data and prepare tool calls\\nconst data = $input.first().json;\\nconst { conversationId, userId, transcript, analysis } = data.body || data;\\n\\nconst toolCalls = [];\\nconst userIdToUse = userId || '907f679d-b36a-42a8-8b60-ce0d9cc11726';\\n\\n// Create session node\\ntoolCalls.push({\\n  tool: 'create_node',\\n  params: {\\n    instructions: `Create session node for conversation ${conversationId}`,\\n    type: 'session',\\n    label: `Session ${new Date().toISOString()}`,\\n    description: transcript || 'Conversation session',\\n    userId: userIdToUse\\n  }\\n});\\n\\n// Create goal nodes from analysis\\nif (analysis?.goals) {\\n  analysis.goals.forEach(goal => {\\n    toolCalls.push({\\n      tool: 'create_node',\\n      params: {\\n        instructions: `Create goal: ${goal.text}`,\\n        type: 'goal',\\n        label: goal.title || goal.text.substring(0, 50),\\n        description: goal.text,\\n        userId: userIdToUse,\\n        properties: {\\n          timescale: goal.timescale,\\n          status: 'pending'\\n        }\\n      }\\n    });\\n  });\\n}\\n\\n// Create insight nodes\\nif (analysis?.insights) {\\n  analysis.insights.forEach(insight => {\\n    toolCalls.push({\\n      tool: 'create_node',\\n      params: {\\n        instructions: `Create insight: ${insight.text}`,\\n        type: 'skill',\\n        label: insight.title || insight.text.substring(0, 50),\\n        description: insight.text,\\n        userId: userIdToUse\\n      }\\n    });\\n  });\\n}\\n\\n// Return items in n8n format\\nconst items = [];\\nfor (let i = 0; i < toolCalls.length; i++) {\\n  items.push({ json: toolCalls[i] });\\n}\\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        64
+      ],
+      "id": "623a1301-b51a-4572-9c2e-32c96af219ab",
+      "name": "Parse for Direct Tools"
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1088,
+        64
+      ],
+      "id": "5cf9c288-3915-41fb-ba53-2e124524b92c",
+      "name": "Process Each Tool"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"jsonrpc\": \"2.0\",\n  \"id\": {{ $json.id || Date.now() }},\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"{{ $json.tool || 'create_node' }}\",\n    \"arguments\": {{ JSON.stringify($json.params || {}) }}\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1280,
+        64
+      ],
+      "id": "179e5498-433d-49d7-915d-fd3dbb8cd343",
+      "name": "Call MCP Tool"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate direct tool call results\nconst results = [];\nfor (const item of $input.all()) {\n  const json = item.json;\n  if (json.result) {\n    results.push({\n      tool: json.tool || 'unknown',\n      success: true,\n      data: json.result\n    });\n  } else if (json.error) {\n    results.push({\n      tool: json.tool || 'unknown',\n      success: false,\n      error: json.error\n    });\n  }\n}\n\nreturn {\n  mode: 'direct',\n  conversationId: $('Webhook').first().json.body.conversationId,\n  timestamp: new Date().toISOString(),\n  toolsExecuted: results.length,\n  results: results\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        64
+      ],
+      "id": "2c24275d-cff4-4f36-84ac-915ecf9f4cd8",
+      "name": "Aggregate Direct Results"
+    },
+    {
+      "parameters": {
+        "jsCode": "// BRANCH 2: AI Agent processing\\n// Prepare prompt for AI agent\\nconst data = $input.first().json;\\nconst { transcript, analysis, userId } = data.body;\\n\\nlet prompt = transcript || '';\\n\\nif (analysis?.summary) {\\n  prompt = analysis.summary + '\\\\n\\\\n' + prompt;\\n}\\n\\nif (analysis?.goals && analysis.goals.length > 0) {\\n  prompt += '\\\\n\\\\nGoals mentioned: ' + analysis.goals.map(g => g.text).join(', ');\\n}\\n\\nif (analysis?.insights && analysis.insights.length > 0) {\\n  prompt += '\\\\n\\\\nInsights: ' + analysis.insights.map(i => i.text).join(', ');\\n}\\n\\nreturn {\\n  chatInput: prompt,\\n  userId: userId || '907f679d-b36a-42a8-8b60-ce0d9cc11726',\\n  originalData: data\\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        304
+      ],
+      "id": "ff01552b-abc8-4a39-b3ad-417fbd34d596",
+      "name": "Prepare AI Prompt"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a LiveGuide assistant that processes conversation data and manages the knowledge graph.\n\nAvailable MCP tools:\n- get_user_graph: Retrieve complete user graph\n- search_nodes: Search for existing nodes before creating new ones\n- create_node: Create new nodes (types: goal, skill, emotion, session, accomplishment)\n- create_edge: Create relationships between nodes\n- update_node: Update existing nodes\n- get_recent_nodes: Get recent activity\n- update_goal_progress: Update goal status and progress\n- get_temporal_context: Get time-based data\n\nIMPORTANT:\n1. Always search before creating to avoid duplicates\n2. Always include userId in tool arguments\n3. Create edges to connect related concepts\n4. Return a summary of actions taken"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1072,
+        272
+      ],
+      "id": "be44641d-7985-4b16-9848-abb9c2b0802a",
+      "name": "LiveGuide AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format AI Agent response\n  const agentResponse = $input.first().json;\n\n  // Try to get conversationId from the input chain\n  const conversationId = agentResponse.conversationId ||\n                        $input.all()[0].json.conversationId ||\n                        'unknown';\n\n  return {\n    mode: 'ai_agent',\n    conversationId: conversationId,\n    timestamp: new Date().toISOString(),\n    agentMessage: agentResponse.output || agentResponse.text || agentResponse,\n    toolsUsed: agentResponse.toolCalls || [],\n    success: true\n  };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        272
+      ],
+      "id": "5ffa0d7b-016c-4a69-8e63-b76cff6931b0",
+      "name": "Format Agent Response"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1680,
+        176
+      ],
+      "id": "da049b96-0e80-48f4-9b7b-471f37ff1276",
+      "name": "Merge Results"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all results into final response\nconst items = $input.all();\nlet directResults = null;\nlet agentResults = null;\n\nitems.forEach(item => {\n  if (item.json.mode === 'direct') {\n    directResults = item.json;\n  } else if (item.json.mode === 'ai_agent') {\n    agentResults = item.json;\n  }\n});\n\n// Determine which results we have\nif (directResults && agentResults) {\n  // Both branches executed\n  return {\n    success: true,\n    mode: 'hybrid',\n    conversationId: directResults.conversationId || agentResults.conversationId,\n    timestamp: new Date().toISOString(),\n    direct: directResults,\n    agent: agentResults\n  };\n} else if (directResults) {\n  // Only direct processing\n  return directResults;\n} else if (agentResults) {\n  // Only agent processing\n  return agentResults;\n} else {\n  // No results\n  return {\n    success: false,\n    error: 'No processing results available',\n    timestamp: new Date().toISOString()\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1888,
+        176
+      ],
+      "id": "badbeaa0-f98d-4f9e-9e71-986893df486c",
+      "name": "Format Final Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        176
+      ],
+      "id": "df2b09c8-2393-45fc-af2c-63d41afd2f09",
+      "name": "Send Response"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": {{ Date.now() }},\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"{{ $json.tool || $json.toolName || 'get_user_graph' }}\",\n    \"arguments\": {{ JSON.stringify($json.arguments || $json.params || {instructions: 'Process data', userId: '907f679d-b36a-42a8-8b60-ce0d9cc11726'}) }}\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        464
+      ],
+      "id": "c877c31f-12e8-4748-a0db-323e497d170b",
+      "name": "MCP Tool Wrapper"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        480
+      ],
+      "id": "c6faae59-70ed-49b0-b381-705f1437c9cf",
+      "name": "OpenAI Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q88zZ00G6VjBuWRJ",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c389dc70-b6c9-4cd7-9520-bebe372c800a",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        128
+      ],
+      "id": "c9c0fc74-8e1c-427d-9538-6151d50a50a9",
+      "name": "Webhook",
+      "webhookId": "c389dc70-b6c9-4cd7-9520-bebe372c800a"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.body.transcript }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        592,
+        368
+      ],
+      "id": "0cb22855-c04f-4fca-b191-a490abd4ffef",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q88zZ00G6VjBuWRJ",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Route by Mode": {
+      "main": [
+        [
+          {
+            "node": "Parse for Direct Tools",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse for Direct Tools": {
+      "main": [
+        [
+          {
+            "node": "Process Each Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Each Tool": {
+      "main": [
+        [
+          {
+            "node": "Call MCP Tool",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aggregate Direct Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call MCP Tool": {
+      "main": [
+        [
+          {
+            "node": "Process Each Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Direct Results": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare AI Prompt": {
+      "main": [
+        [
+          {
+            "node": "LiveGuide AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LiveGuide AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Agent Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Agent Response": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Format Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Final Response": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Tool Wrapper": {
+      "ai_tool": [
+        [
+          {
+            "node": "LiveGuide AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LiveGuide AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Route by Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Prepare AI Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3a9fa2e9-1038-4e0d-993c-05f87b500c36",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36b7b2529f091f447a21f42c141128b397e13ee1cddb031788c149fe471e87e"
+  },
+  "id": "suoR7ehAtRcxIfKb",
+  "tags": []
+}
