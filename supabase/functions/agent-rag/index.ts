@@ -25,10 +25,12 @@ interface RAGResponse {
 }
 
 interface UserContextSummary {
-  active_goals: any;
-  recent_insights: any;
-  context_summary: string;
-  total_nodes: number;
+  user_id: string;
+  goals: any[];
+  insights: any[];
+  recent_sessions: any[];
+  emotional_states: any[];
+  summary_generated_at: string;
 }
 
 interface InsightResult {
@@ -141,20 +143,21 @@ Deno.serve(async (req) => {
     // Step 1: Get user context summary
     const { data: contextData, error: contextError } = await supabase
       .rpc('get_user_context_summary', {
-        p_user_id: userId,
-        days_back: 30
-      }) as { data: UserContextSummary[] | null; error: any };
+        p_user_id: userId
+      }) as { data: UserContextSummary | null; error: any };
 
     if (contextError) {
       console.error('Error fetching user context:', contextError);
       throw new Error('Failed to fetch user context');
     }
 
-    const userContext = contextData?.[0] || {
-      active_goals: [],
-      recent_insights: [],
-      context_summary: 'No recent activity found.',
-      total_nodes: 0
+    const userContext = contextData || {
+      user_id: userId,
+      goals: [],
+      insights: [],
+      recent_sessions: [],
+      emotional_states: [],
+      summary_generated_at: new Date().toISOString()
     };
 
     // Step 2: Semantic search for relevant insights
@@ -197,7 +200,7 @@ Deno.serve(async (req) => {
 
     // Step 4: Find similar patterns if enabled
     let similarPatterns: SimilarPattern | null = null;
-    if (includeSimilarPatterns && userContext.active_goals.length > 0) {
+    if (includeSimilarPatterns && userContext.goals.length > 0) {
       const { data: patternData, error: patternError } = await supabase
         .rpc('find_similar_goal_patterns', {
           target_embedding: `[${queryEmbedding.join(',')}]`,
@@ -215,12 +218,15 @@ Deno.serve(async (req) => {
     let contextSections: string[] = [];
     
     // User summary
-    contextSections.push(`USER CONTEXT:\n${userContext.context_summary}\n`);
+    const contextSummary = userContext.goals.length > 0 || userContext.insights.length > 0 
+      ? `User has ${userContext.goals.length} goals and ${userContext.insights.length} insights recorded.`
+      : 'No recent activity found.';
+    contextSections.push(`USER CONTEXT:\n${contextSummary}\n`);
 
     // Active goals
-    if (userContext.active_goals && userContext.active_goals.length > 0) {
+    if (userContext.goals && userContext.goals.length > 0) {
       contextSections.push('ACTIVE GOALS:');
-      userContext.active_goals.slice(0, 8).forEach((goal: any, idx: number) => {
+      userContext.goals.slice(0, 8).forEach((goal: any, idx: number) => {
         contextSections.push(
           `${idx + 1}. ${goal.label}${goal.description ? ': ' + goal.description.substring(0, 200) : ''}`
         );
@@ -269,8 +275,8 @@ Deno.serve(async (req) => {
 
     const response: RAGResponse = {
       context: finalContext,
-      userSummary: userContext.context_summary,
-      relevantGoals: userContext.active_goals || [],
+      userSummary: contextSummary,
+      relevantGoals: userContext.goals || [],
       relevantInsights: relevantInsights,
       knowledgeChunks: knowledgeChunks,
       similarPatterns: similarPatterns,
