@@ -99,10 +99,14 @@ export function useRAGContext(options: UseRAGContextOptions) {
 
     console.log('RAG: Fetching fresh context for query:', query.substring(0, 50));
 
+    // Get the user's session token for authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    
     const response = await fetch('/api/functions/agent-rag', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
       },
       body: JSON.stringify({
         userId,
@@ -135,7 +139,7 @@ export function useRAGContext(options: UseRAGContextOptions) {
     }
 
     return data;
-  }, [userId, agentId, conversationId, maxTokens, includeKnowledgeBase, includeSimilarPatterns, generateCacheKey, isCacheValid]);
+  }, [userId, agentId, conversationId, maxTokens, includeKnowledgeBase, includeSimilarPatterns, generateCacheKey, isCacheValid, supabase]);
 
   // Initialize RAG context with user overview
   const initializeContext = useCallback(async () => {
