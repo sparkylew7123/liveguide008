@@ -44,10 +44,22 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Agent RAG function error:', error);
-      return NextResponse.json(
-        { error: 'RAG context generation failed', details: error.message },
-        { status: 500 }
-      );
+      
+      // Provide a fallback response when edge function fails
+      const fallbackResponse = {
+        context: "Welcome to LiveGuide! I'm Maya, your AI coach. While I'm having trouble accessing your full context right now, I'm here to help you explore your goals and insights. What would you like to work on today?",
+        userSummary: "New user or context temporarily unavailable",
+        relevantGoals: [],
+        relevantInsights: [],
+        knowledgeChunks: [],
+        similarPatterns: null,
+        tokenCount: 100,
+        truncated: false
+      };
+      
+      // Log the error but return a usable response
+      console.error('Falling back to default context due to error:', error.message);
+      return NextResponse.json(fallbackResponse);
     }
 
     // Return the RAG context data
@@ -55,10 +67,20 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('API route error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    
+    // Even on complete failure, return a basic response
+    const fallbackResponse = {
+      context: "Welcome to LiveGuide! I'm Maya, your AI coach. I'm here to help you articulate and achieve your goals. What brings you here today?",
+      userSummary: "Unable to load user context",
+      relevantGoals: [],
+      relevantInsights: [],
+      knowledgeChunks: [],
+      similarPatterns: null,
+      tokenCount: 50,
+      truncated: false
+    };
+    
+    return NextResponse.json(fallbackResponse);
   }
 }
 
