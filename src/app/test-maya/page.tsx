@@ -267,25 +267,25 @@ export default function TestMayaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Maya Integration Test
           </h1>
-          <p className="text-gray-600">Test the ElevenLabs Agent → N8N → LiveGuide integration</p>
+          <p className="text-gray-300">Test the ElevenLabs Agent → N8N → LiveGuide integration</p>
         </div>
 
         {/* Authentication Status Alert */}
         {!user && (
-          <Alert className="bg-yellow-50 border-yellow-200">
-            <ExclamationTriangleIcon className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-800">
+          <Alert className="bg-yellow-900/20 border-yellow-600/30">
+            <ExclamationTriangleIcon className="h-4 w-4 text-yellow-400" />
+            <AlertDescription className="text-yellow-200">
               You're not authenticated. Maya can still chat with you, but your goals and insights won't be saved.
               <Button 
                 variant="link" 
-                className="ml-2 p-0 h-auto text-yellow-800 underline"
+                className="ml-2 p-0 h-auto text-yellow-300 underline"
                 onClick={() => window.location.href = '/auth/login'}
               >
                 Login to save your progress
@@ -296,7 +296,7 @@ export default function TestMayaPage() {
 
         {/* Status Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+          <Card className="bg-slate-800/50 border-slate-700 text-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Agent Status</CardTitle>
             </CardHeader>
@@ -312,7 +312,7 @@ export default function TestMayaPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-slate-800/50 border-slate-700 text-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Webhook Status</CardTitle>
             </CardHeader>
@@ -339,7 +339,7 @@ export default function TestMayaPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-slate-800/50 border-slate-700 text-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">User Details</CardTitle>
             </CardHeader>
@@ -403,7 +403,7 @@ export default function TestMayaPage() {
 
           {/* Voice Chat Tab */}
           <TabsContent value="voice">
-            <Card>
+            <Card className="bg-slate-800/50 border-slate-700 text-white">
               <CardHeader>
                 <CardTitle>Voice Conversation with Maya</CardTitle>
                 <CardDescription>
@@ -415,7 +415,7 @@ export default function TestMayaPage() {
                 <div className="flex flex-col items-center space-y-6">
                   {/* Avatar */}
                   <div className="relative">
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                       <span className="text-white text-4xl font-bold">M</span>
                     </div>
                     {callStatus === 'connected' && (
@@ -438,7 +438,7 @@ export default function TestMayaPage() {
                   
                   {/* Conversation Messages */}
                   {conversationMessages.length > 0 && (
-                    <div className="bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
+                    <div className="bg-slate-900/50 rounded-lg p-4 max-h-40 overflow-y-auto border border-slate-700">
                       {conversationMessages.slice(-5).map((message, index) => (
                         <div key={index} className="text-sm text-gray-700 mb-2">
                           {message}
@@ -453,7 +453,7 @@ export default function TestMayaPage() {
                       <Button
                         size="lg"
                         onClick={startCall}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                       >
                         <PhoneIcon className="w-5 h-5 mr-2" />
                         Start Call
@@ -480,7 +480,7 @@ export default function TestMayaPage() {
                 </div>
 
                 {/* Instructions */}
-                <div className="bg-blue-50 rounded-lg p-4">
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-600/30">
                   <h4 className="font-medium mb-2 flex items-center">
                     <ExclamationTriangleIcon className="w-4 h-4 mr-2 text-blue-600" />
                     How to test REAL voice conversation:
@@ -493,10 +493,10 @@ export default function TestMayaPage() {
                     <li>5. End call when done - webhook will process data</li>
                     <li>6. Check LiveGuide graph for new nodes</li>
                   </ol>
-                  <div className="mt-3 p-2 bg-green-50 rounded text-xs text-green-700">
+                  <div className="mt-3 p-2 bg-green-900/30 rounded text-xs text-green-400 border border-green-600/30">
                     ✅ This uses the ACTUAL ElevenLabs voice API - you will hear Maya speak!
                   </div>
-                  <div className="mt-3 p-2 bg-gray-100 rounded">
+                  <div className="mt-3 p-2 bg-slate-900/50 rounded border border-slate-700">
                     <p className="text-xs font-semibold mb-1">Data being sent to ElevenLabs:</p>
                     <ul className="text-xs space-y-1 text-gray-600">
                       <li>• <span className="font-mono">user_id (URL param):</span> {userId}</li>
@@ -512,7 +512,7 @@ export default function TestMayaPage() {
                   </div>
                   
                   {/* RAG Context Status */}
-                  <div className="mt-3 p-2 bg-blue-50 rounded">
+                  <div className="mt-3 p-2 bg-blue-900/20 rounded border border-blue-600/30">
                     <h4 className="font-medium mb-2 flex items-center text-xs">
                       <InformationCircleIcon className="w-3 h-3 mr-1 text-blue-600" />
                       RAG Context Integration:
@@ -556,7 +556,7 @@ export default function TestMayaPage() {
 
           {/* Webhook Test Tab */}
           <TabsContent value="webhook">
-            <Card>
+            <Card className="bg-slate-800/50 border-slate-700 text-white">
               <CardHeader>
                 <CardTitle>Direct Webhook Testing</CardTitle>
                 <CardDescription>
@@ -624,7 +624,7 @@ export default function TestMayaPage() {
 
           {/* Embed Widget Tab */}
           <TabsContent value="embed">
-            <Card>
+            <Card className="bg-slate-800/50 border-slate-700 text-white">
               <CardHeader>
                 <CardTitle>ElevenLabs Widget</CardTitle>
                 <CardDescription>
@@ -705,21 +705,21 @@ export default function TestMayaPage() {
                 <h4 className="font-medium mb-4">Real-Time Conversation</h4>
                 <div className="flex items-center justify-between space-x-2 overflow-x-auto py-4">
                   <div className="flex flex-col items-center min-w-[80px]">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+                    <div className="w-10 h-10 rounded-full bg-purple-900/30 flex items-center justify-center mb-2">
                       <MicrophoneIcon className="w-5 h-5 text-purple-600" />
                     </div>
                     <p className="text-xs text-center">Voice Input</p>
                   </div>
-                  <div className="flex-1 h-px bg-gray-300" />
+                  <div className="flex-1 h-px bg-slate-600" />
                   <div className="flex flex-col items-center min-w-[80px]">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mb-2">
+                    <div className="w-10 h-10 rounded-full bg-orange-900/30 flex items-center justify-center mb-2">
                       <span className="text-xs font-bold text-orange-600">RAG</span>
                     </div>
                     <p className="text-xs text-center">Context</p>
                   </div>
-                  <div className="flex-1 h-px bg-gray-300" />
+                  <div className="flex-1 h-px bg-slate-600" />
                   <div className="flex flex-col items-center min-w-[80px]">
-                    <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-2">
+                    <div className="w-10 h-10 rounded-full bg-pink-900/30 flex items-center justify-center mb-2">
                       <span className="text-sm font-bold text-pink-600">M</span>
                     </div>
                     <p className="text-xs text-center">Maya Agent</p>
@@ -732,21 +732,21 @@ export default function TestMayaPage() {
                 <h4 className="font-medium mb-4">Data Processing Pipeline</h4>
                 <div className="flex items-center justify-between space-x-2 overflow-x-auto py-4">
                   <div className="flex flex-col items-center min-w-[80px]">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                    <div className="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center mb-2">
                       <span className="text-xs font-bold text-blue-600">N8N</span>
                     </div>
                     <p className="text-xs text-center">Webhook</p>
                   </div>
-                  <div className="flex-1 h-px bg-gray-300" />
+                  <div className="flex-1 h-px bg-slate-600" />
                   <div className="flex flex-col items-center min-w-[80px]">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                    <div className="w-10 h-10 rounded-full bg-green-900/30 flex items-center justify-center mb-2">
                       <span className="text-xs font-bold text-green-600">MCP</span>
                     </div>
                     <p className="text-xs text-center">MCP Server</p>
                   </div>
-                  <div className="flex-1 h-px bg-gray-300" />
+                  <div className="flex-1 h-px bg-slate-600" />
                   <div className="flex flex-col items-center min-w-[80px]">
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mb-2">
+                    <div className="w-10 h-10 rounded-full bg-indigo-900/30 flex items-center justify-center mb-2">
                       <span className="text-xs font-bold text-indigo-600">DB</span>
                     </div>
                     <p className="text-xs text-center">Graph Nodes</p>
@@ -757,19 +757,19 @@ export default function TestMayaPage() {
             
             {/* RAG Features */}
             <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 p-3 rounded-lg border border-purple-600/30">
                 <h5 className="font-medium text-sm">Personal Context</h5>
                 <p className="text-xs text-gray-600 mt-1">User goals, insights, and progress</p>
               </div>
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 p-3 rounded-lg border border-blue-600/30">
                 <h5 className="font-medium text-sm">Knowledge Base</h5>
                 <p className="text-xs text-gray-600 mt-1">Relevant documents and resources</p>
               </div>
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 p-3 rounded-lg border border-green-600/30">
                 <h5 className="font-medium text-sm">Similar Patterns</h5>
                 <p className="text-xs text-gray-600 mt-1">Anonymous user success patterns</p>
               </div>
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-orange-900/20 to-red-900/20 p-3 rounded-lg border border-orange-600/30">
                 <h5 className="font-medium text-sm">Real-Time Updates</h5>
                 <p className="text-xs text-gray-600 mt-1">Dynamic context during conversation</p>
               </div>
