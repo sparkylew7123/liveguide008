@@ -2,14 +2,29 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const { agentId, userId, customCallId, metadata, ragContext } = await request.json();
+    const body = await request.json();
+    console.log('🔐 Received signed URL request:', {
+      ...body,
+      currentUrl: request.headers.get('referer'),
+      timestamp: new Date().toISOString()
+    });
+    const { agentId, userId, customCallId, metadata, ragContext } = body;
     
     const apiKey = process.env.ELEVENLABS_API_KEY;
     
     if (!apiKey) {
+      console.error('ELEVENLABS_API_KEY environment variable is not set');
       return NextResponse.json(
         { error: 'ElevenLabs API key not configured' },
         { status: 500 }
+      );
+    }
+    
+    if (!agentId) {
+      console.error('No agent ID provided');
+      return NextResponse.json(
+        { error: 'Agent ID is required' },
+        { status: 400 }
       );
     }
 
@@ -49,9 +64,14 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Failed to get signed URL:', error);
+      console.error('Failed to get signed URL from ElevenLabs:', {
+        status: response.status,
+        error: error,
+        requestUrl: url.toString(),
+        agentId: agentId
+      });
       return NextResponse.json(
-        { error: 'Failed to get signed URL' },
+        { error: `Failed to get signed URL: ${error}` },
         { status: response.status }
       );
     }

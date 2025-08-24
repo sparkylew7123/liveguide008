@@ -10,7 +10,7 @@ interface UserContextType {
   anonymousUser: AnonymousUserData | null
   isAnonymous: boolean
   isLoading: boolean
-  effectiveUserId: string
+  effectiveUserId: string // Always defined (authenticated or anonymous ID)
   signOut: () => Promise<void>
   migrateToAuthenticated: (authenticatedUser: User) => Promise<boolean>
   refreshAnonymousUser: () => void
@@ -94,7 +94,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const effectiveUserId = user?.id || anonymousUser?.id || ''
+  // Ensure effectiveUserId is always defined
+  const effectiveUserId = user?.id || anonymousUser?.id || anonymousUserService.getAnonymousId()
   const isAnonymous = !user && !!anonymousUser
 
   return (

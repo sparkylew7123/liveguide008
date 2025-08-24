@@ -85,24 +85,223 @@ class MCPServer {
 
   // Define available MCP tools - following ElevenLabs format with instructions parameter
   public getTools(): MCPTool[] {
-    // Full set of tools for LiveGuide knowledge graph
+    // Full set of tools for LiveGuide knowledge graph AND onboarding support
     return [
+      // Onboarding-specific tools for Maya conversations
+      {
+        name: "process_voice_command",
+        description: "Process natural language voice input during onboarding and return structured response",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userId: {
+              type: "string",
+              description: "User ID"
+            },
+            voiceInput: {
+              type: "string", 
+              description: "Raw voice input from user"
+            },
+            currentPhase: {
+              type: "string",
+              description: "Current onboarding phase (name_input, category_selection, goal_selection, timeline_selection, learning_preferences, agent_selection)",
+              enum: ["name_input", "category_selection", "goal_selection", "timeline_selection", "learning_preferences", "agent_selection", "completion"]
+            },
+            conversationContext: {
+              type: "object",
+              description: "Current conversation context and user profile data"
+            }
+          },
+          required: ["userId", "voiceInput"]
+        }
+      },
+      {
+        name: "get_onboarding_state",
+        description: "Get current onboarding progress and user selections",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userId: {
+              type: "string",
+              description: "User ID"
+            }
+          },
+          required: ["userId"]
+        }
+      },
+      {
+        name: "save_onboarding_progress",
+        description: "Save user selections from voice commands during onboarding",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userId: {
+              type: "string",
+              description: "User ID"
+            },
+            phase: {
+              type: "string",
+              description: "Current onboarding phase"
+            },
+            data: {
+              type: "object",
+              description: "Data to save (name, categories, goals, timeline, preferences, agent)"
+            }
+          },
+          required: ["userId", "phase", "data"]
+        }
+      },
+      {
+        name: "get_available_categories",
+        description: "Get available goal categories for selection during onboarding",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: {
+              type: "integer",
+              description: "Maximum number of categories to return",
+              default: 8
+            }
+          }
+        }
+      },
+      {
+        name: "search_goals_by_category",
+        description: "Search for goals within selected categories for goal selection phase",
+        inputSchema: {
+          type: "object",
+          properties: {
+            categories: {
+              type: "array",
+              items: { type: "string" },
+              description: "Selected category IDs"
+            },
+            searchQuery: {
+              type: "string",
+              description: "Optional search query to filter goals"
+            },
+            limit: {
+              type: "integer",
+              description: "Maximum number of goals to return",
+              default: 10
+            }
+          },
+          required: ["categories"]
+        }
+      },
+      {
+        name: "match_user_goal_to_preset",
+        description: "Match user's verbal goal description to preset goals in the system",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userPhrase: {
+              type: "string",
+              description: "User's verbal description of their goal"
+            },
+            category: {
+              type: "string",
+              description: "Optional category to search within"
+            },
+            confidenceThreshold: {
+              type: "number",
+              description: "Minimum confidence score for a match (0-1)",
+              default: 0.7
+            }
+          },
+          required: ["userPhrase"]
+        }
+      },
+      {
+        name: "confirm_goal_selection",
+        description: "Confirm user's goal selection with their preferred terminology",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userId: {
+              type: "string",
+              description: "User ID"
+            },
+            userPhrase: {
+              type: "string",
+              description: "Original user phrase"
+            },
+            matchedGoalId: {
+              type: "string",
+              description: "ID of matched preset goal (if any)"
+            },
+            userPreferredTerm: {
+              type: "string",
+              description: "User's preferred terminology for the goal"
+            },
+            confirmed: {
+              type: "boolean",
+              description: "Whether user confirmed the match"
+            },
+            timeline: {
+              type: "string",
+              description: "Goal timeline (short/medium/long)",
+              enum: ["short", "medium", "long"]
+            }
+          },
+          required: ["userId", "userPhrase", "userPreferredTerm", "confirmed"]
+        }
+      },
+      {
+        name: "get_matching_agents",
+        description: "Find coaching agents that match user's goals and preferences",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userId: {
+              type: "string",
+              description: "User ID"
+            },
+            trigger: {
+              type: "string",
+              description: "Matching trigger type",
+              enum: ["onboarding", "user_request"],
+              default: "onboarding"
+            },
+            maxAgents: {
+              type: "integer",
+              description: "Maximum number of agents to return",
+              default: 3
+            }
+          },
+          required: ["userId"]
+        }
+      },
+      {
+        name: "get_conversation_context",
+        description: "Get current conversation state and history for context-aware responses",
+        inputSchema: {
+          type: "object",
+          properties: {
+            userId: {
+              type: "string",
+              description: "User ID"
+            },
+            conversationId: {
+              type: "string",
+              description: "Conversation ID"
+            }
+          },
+          required: ["userId"]
+        }
+      },
       {
         name: "get_user_graph",
         description: "Retrieve the user's complete knowledge graph including all nodes and edges",
         inputSchema: {
           type: "object",
           properties: {
-            instructions: { 
-              type: "string",
-              description: "Instructions for running this tool. Any parameters that are not given a value will be guessed based on the instructions."
-            },
             userId: { 
               type: "string",
               description: "User ID to fetch graph for"
             }
           },
-          required: ["instructions"]
+          required: ["userId"]
         }
       },
       {
@@ -111,10 +310,6 @@ class MCPServer {
         inputSchema: {
           type: "object",
           properties: {
-            instructions: { 
-              type: "string",
-              description: "Instructions for running this tool. Any parameters that are not given a value will be guessed based on the instructions."
-            },
             query: { 
               type: "string",
               description: "Search query"
@@ -134,7 +329,7 @@ class MCPServer {
               default: 10
             }
           },
-          required: ["instructions"]
+          required: ["userId"]
         }
       },
       {
@@ -143,10 +338,6 @@ class MCPServer {
         inputSchema: {
           type: "object",
           properties: {
-            instructions: { 
-              type: "string",
-              description: "Instructions for running this tool. Any parameters that are not given a value will be guessed based on the instructions."
-            },
             type: { 
               type: "string",
               description: "Node type",
@@ -169,7 +360,7 @@ class MCPServer {
               description: "Additional properties"
             }
           },
-          required: ["instructions"]
+          required: ["userId"]
         }
       },
       {
@@ -178,10 +369,6 @@ class MCPServer {
         inputSchema: {
           type: "object",
           properties: {
-            instructions: { 
-              type: "string",
-              description: "Instructions for running this tool. Any parameters that are not given a value will be guessed based on the instructions."
-            },
             sourceId: { 
               type: "string",
               description: "Source node ID"
@@ -200,7 +387,7 @@ class MCPServer {
               description: "Additional edge properties"
             }
           },
-          required: ["instructions"]
+          required: ["userId"]
         }
       },
       {
@@ -209,10 +396,6 @@ class MCPServer {
         inputSchema: {
           type: "object",
           properties: {
-            instructions: { 
-              type: "string",
-              description: "Instructions for running this tool. Any parameters that are not given a value will be guessed based on the instructions."
-            },
             nodeId: { 
               type: "string",
               description: "Node ID to update"
@@ -228,7 +411,7 @@ class MCPServer {
               }
             }
           },
-          required: ["instructions"]
+          required: ["userId"]
         }
       },
       {
@@ -237,10 +420,6 @@ class MCPServer {
         inputSchema: {
           type: "object",
           properties: {
-            instructions: { 
-              type: "string",
-              description: "Instructions for running this tool. Any parameters that are not given a value will be guessed based on the instructions."
-            },
             userId: { 
               type: "string",
               description: "User ID"
@@ -256,7 +435,7 @@ class MCPServer {
               enum: ["goal", "skill", "emotion", "session", "accomplishment"]
             }
           },
-          required: ["instructions"]
+          required: ["userId"]
         }
       },
       {
@@ -265,10 +444,6 @@ class MCPServer {
         inputSchema: {
           type: "object",
           properties: {
-            instructions: { 
-              type: "string",
-              description: "Instructions for running this tool. Any parameters that are not given a value will be guessed based on the instructions."
-            },
             goalId: { 
               type: "string",
               description: "Goal node ID"
@@ -283,7 +458,7 @@ class MCPServer {
               description: "Progress percentage (0-100)"
             }
           },
-          required: ["instructions"]
+          required: ["userId"]
         }
       },
       {
@@ -292,10 +467,6 @@ class MCPServer {
         inputSchema: {
           type: "object",
           properties: {
-            instructions: { 
-              type: "string",
-              description: "Instructions for running this tool. Any parameters that are not given a value will be guessed based on the instructions."
-            },
             userId: { 
               type: "string",
               description: "User ID"
@@ -309,7 +480,7 @@ class MCPServer {
               description: "End date (ISO format)"
             }
           },
-          required: ["instructions"]
+          required: ["userId"]
         }
       }
     ];
@@ -852,7 +1023,803 @@ class MCPServer {
       console.error("Topic extraction error:", error);
       return { topics: [], createdNodes: [], error: error.message };
     }
-  }  // Helper method to queue embedding generation
+  }
+
+  // =====================================================
+  // ONBOARDING-SPECIFIC TOOL IMPLEMENTATIONS
+  // =====================================================
+
+  /**
+   * Process voice command during onboarding using the Maya conversation service
+   */
+  private async processVoiceCommand(params: any): Promise<any> {
+    const { userId, voiceInput, currentPhase, conversationContext } = params;
+    
+    try {
+      // Note: In a real implementation, we would need to import and use the
+      // MayaConversationService here. For now, we'll provide a simplified response.
+      
+      // Simulate voice command processing
+      const confidence = this.calculateVoiceConfidence(voiceInput, currentPhase);
+      const commandType = this.inferCommandType(voiceInput, currentPhase);
+      
+      const response = {
+        success: confidence > 0.6,
+        command_type: commandType,
+        confidence: confidence,
+        maya_response: this.generateMayaResponse(voiceInput, currentPhase, confidence > 0.6),
+        parsed_data: this.extractDataFromVoiceInput(voiceInput, currentPhase),
+        next_phase: confidence > 0.6 ? this.getNextOnboardingPhase(currentPhase) : currentPhase,
+        requires_clarification: confidence <= 0.6
+      };
+
+      // Log voice command for analytics
+      await this.logVoiceCommand(userId, voiceInput, currentPhase, response);
+
+      return response;
+    } catch (error) {
+      console.error('Voice command processing error:', error);
+      return {
+        success: false,
+        error: error.message,
+        maya_response: "I'm sorry, I had trouble processing what you said. Could you try again?"
+      };
+    }
+  }
+
+  /**
+   * Get current onboarding state for a user
+   */
+  private async getOnboardingState(params: any): Promise<any> {
+    const { userId } = params;
+    
+    try {
+      // Fetch user questionnaire data
+      const { data: questionnaire, error: qError } = await this.supabase
+        .from('user_questionnaire')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      // Fetch user goals
+      const { data: goals, error: gError } = await this.supabase
+        .from('user_goals')
+        .select(`
+          *,
+          goals:goal_id (title, description, category_id)
+        `)
+        .eq('user_id', userId)
+        .eq('goal_status', 'active');
+
+      // Fetch interaction events for onboarding progress
+      const { data: events, error: eError } = await this.supabase
+        .from('interaction_events')
+        .select('event_type, payload, created_at')
+        .eq('user_id', userId)
+        .eq('source', 'maya_conversation')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const onboardingState = {
+        user_id: userId,
+        questionnaire: questionnaire || null,
+        goals: goals || [],
+        recent_events: events || [],
+        completion_status: {
+          has_questionnaire: !!questionnaire,
+          has_goals: (goals || []).length > 0,
+          onboarding_completed: !!questionnaire?.onboarding_completed_at,
+          completion_date: questionnaire?.onboarding_completed_at
+        },
+        current_phase: this.inferCurrentPhase(questionnaire, goals),
+        total_goals: (goals || []).length
+      };
+
+      return onboardingState;
+    } catch (error) {
+      console.error('Error fetching onboarding state:', error);
+      throw new Error(`Failed to fetch onboarding state: ${error.message}`);
+    }
+  }
+
+  /**
+   * Save onboarding progress from voice commands
+   */
+  private async saveOnboardingProgress(params: any): Promise<any> {
+    const { userId, phase, data } = params;
+    
+    try {
+      const results: any = {};
+
+      switch (phase) {
+        case 'name_input':
+          // Store name in user profile or session
+          results.name = data.name;
+          break;
+
+        case 'category_selection':
+          // Update preferred categories
+          if (data.categories && data.categories.length > 0) {
+            await this.supabase
+              .from('user_questionnaire')
+              .upsert({
+                user_id: userId,
+                preferred_categories: data.categories,
+                updated_at: new Date().toISOString()
+              });
+            results.categories = data.categories;
+          }
+          break;
+
+        case 'goal_selection':
+          // Create user goals
+          if (data.goals && data.goals.length > 0) {
+            const goalInserts = data.goals.map((goal: any) => ({
+              user_id: userId,
+              goal_title: goal.title || goal.customTitle,
+              goal_description: goal.description || goal.customDescription,
+              goal_status: 'active',
+              target_date: goal.targetDate,
+              metadata: {
+                source: 'voice_command',
+                selection_context: goal.selectionContext
+              }
+            }));
+
+            const { data: insertedGoals, error } = await this.supabase
+              .from('user_goals')
+              .insert(goalInserts)
+              .select();
+
+            if (error) throw error;
+            results.goals = insertedGoals;
+          }
+          break;
+
+        case 'timeline_selection':
+          // Update time horizon
+          await this.supabase
+            .from('user_questionnaire')
+            .upsert({
+              user_id: userId,
+              time_horizon: data.timeframe || data.timeline,
+              updated_at: new Date().toISOString()
+            });
+          results.timeline = data.timeframe || data.timeline;
+          break;
+
+        case 'learning_preferences':
+          // Update learning preferences
+          await this.supabase
+            .from('user_questionnaire')
+            .upsert({
+              user_id: userId,
+              learning_prefs: data.learningStyles || data.preferences,
+              experience_level: data.experienceLevel || 'intermediate',
+              updated_at: new Date().toISOString()
+            });
+          results.learning_preferences = data;
+          break;
+
+        case 'agent_selection':
+          // Record agent selection
+          results.selected_agent = data.agentName || data.agent;
+          break;
+      }
+
+      // Log the progress save event
+      await this.supabase
+        .from('interaction_events')
+        .insert({
+          user_id: userId,
+          source: 'maya_conversation',
+          event_type: 'onboarding_progress_saved',
+          payload: {
+            phase,
+            data,
+            saved_results: results
+          }
+        });
+
+      return {
+        success: true,
+        phase,
+        saved_data: results,
+        timestamp: new Date().toISOString()
+      };
+
+    } catch (error) {
+      console.error('Error saving onboarding progress:', error);
+      throw new Error(`Failed to save onboarding progress: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get available goal categories for onboarding
+   */
+  private async getAvailableCategories(params: any): Promise<any> {
+    const { limit = 8 } = params;
+    
+    try {
+      const { data, error } = await this.supabase.rpc('get_top_goal_categories', {
+        p_limit: limit
+      });
+
+      if (error) {
+        // Fallback to direct table query
+        const { data: fallbackData, error: fallbackError } = await this.supabase
+          .from('goal_categories')
+          .select('*')
+          .order('sort_order', { ascending: true })
+          .limit(limit);
+
+        if (fallbackError) throw fallbackError;
+        
+        return {
+          categories: fallbackData || [],
+          total: (fallbackData || []).length,
+          source: 'fallback_query'
+        };
+      }
+
+      return {
+        categories: data || [],
+        total: (data || []).length,
+        source: 'rpc_function'
+      };
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      
+      // Return hardcoded categories as final fallback
+      return {
+        categories: [
+          { id: 'career', title: 'Career Development', icon_name: 'briefcase' },
+          { id: 'health', title: 'Health & Fitness', icon_name: 'heart' },
+          { id: 'personal', title: 'Personal Development', icon_name: 'user' },
+          { id: 'finance', title: 'Financial Wellness', icon_name: 'dollar-sign' },
+          { id: 'relationships', title: 'Relationships', icon_name: 'users' },
+          { id: 'learning', title: 'Learning & Education', icon_name: 'book' },
+          { id: 'creativity', title: 'Creativity & Hobbies', icon_name: 'palette' },
+          { id: 'productivity', title: 'Productivity', icon_name: 'target' }
+        ],
+        total: 8,
+        source: 'hardcoded_fallback'
+      };
+    }
+  }
+
+  /**
+   * Search for goals within selected categories
+   */
+  private async searchGoalsByCategory(params: any): Promise<any> {
+    const { categories, searchQuery, limit = 10 } = params;
+    
+    try {
+      const { data, error } = await this.supabase.rpc('get_onboarding_goals', {
+        p_category_ids: categories,
+        p_search_query: searchQuery,
+        p_limit: limit
+      });
+
+      if (error) {
+        // Fallback query
+        let query = this.supabase
+          .from('goals')
+          .select(`
+            *,
+            goal_categories (title, display_color, icon_name)
+          `)
+          .in('category_id', categories)
+          .limit(limit);
+
+        if (searchQuery) {
+          query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        }
+
+        const { data: fallbackData, error: fallbackError } = await query;
+        if (fallbackError) throw fallbackError;
+
+        return {
+          goals: fallbackData || [],
+          categories_searched: categories,
+          search_query: searchQuery,
+          total: (fallbackData || []).length
+        };
+      }
+
+      return {
+        goals: data || [],
+        categories_searched: categories,
+        search_query: searchQuery,
+        total: (data || []).length
+      };
+    } catch (error) {
+      console.error('Error searching goals by category:', error);
+      throw new Error(`Failed to search goals: ${error.message}`);
+    }
+  }
+
+  /**
+   * Match user's verbal goal description to preset goals
+   */
+  private async matchUserGoalToPreset(params: any): Promise<any> {
+    const { userPhrase, category, confidenceThreshold = 0.7 } = params;
+    
+    try {
+      // Search for similar goals using semantic search
+      const { data: goals, error } = await this.supabase
+        .from('goals')
+        .select('id, title, description, category_id')
+        .limit(10);
+      
+      if (error) throw error;
+      
+      // For now, do a simple text matching
+      // In production, this would use embeddings and semantic similarity
+      const matches = goals?.map(goal => {
+        const similarity = this.calculateTextSimilarity(
+          userPhrase.toLowerCase(),
+          (goal.title + ' ' + (goal.description || '')).toLowerCase()
+        );
+        
+        return {
+          goal,
+          confidence: similarity
+        };
+      })
+      .filter(match => match.confidence >= confidenceThreshold)
+      .sort((a, b) => b.confidence - a.confidence);
+      
+      const bestMatch = matches?.[0];
+      
+      return {
+        matched: !!bestMatch,
+        goal: bestMatch?.goal || null,
+        confidence: bestMatch?.confidence || 0,
+        alternativeMatches: matches?.slice(1, 3).map(m => m.goal) || []
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to match goal: ${error.message}`);
+    }
+  }
+
+  /**
+   * Confirm user's goal selection with their preferred terminology
+   */
+  private async confirmGoalSelection(params: any): Promise<any> {
+    const { 
+      userId, 
+      userPhrase, 
+      matchedGoalId, 
+      userPreferredTerm, 
+      confirmed,
+      timeline 
+    } = params;
+    
+    try {
+      // Save the goal translation/confirmation
+      const { data, error } = await this.supabase
+        .from('goal_translations')
+        .insert({
+          user_id: userId,
+          user_phrase: userPhrase,
+          matched_goal_id: matchedGoalId,
+          user_confirmed: confirmed,
+          user_preferred_term: userPreferredTerm,
+          confidence_score: confirmed ? 1.0 : 0.0,
+          confirmed_at: confirmed ? new Date().toISOString() : null
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // If confirmed, create the goal node
+      if (confirmed) {
+        const goalData = {
+          p_user_id: userId,
+          p_title: userPreferredTerm,
+          p_category: 'Personal Growth',
+          p_properties: {
+            original_phrase: userPhrase,
+            matched_goal_id: matchedGoalId,
+            timeline: timeline,
+            source: 'voice_onboarding'
+          }
+        };
+        
+        const { data: goalNode, error: goalError } = await this.supabase
+          .rpc('create_goal_node', goalData);
+        
+        if (goalError) {
+          console.error('Error creating goal node:', goalError);
+        }
+        
+        return {
+          success: true,
+          translationId: data.id,
+          goalNodeId: goalNode?.id || null,
+          message: 'Goal confirmed and saved'
+        };
+      }
+      
+      return {
+        success: true,
+        translationId: data.id,
+        message: 'Goal marked as not confirmed'
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to confirm goal: ${error.message}`);
+    }
+  }
+
+  /**
+   * Simple text similarity calculation (Jaccard similarity)
+   * In production, use proper embeddings and cosine similarity
+   */
+  private calculateTextSimilarity(text1: string, text2: string): number {
+    const words1 = new Set(text1.split(/\s+/));
+    const words2 = new Set(text2.split(/\s+/));
+    
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+    
+    return intersection.size / union.size;
+  }
+
+  /**
+   * Get matching agents using the agent matching service
+   */
+  private async getMatchingAgents(params: any): Promise<any> {
+    const { userId, trigger = 'onboarding', maxAgents = 3 } = params;
+    
+    try {
+      // Use the sophisticated agent matching function
+      const { data, error } = await this.supabase.rpc('find_matching_agents', {
+        p_user_id: userId,
+        p_trigger_type: trigger,
+        p_max_agents: maxAgents
+      });
+
+      if (error || !data || data.length === 0) {
+        // Fallback to simple agent query
+        const { data: agentData, error: agentError } = await this.supabase
+          .from('agent_personae')
+          .select(`
+            uuid,
+            "Name",
+            "Speciality",
+            "Category",
+            "Goal Category",
+            "11labs_agentID",
+            "Personality",
+            "Strengths"
+          `)
+          .not('"11labs_agentID"', 'is', null)
+          .limit(maxAgents);
+
+        if (agentError) throw agentError;
+
+        const fallbackMatches = (agentData || []).map(agent => ({
+          agent_id: agent.uuid,
+          agent_name: agent.Name,
+          specialty: agent.Speciality,
+          category: agent.Category,
+          elevenlabs_agent_id: agent['11labs_agentID'],
+          total_score: 0.7, // Default score
+          reasoning: `${agent.Name} is a great general match for your onboarding journey.`,
+          personality: agent.Personality,
+          strengths: agent.Strengths
+        }));
+
+        return {
+          matches: fallbackMatches,
+          trigger,
+          matching_performed_at: new Date().toISOString(),
+          source: 'fallback_query'
+        };
+      }
+
+      return {
+        matches: data.map((match: any) => ({
+          agent_id: match.agent_id,
+          agent_name: match.agent_name,
+          specialty: match.agent_specialty,
+          category: match.agent_category,
+          elevenlabs_agent_id: match.elevenlabs_agent_id,
+          total_score: match.total_score,
+          reasoning: match.reasoning || `${match.agent_name} is a great match based on your selections.`
+        })),
+        trigger,
+        matching_performed_at: new Date().toISOString(),
+        source: 'sophisticated_matching'
+      };
+    } catch (error) {
+      console.error('Error getting matching agents:', error);
+      throw new Error(`Failed to get matching agents: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get conversation context and history
+   */
+  private async getConversationContext(params: any): Promise<any> {
+    const { userId, conversationId } = params;
+    
+    try {
+      // Get recent conversation events
+      const { data: events, error: eventsError } = await this.supabase
+        .from('interaction_events')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('source', 'maya_conversation')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (eventsError && eventsError.code !== 'PGRST116') {
+        console.warn('Failed to fetch conversation events:', eventsError);
+      }
+
+      // Get current onboarding state
+      const onboardingState = await this.getOnboardingState({ userId });
+
+      return {
+        user_id: userId,
+        conversation_id: conversationId,
+        recent_events: events || [],
+        onboarding_state: onboardingState,
+        context_retrieved_at: new Date().toISOString(),
+        total_events: (events || []).length
+      };
+    } catch (error) {
+      console.error('Error getting conversation context:', error);
+      return {
+        user_id: userId,
+        conversation_id: conversationId,
+        recent_events: [],
+        onboarding_state: { user_id: userId },
+        error: error.message,
+        context_retrieved_at: new Date().toISOString()
+      };
+    }
+  }
+
+  // =====================================================
+  // ONBOARDING HELPER METHODS
+  // =====================================================
+
+  private calculateVoiceConfidence(voiceInput: string, currentPhase: string): number {
+    // Simple confidence calculation based on input length and phase appropriateness
+    let confidence = 0.5; // Base confidence
+
+    // Boost for appropriate length
+    if (voiceInput.length > 5 && voiceInput.length < 200) {
+      confidence += 0.2;
+    }
+
+    // Boost for phase-appropriate keywords
+    const phaseKeywords: Record<string, string[]> = {
+      name_input: ['name', 'call', 'i\'m', 'i am'],
+      category_selection: ['want', 'interested', 'career', 'health', 'personal'],
+      goal_selection: ['goal', 'improve', 'learn', 'get better', 'work on'],
+      timeline_selection: ['month', 'year', 'short', 'long', 'soon', 'time'],
+      learning_preferences: ['learn', 'visual', 'hands-on', 'practice', 'reading'],
+      agent_selection: ['choose', 'pick', 'agent', 'coach', 'maya', 'alex', 'sage']
+    };
+
+    const keywords = phaseKeywords[currentPhase] || [];
+    const inputLower = voiceInput.toLowerCase();
+    
+    for (const keyword of keywords) {
+      if (inputLower.includes(keyword)) {
+        confidence += 0.1;
+        break;
+      }
+    }
+
+    return Math.min(0.95, confidence);
+  }
+
+  private inferCommandType(voiceInput: string, currentPhase: string): string {
+    const inputLower = voiceInput.toLowerCase();
+
+    if (inputLower.includes('yes') || inputLower.includes('okay') || inputLower.includes('sure')) {
+      return 'confirm';
+    }
+
+    if (inputLower.includes('help') || inputLower.includes('what') || inputLower.includes('explain')) {
+      return 'request_info';
+    }
+
+    switch (currentPhase) {
+      case 'name_input':
+        return 'set_name';
+      case 'category_selection':
+        return 'select_categories';
+      case 'goal_selection':
+        return 'select_goals';
+      case 'timeline_selection':
+        return 'set_timeline';
+      case 'learning_preferences':
+        return 'set_learning_style';
+      case 'agent_selection':
+        return 'select_agent';
+      default:
+        return 'unknown';
+    }
+  }
+
+  private generateMayaResponse(voiceInput: string, currentPhase: string, success: boolean): string {
+    if (!success) {
+      const clarifications: Record<string, string> = {
+        name_input: "I want to make sure I get your name right! Could you tell me your name again?",
+        category_selection: "I'm not sure which areas you're interested in. Could you tell me about your focus areas?",
+        goal_selection: "Could you be more specific about your goals? What would you like to achieve?",
+        timeline_selection: "When are you hoping to see progress? You can say things like 'in 3 months' or 'long term'.",
+        learning_preferences: "How do you like to learn? Are you more visual, or do you prefer hands-on practice?",
+        agent_selection: "Which coaching agent would you like to work with? Or would you like to hear more about them?"
+      };
+      return clarifications[currentPhase] || "I didn't catch that. Could you try again?";
+    }
+
+    const responses: Record<string, string> = {
+      name_input: "Nice to meet you! Now let's talk about what areas you'd like to focus on.",
+      category_selection: "Great choices! Let's get specific about your goals in these areas.",
+      goal_selection: "Excellent goals! Now, when would you like to achieve these?",
+      timeline_selection: "Perfect! That timeline makes sense. Let's talk about how you like to learn.",
+      learning_preferences: "Good to know! Now let me introduce you to some coaching agents who can help.",
+      agent_selection: "Wonderful choice! You're all set to begin your journey!"
+    };
+
+    return responses[currentPhase] || "Great! Let's continue.";
+  }
+
+  private extractDataFromVoiceInput(voiceInput: string, currentPhase: string): Record<string, any> {
+    const inputLower = voiceInput.toLowerCase();
+    const data: Record<string, any> = {};
+
+    switch (currentPhase) {
+      case 'name_input':
+        // Extract name from patterns like "my name is John" or "I'm Sarah"
+        const namePatterns = [
+          /(?:my name is|i'm|i am|call me)\s+([a-zA-Z\s]+)/i,
+          /^([a-zA-Z\s]{2,20})$/i
+        ];
+        
+        for (const pattern of namePatterns) {
+          const match = voiceInput.match(pattern);
+          if (match) {
+            data.name = match[1].trim();
+            break;
+          }
+        }
+        break;
+
+      case 'category_selection':
+        // Extract categories from voice input
+        const categoryKeywords = {
+          career: ['career', 'job', 'work', 'professional'],
+          health: ['health', 'fitness', 'wellness', 'physical'],
+          personal: ['personal', 'self', 'development'],
+          finance: ['finance', 'money', 'financial', 'budget'],
+          relationships: ['relationships', 'social', 'family'],
+          learning: ['learning', 'education', 'study', 'skill'],
+          creativity: ['creative', 'art', 'hobbies', 'music']
+        };
+
+        data.categories = [];
+        for (const [category, keywords] of Object.entries(categoryKeywords)) {
+          for (const keyword of keywords) {
+            if (inputLower.includes(keyword)) {
+              data.categories.push(category);
+              break;
+            }
+          }
+        }
+        break;
+
+      case 'goal_selection':
+        // Extract goal descriptions
+        data.goals = [{
+          title: voiceInput.substring(0, 50),
+          description: voiceInput,
+          customTitle: voiceInput.length > 50 ? voiceInput.substring(0, 47) + '...' : voiceInput
+        }];
+        break;
+
+      case 'timeline_selection':
+        // Extract timeline information
+        if (inputLower.includes('short') || inputLower.includes('soon') || inputLower.includes('month')) {
+          data.timeframe = 'short';
+        } else if (inputLower.includes('long') || inputLower.includes('year') || inputLower.includes('eventually')) {
+          data.timeframe = 'long';
+        } else {
+          data.timeframe = 'medium';
+        }
+        break;
+
+      case 'learning_preferences':
+        // Extract learning style preferences
+        data.learningStyles = [];
+        if (inputLower.includes('visual') || inputLower.includes('seeing') || inputLower.includes('reading')) {
+          data.learningStyles.push('visual');
+        }
+        if (inputLower.includes('hands-on') || inputLower.includes('doing') || inputLower.includes('practice')) {
+          data.learningStyles.push('kinesthetic');
+        }
+        if (inputLower.includes('listening') || inputLower.includes('audio') || inputLower.includes('hearing')) {
+          data.learningStyles.push('auditory');
+        }
+        if (data.learningStyles.length === 0) {
+          data.learningStyles.push('mixed');
+        }
+        break;
+
+      case 'agent_selection':
+        // Extract agent selection
+        const agentNames = ['maya', 'alex', 'sage', 'elena', 'jordan'];
+        for (const name of agentNames) {
+          if (inputLower.includes(name)) {
+            data.agentName = name;
+            break;
+          }
+        }
+        break;
+    }
+
+    return data;
+  }
+
+  private getNextOnboardingPhase(currentPhase: string): string | null {
+    const phases = [
+      'name_input',
+      'category_selection', 
+      'goal_selection',
+      'timeline_selection',
+      'learning_preferences',
+      'agent_selection',
+      'completion'
+    ];
+
+    const currentIndex = phases.indexOf(currentPhase);
+    return currentIndex >= 0 && currentIndex < phases.length - 1 ? phases[currentIndex + 1] : null;
+  }
+
+  private inferCurrentPhase(questionnaire: any, goals: any[]): string {
+    if (!questionnaire) return 'name_input';
+    if (!questionnaire.preferred_categories || questionnaire.preferred_categories.length === 0) return 'category_selection';
+    if (!goals || goals.length === 0) return 'goal_selection';
+    if (!questionnaire.time_horizon) return 'timeline_selection';
+    if (!questionnaire.learning_prefs) return 'learning_preferences';
+    if (!questionnaire.onboarding_completed_at) return 'agent_selection';
+    return 'completion';
+  }
+
+  private async logVoiceCommand(userId: string, voiceInput: string, phase: string, response: any): Promise<void> {
+    try {
+      await this.supabase
+        .from('interaction_events')
+        .insert({
+          user_id: userId,
+          source: 'maya_conversation',
+          event_type: 'voice_command_processed',
+          payload: {
+            voice_input: voiceInput,
+            phase,
+            response: {
+              success: response.success,
+              confidence: response.confidence,
+              command_type: response.command_type,
+              requires_clarification: response.requires_clarification
+            }
+          }
+        });
+    } catch (error) {
+      console.warn('Failed to log voice command:', error);
+    }
+  }
+
+  // Helper method to queue embedding generation
   private async queueEmbedding(nodeId: string, content: string): Promise<void> {
     try {
       await this.supabase
@@ -988,6 +1955,27 @@ class MCPServer {
             return await this.getRecentInsights(args);
           case "findRelatedInsights":
             return await this.findRelatedInsights(args);
+          
+          // Onboarding-specific tools
+          case "process_voice_command":
+            return await this.processVoiceCommand(args);
+          case "get_onboarding_state":
+            return await this.getOnboardingState(args);
+          case "save_onboarding_progress":
+            return await this.saveOnboardingProgress(args);
+          case "get_available_categories":
+            return await this.getAvailableCategories(args);
+          case "search_goals_by_category":
+            return await this.searchGoalsByCategory(args);
+          case "match_user_goal_to_preset":
+            return await this.matchUserGoalToPreset(args);
+          case "confirm_goal_selection":
+            return await this.confirmGoalSelection(args);
+          case "get_matching_agents":
+            return await this.getMatchingAgents(args);
+          case "get_conversation_context":
+            return await this.getConversationContext(args);
+          
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -1188,10 +2176,8 @@ Deno.serve(async (req: Request) => {
     const mcpServer = new MCPServer();
 
     // Handle SSE endpoint for HTTP+SSE transport
-    // Always return SSE for /sse endpoint, or when Accept header requests it
-    const wantsSSE = pathname === "/sse" || 
-                     url.pathname.endsWith("/sse") || 
-                     req.headers.get("accept")?.includes("text/event-stream");
+    // Only return SSE for GET requests to /sse endpoint
+    const wantsSSE = pathname === "/sse" || url.pathname.endsWith("/sse");
     
     if (req.method === "GET" && wantsSSE) {
       const encoder = new TextEncoder();
@@ -1274,9 +2260,8 @@ Deno.serve(async (req: Request) => {
       // Log the request for debugging
       console.log("Request body:", body);
       
-      // Check if this is a streaming request
-      const isStreaming = req.headers.get("accept")?.includes("text/event-stream") || 
-                         req.headers.get("accept")?.includes("application/x-ndjson");
+      // Never stream for POST JSON-RPC requests - ElevenLabs expects standard JSON
+      const isStreaming = false;
       
       // Handle single request
       try {

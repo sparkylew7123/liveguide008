@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveGuide AI Coaches - Interactive Showcase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Mode */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --overlay: rgba(255, 255, 255, 0.9);
+            
+            /* Category Colors */
+            --career-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --wellness-gradient: linear-gradient(135deg, #0fb9b1 0%, #20bf6b 100%);
+            --mindfulness-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --spiritual-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0a0b0d;
+            --bg-secondary: #1a1b1e;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #2d3748;
+            --shadow: rgba(0, 0, 0, 0.5);
+            --overlay: rgba(10, 11, 13, 0.95);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background Animation */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.03;
+            background: 
+                radial-gradient(circle at 20% 80%, #667eea 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, #f093fb 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, #0fb9b1 0%, transparent 50%);
+            animation: bgShift 20s ease infinite;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+        }
+
+        /* Header */
+        .header {
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #f093fb 50%, #0fb9b1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 100;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-toggle svg {
+            width: 24px;
+            height: 24px;
+            transition: all 0.3s ease;
+        }
+
+        /* Grid Container */
+        .coaches-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 640px) {
+            .coaches-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.25rem;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .coaches-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1.5rem;
+                padding: 2rem;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .coaches-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        /* Coach Card */
+        .coach-card {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            aspect-ratio: 3/4;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .coach-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px var(--shadow);
+        }
+
+        .coach-card.career { background: var(--career-gradient); }
+        .coach-card.wellness { background: var(--wellness-gradient); }
+        .coach-card.mindfulness { background: var(--mindfulness-gradient); }
+        .coach-card.spiritual { background: var(--spiritual-gradient); }
+
+        .coach-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.4s ease;
+        }
+
+        .coach-card:hover .coach-image {
+            transform: scale(1.05);
+        }
+
+        .coach-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+            color: white;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .coach-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .coach-specialty {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            line-height: 1.3;
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%);
+            transform: scale(0);
+            animation: rippleEffect 1.5s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active .modal-backdrop {
+            opacity: 1;
+        }
+
+        .modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            background: var(--overlay);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-video {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .modal-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--border);
+        }
+
+        .modal-title h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-title p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .modal-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .modal-benefits {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-benefits li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .modal-benefits li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+        }
+
+        .modal-cta {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <svg class="sun-icon" style="display: block;" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+        </svg>
+        <svg class="moon-icon" style="display: none;" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+        </svg>
+    </button>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>LiveGuide AI Coaches</h1>
+        <p>Select your personal AI coach to begin your journey</p>
+    </div>
+
+    <!-- Coaches Grid -->
+    <div class="coaches-grid" id="coachesGrid">
+        <!-- Cards will be dynamically generated -->
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="coachModal">
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <div class="modal-video">
+                <video id="modalVideo" muted autoplay loop></video>
+            </div>
+            <div class="modal-body">
+                <div class="modal-header">
+                    <img class="modal-avatar" id="modalAvatar" src="" alt="">
+                    <div class="modal-title">
+                        <h3 id="modalName"></h3>
+                        <p id="modalCategory"></p>
+                    </div>
+                </div>
+                <p class="modal-description" id="modalDescription"></p>
+                <ul class="modal-benefits" id="modalBenefits"></ul>
+                <button class="modal-cta">Start Conversation with <span id="ctaName"></span></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Coaches Data
+        const coaches = [
+            {
+                name: "Elena",
+                category: "career",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625929/elenaimage_ftulxg.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1754850711/Elena_hjcuik.mp4",
+                description: "Supports young professionals in navigating their career paths.",
+                benefits: [
+                    "Provides tailored career advice for early professionals and those shifting careers",
+                    "Helps with resumes, interviews, and confidence building"
+                ]
+            },
+            {
+                name: "Marcus",
+                category: "career",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625933/marcusimage_unka7o.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755625907/marcusvideo_mtm44t.mp4",
+                description: "Guides professionals to set and achieve structured goals.",
+                benefits: [
+                    "Develops SMART goals and tracks milestones",
+                    "Offers motivation and accountability for entrepreneurs and mid-career professionals"
+                ]
+            },
+            {
+                name: "Jack",
+                category: "career",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755609806/jackstill_v03iok.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755609807/jackvideo_ifmpoa.mp4",
+                description: "Encourages creative professionals to innovate and achieve goals.",
+                benefits: [
+                    "Inspires brainstorming and out-of-the-box thinking",
+                    "Balances inspiration with structured accountability"
+                ]
+            },
+            {
+                name: "Zoe",
+                category: "wellness",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755626218/zoeimage_ppozgp.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755626221/Zoevideo_c7wte0.mp4",
+                description: "Encourages users to integrate fitness into busy lives.",
+                benefits: [
+                    "Provides quick workout plans and motivational tips",
+                    "Shares family-friendly health hacks"
+                ]
+            },
+            {
+                name: "Leo",
+                category: "wellness",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625938/jamiestill_qvevyf.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755625937/jamievid_lysiwv.mp4",
+                description: "Helps users organise their lives for health and productivity.",
+                benefits: [
+                    "Creates balanced routines and productivity strategies",
+                    "Offers meal prep and stress reduction advice"
+                ]
+            },
+            {
+                name: "Sage",
+                category: "wellness",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625937/sageimage_jf7yge.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755625940/sagevideo_e8zqrg.mp4",
+                description: "Promotes holistic health with a sustainable approach.",
+                benefits: [
+                    "Combines fitness, nutrition, and mindfulness",
+                    "Supports eco-conscious health practices"
+                ]
+            },
+            {
+                name: "Celeste",
+                category: "mindfulness",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625934/celesteimage_peo3kk.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755625933/celestevideo_rqt0jg.mp4",
+                description: "Provides emotional support for personal and workplace challenges.",
+                benefits: [
+                    "Offers self-care strategies and anxiety management tips",
+                    "Helps navigate workplace and relationship dynamics"
+                ]
+            },
+            {
+                name: "Vic",
+                category: "mindfulness",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625933/Vicimage_uf07nq.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755625933/vicvideo_dll4jf.mp4",
+                description: "Delivers actionable solutions for stress and personal conflicts.",
+                benefits: [
+                    "Provides conflict resolution strategies and stress management techniques",
+                    "Builds emotional resilience through practical exercises"
+                ]
+            },
+            {
+                name: "Luca",
+                category: "mindfulness",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625932/Lucaimage_uxbucq.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755625933/lucavideo_anschp.mp4",
+                description: "Motivates users to rebuild emotional strength and independence.",
+                benefits: [
+                    "Encourages confidence through self-care and habit-building",
+                    "Offers tools for handling cultural and personal pressures"
+                ]
+            },
+            {
+                name: "Dan",
+                category: "mindfulness",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625934/danimage_x4fcmz.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755625932/danvideo_wjpls9.mp4",
+                description: "Guides users in developing mindfulness and emotional balance.",
+                benefits: [
+                    "Provides meditation and breathing techniques",
+                    "Teaches mindful communication and self-reflection"
+                ]
+            },
+            {
+                name: "Ama",
+                category: "spiritual",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625931/amaimage_ylfvbu.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/video/upload/v1755625931/amavideo_g5sgbo.mp4",
+                description: "Helps users explore their spiritual growth and life purpose.",
+                benefits: [
+                    "Encourages introspection and reflection",
+                    "Provides guidance on meaningful relationships and fulfilment"
+                ]
+            },
+            {
+                name: "Nomi",
+                category: "spiritual",
+                image: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625930/nomiimage_oy40e7.png",
+                video: "https://res.cloudinary.com/dlq71ih0t/image/upload/v1755625931/nomivideo_h021bj.png",
+                description: "Guides users on their journey of spiritual growth, self-discovery, and awakening.",
+                benefits: [
+                    "Encourages deep introspection and self-awareness to unlock spiritual potential",
+                    "Provides meditation techniques, energy healing tips, and guidance for inner peace",
+                    "Offers tools to connect with intuition, higher consciousness, and universal energy"
+                ]
+            }
+        ];
+
+        // Category Labels
+        const categoryLabels = {
+            career: "Career Development",
+            wellness: "Health & Wellness",
+            mindfulness: "Mindfulness & Balance",
+            spiritual: "Spiritual Growth"
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCoaches();
+            checkTheme();
+        });
+
+        // Render Coaches Grid
+        function renderCoaches() {
+            const grid = document.getElementById('coachesGrid');
+            grid.innerHTML = coaches.map((coach, index) => `
+                <div class="coach-card ${coach.category}" 
+                     onclick="openModal(${index})" 
+                     onmousedown="createRipple(event, this)">
+                    <img class="coach-image" src="${coach.image}" alt="${coach.name}" loading="lazy">
+                    <div class="coach-overlay">
+                        <h3 class="coach-name">${coach.name}</h3>
+                        <p class="coach-specialty">${coach.description.substring(0, 50)}...</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // Staggered entrance animation
+            const cards = document.querySelectorAll('.coach-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.4s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        }
+
+        // Create Ripple Effect
+        function createRipple(event, element) {
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            
+            const rect = element.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            
+            element.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 1500);
+        }
+
+        // Open Modal
+        function openModal(index) {
+            console.log('Opening modal for coach index:', index);
+            const coach = coaches[index];
+            const modal = document.getElementById('coachModal');
+            
+            if (!coach || !modal) {
+                console.error('Coach or modal not found');
+                return;
+            }
+            
+            // Set modal content
+            document.getElementById('modalVideo').src = coach.video;
+            document.getElementById('modalAvatar').src = coach.image;
+            document.getElementById('modalAvatar').alt = coach.name;
+            document.getElementById('modalName').textContent = coach.name;
+            document.getElementById('modalCategory').textContent = categoryLabels[coach.category];
+            document.getElementById('modalDescription').textContent = coach.description;
+            document.getElementById('ctaName').textContent = coach.name;
+            
+            // Set benefits
+            const benefitsList = document.getElementById('modalBenefits');
+            benefitsList.innerHTML = coach.benefits.map(benefit => 
+                `<li>${benefit}</li>`
+            ).join('');
+            
+            // Show modal
+            setTimeout(() => {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }, 10);
+        }
+
+        // Close Modal
+        function closeModal() {
+            const modal = document.getElementById('coachModal');
+            const video = document.getElementById('modalVideo');
+            
+            modal.classList.remove('active');
+            video.pause();
+            video.src = '';
+            document.body.style.overflow = '';
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update icon
+            const sunIcon = document.querySelector('.sun-icon');
+            const moonIcon = document.querySelector('.moon-icon');
+            
+            if (newTheme === 'dark') {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
+        }
+
+        // Check Theme on Load
+        function checkTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            const sunIcon = document.querySelector('.sun-icon');
+            const moonIcon = document.querySelector('.moon-icon');
+            
+            if (savedTheme === 'dark') {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+        }
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>

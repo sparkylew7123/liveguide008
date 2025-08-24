@@ -1,43 +1,77 @@
 'use client';
 
-import { CheckIcon, ViewfinderCircleIcon, CpuChipIcon, UsersIcon, AcademicCapIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ViewfinderCircleIcon, CpuChipIcon, UsersIcon, AcademicCapIcon, SparklesIcon, FolderIcon, ClockIcon, LightBulbIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { OnboardingPhase } from './VoiceGuidedOnboarding';
 
 interface OnboardingProgressProps {
   currentPhase: OnboardingPhase;
   completedGoals: number;
+  selectedCategories: number;
+  hasTimeHorizon: boolean;
+  hasLearningPreferences: boolean;
   hasCoachingPreferences: boolean;
+  hasSelectedAgent?: boolean;
+  hasConversationComplete?: boolean;
 }
 
 export function OnboardingProgress({ 
   currentPhase, 
-  completedGoals, 
-  hasCoachingPreferences 
+  completedGoals,
+  selectedCategories,
+  hasTimeHorizon,
+  hasLearningPreferences,
+  hasCoachingPreferences,
+  hasSelectedAgent = false,
+  hasConversationComplete = false
 }: OnboardingProgressProps) {
   const phases = [
     {
-      id: 'goal_discovery',
-      title: 'Goal Discovery',
-      description: 'Share your aspirations',
-      icon: AcademicCapIcon,
-      completed: completedGoals > 0,
-      active: currentPhase === 'goal_discovery'
+      id: 'category_selection',
+      title: 'Categories',
+      description: 'Choose your focus areas',
+      icon: FolderIcon,
+      completed: selectedCategories > 0,
+      active: currentPhase === 'category_selection'
     },
     {
-      id: 'coaching_style',
-      title: 'Coaching Style',
-      description: 'Discover your preferences',
-      icon: SparklesIcon,
-      completed: hasCoachingPreferences,
-      active: currentPhase === 'coaching_style'
+      id: 'goal_selection',
+      title: 'Goals',
+      description: 'Select specific goals',
+      icon: AcademicCapIcon,
+      completed: completedGoals > 0,
+      active: currentPhase === 'goal_selection'
+    },
+    {
+      id: 'time_horizon',
+      title: 'Timeline',
+      description: 'Set your timeframe',
+      icon: ClockIcon,
+      completed: hasTimeHorizon,
+      active: currentPhase === 'time_horizon'
+    },
+    {
+      id: 'learning_preferences',
+      title: 'Preferences',
+      description: 'How you learn best',
+      icon: LightBulbIcon,
+      completed: hasLearningPreferences,
+      active: currentPhase === 'learning_preferences'
     },
     {
       id: 'agent_matching',
-      title: 'Coach Matching',
-      description: 'Meet your perfect coach',
+      title: 'Coach Match',
+      description: 'Find your perfect coach',
       icon: UsersIcon,
-      completed: false,
+      completed: hasSelectedAgent,
       active: currentPhase === 'agent_matching'
+    },
+    {
+      id: 'agent_conversation',
+      title: 'Voice Chat',
+      description: 'Talk with your coach',
+      icon: ChatBubbleLeftRightIcon,
+      completed: hasConversationComplete,
+      active: currentPhase === 'agent_conversation'
     }
   ];
 
@@ -108,17 +142,25 @@ export function OnboardingProgress({
         {/* Progress Summary - Hidden on mobile */}
         <div className="hidden sm:block mt-4 text-center">
           <p className="text-sm text-gray-600">
+            {selectedCategories > 0 && (
+              <span className="text-green-600 font-medium">
+                {selectedCategories} categories chosen
+              </span>
+            )}
+            {selectedCategories > 0 && completedGoals > 0 && (
+              <span className="text-gray-400 mx-2">•</span>
+            )}
             {completedGoals > 0 && (
               <span className="text-green-600 font-medium">
                 {completedGoals} goals selected
               </span>
             )}
-            {completedGoals > 0 && hasCoachingPreferences && (
+            {completedGoals > 0 && (hasTimeHorizon || hasLearningPreferences) && (
               <span className="text-gray-400 mx-2">•</span>
             )}
-            {hasCoachingPreferences && (
+            {(hasTimeHorizon || hasLearningPreferences) && (
               <span className="text-green-600 font-medium">
-                Coaching style discovered
+                Preferences set
               </span>
             )}
           </p>

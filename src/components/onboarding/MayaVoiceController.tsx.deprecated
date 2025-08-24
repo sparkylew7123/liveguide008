@@ -1,0 +1,397 @@
+'use client';
+
+import React, { useEffect, useState, useCallback } from 'react';
+import { 
+  MicrophoneIcon, 
+  SpeakerWaveIcon, 
+  ChatBubbleLeftRightIcon, 
+  ArrowPathIcon, 
+  PauseIcon, 
+  PlayIcon 
+} from '@heroicons/react/24/outline';
+import { MicrophoneIcon as MicrophoneOffIcon } from '@heroicons/react/24/solid';
+import { Button } from '@/components/ui/button';
+import { useMayaVoiceOnboarding, type VoiceCommand, type OnboardingVoiceState } from '@/hooks/useMayaVoiceOnboarding';
+import { OnboardingPhase } from './VoiceGuidedOnboarding';
+
+interface MayaVoiceControllerProps {
+  user: any;
+  userName: string;
+  currentPhase: OnboardingPhase;
+  onPhaseChange: (phase: OnboardingPhase, data?: any) => void;
+  onVoiceCommand: (command: VoiceCommand) => void;
+  onStateChange?: (state: {
+    isConnected: boolean;
+    isSpeaking: boolean;
+    isListening: boolean;
+    sendMessage: (message: string) => void;
+  }) => void;
+  autoStart?: boolean;
+  className?: string;
+}
+
+export function MayaVoiceController({
+  user,
+  userName,
+  currentPhase,
+  onPhaseChange,
+  onVoiceCommand,
+  onStateChange,
+  autoStart = false,
+  className = ''
+}: MayaVoiceControllerProps) {
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [transcript, setTranscript] = useState<string[]>([]);
+
+  const {
+    voiceState,
+    conversation,
+    startConversation,
+    endConversation,
+    pauseConversation,
+    resumeConversation,
+    sendMessage,
+    greetUser,
+    handleCategorySelection,
+    handleGoalSelection,
+    handleTimeHorizon,
+    handleAgentMatch,
+    isConnected,
+    isMuted,
+    canSpeak
+  } = useMayaVoiceOnboarding({
+    user,
+    userName,
+    currentPhase,
+    onPhaseChange,
+    onVoiceCommand
+  });
+
+  // Auto-start conversation if requested
+  useEffect(() => {
+    if (autoStart && !isConnected && !voiceState.error) {
+      startConversation();
+    }
+  }, [autoStart, isConnected, voiceState.error, startConversation]);
+
+  // Handle conversation lifecycle based on phase changes
+  useEffect(() => {
+    if (isConnected) {
+      // Send context update when phase changes
+      const phaseMessages: Record<OnboardingPhase, string> = {
+        'setup': 'Let\'s start with setting up your microphone and getting to know you.',
+        'category_selection': 'Now let\'s explore what life areas you\'d like to focus on.',
+        'goal_selection': 'Great! Let\'s dive deeper into your specific goals.',
+        'time_horizon': 'Perfect! Now let\'s talk about your timeline for these goals.',
+        'learning_preferences': 'Excellent! Let\'s understand how you learn best.',
+        'agent_matching': 'Based on our conversation, I\'ll find the perfect coach for you.',
+        'agent_conversation': 'Here\'s your matched coach! Let\'s see if they\'re a good fit.',
+        'completed': 'Congratulations! You\'ve completed the onboarding successfully!'
+      };
+
+      const contextMessage = phaseMessages[currentPhase];
+      if (contextMessage) {
+        sendMessage(`Phase: ${currentPhase}. ${contextMessage}`);
+      }
+    }
+  }, [currentPhase, isConnected, sendMessage]);
+
+  // Update parent component with voice state
+  useEffect(() => {
+    if (onStateChange) {
+      onStateChange({
+        isConnected,
+        isSpeaking: voiceState.isSpeaking,
+        isListening: voiceState.isListening,
+        sendMessage
+      });
+    }
+  }, [isConnected, voiceState.isSpeaking, voiceState.isListening, sendMessage, onStateChange]);
+
+  // Cleanup effect - disconnect voice when component unmounts
+  useEffect(() => {
+    return () => {
+      // Clean up voice connection on unmount
+      if (isConnected) {
+        endConversation().catch(() => {
+          // Ignore errors during cleanup
+        });
+      }
+    };
+  }, [isConnected, endConversation]);
+
+  // Voice status indicator
+  const getVoiceStatus = (): { icon: React.ReactNode; label: string; color: string } => {
+    if (!isConnected) {
+      return {
+        icon: <MicrophoneOffIcon className="w-4 h-4" />,
+        label: 'Disconnected',
+        color: 'text-gray-500'
+      };
+    }
+    
+    if (voiceState.error) {
+      return {
+        icon: <MicrophoneOffIcon className="w-4 h-4" />,
+        label: 'Error',
+        color: 'text-red-500'
+      };
+    }
+    
+    if (voiceState.isSpeaking) {
+      return {
+        icon: <SpeakerWaveIcon className="w-4 h-4 animate-pulse" />,
+        label: 'Maya speaking',
+        color: 'text-blue-500'
+      };
+    }
+    
+    if (voiceState.isListening) {
+      return {
+        icon: <MicrophoneIcon className="w-4 h-4 animate-pulse" />,
+        label: 'Listening',
+        color: 'text-green-500'
+      };
+    }
+    
+    if (voiceState.isProcessing) {
+      return {
+        icon: <ArrowPathIcon className="w-4 h-4 animate-spin" />,
+        label: 'Processing',
+        color: 'text-yellow-500'
+      };
+    }
+    
+    return {
+      icon: <ChatBubbleLeftRightIcon className="w-4 h-4" />,
+      label: 'Ready',
+      color: 'text-green-600'
+    };
+  };
+
+  const status = getVoiceStatus();
+
+  // Control handlers
+  const handleToggleConnection = useCallback(async () => {
+    if (isConnected) {
+      await endConversation();
+    } else {
+      await startConversation();
+      // Greet user after connection
+      setTimeout(() => {
+        greetUser();
+      }, 1000);
+    }
+  }, [isConnected, startConversation, endConversation, greetUser]);
+
+  const handleToggleMute = useCallback(() => {
+    if (isMuted) {
+      resumeConversation();
+    } else {
+      pauseConversation();
+    }
+  }, [isMuted, pauseConversation, resumeConversation]);
+
+  // Render minimized floating button
+  if (isMinimized) {
+    return (
+      <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
+        <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border px-4 py-3">
+          <div className={`flex items-center gap-2 ${status.color}`}>
+            {status.icon}
+            <span className="text-sm font-medium">Maya</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMinimized(false)}
+            className="p-1 h-6 w-6 rounded-full"
+          >
+            <span className="text-xs">↑</span>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Full voice controller UI
+  return (
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border p-4 ${className}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+            M
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Maya</h3>
+            <div className={`flex items-center gap-1 text-sm ${status.color}`}>
+              {status.icon}
+              <span>{status.label}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowTranscript(!showTranscript)}
+            className="p-2"
+          >
+            <ChatBubbleLeftRightIcon className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMinimized(true)}
+            className="p-2"
+          >
+            <span className="text-sm">–</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Error Display */}
+      {voiceState.error && (
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-3 rounded-md mb-4 text-sm">
+          <p><strong>Voice Error:</strong> {voiceState.error}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleToggleConnection}
+            className="mt-2 text-xs"
+          >
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {/* Phase Context */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 p-3 rounded-md mb-4 text-sm">
+        <p><strong>Current Phase:</strong> {currentPhase.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+        {voiceState.conversationId && (
+          <p className="text-xs opacity-75 mt-1">
+            Session: {voiceState.conversationId.split('_').pop()}
+          </p>
+        )}
+      </div>
+
+      {/* Transcript */}
+      {showTranscript && (
+        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md mb-4 max-h-32 overflow-y-auto">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Conversation Log:</p>
+          {transcript.length === 0 ? (
+            <p className="text-xs text-gray-500 italic">No conversation yet...</p>
+          ) : (
+            <div className="space-y-1">
+              {transcript.map((message, index) => (
+                <p key={index} className="text-xs text-gray-700 dark:text-gray-300">
+                  {message}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={isConnected ? "destructive" : "default"}
+            size="sm"
+            onClick={handleToggleConnection}
+            disabled={voiceState.isProcessing}
+            className="flex items-center gap-2"
+          >
+            {isConnected ? (
+              <>
+                <MicrophoneOffIcon className="w-4 h-4" />
+                End Chat
+              </>
+            ) : (
+              <>
+                <MicrophoneIcon className="w-4 h-4" />
+                Start Chat
+              </>
+            )}
+          </Button>
+          
+          {isConnected && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleMute}
+              className="flex items-center gap-2"
+            >
+              {isMuted ? (
+                <>
+                  <PlayIcon className="w-3 h-3" />
+                  Resume
+                </>
+              ) : (
+                <>
+                  <PauseIcon className="w-3 h-3" />
+                  Pause
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+        
+        {isConnected && (
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            {canSpeak ? (
+              <>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                Ready to chat
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                Connecting...
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Quick Actions */}
+      {isConnected && (
+        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Quick Actions:</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => sendMessage("Can you repeat that?")}
+              className="text-xs px-2 py-1 h-auto"
+            >
+              Repeat
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => sendMessage("I need help with this step")}
+              className="text-xs px-2 py-1 h-auto"
+            >
+              Need Help
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => sendMessage("I'm ready for the next step")}
+              className="text-xs px-2 py-1 h-auto"
+            >
+              Next Step
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default MayaVoiceController;

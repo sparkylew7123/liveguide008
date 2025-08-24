@@ -1,19 +1,36 @@
 #!/usr/bin/env node
 
+/**
+ * Enhanced End-to-End Integration Test Suite
+ * 
+ * Tests the complete ElevenLabs → N8N → LiveGuide integration flow
+ * with robust error handling, retry logic, and environment detection.
+ */
+
 const https = require('https');
 const path = require('path');
+const fs = require('fs');
 
 // Load environment variables
 require('dotenv').config({ path: path.join(__dirname, '../.env.local') });
 
-// N8N Webhook URL for LiveGuide integration
-const N8N_WEBHOOK_URL = 'https://n8n-hatchdev.fly.dev/webhook/c389dc70-b6c9-4cd7-9520-bebe372c800a';
-const TEST_USER_ID = '907f679d-b36a-42a8-8b60-ce0d9cc11726'; // Test user from webhook guide
+// Import utilities from the main setup script
+const { Logger, CONFIG } = require('./setup-onboarding-webhooks.js');
 
-console.log('🧪 ElevenLabs → N8N → LiveGuide End-to-End Integration Test');
-console.log('=========================================================');
-console.log('🔗 N8N Webhook URL:', N8N_WEBHOOK_URL);
-console.log('👤 Test User ID:', TEST_USER_ID);
+// Environment detection
+const ENVIRONMENT = process.env.NODE_ENV || 'test';
+const CURRENT_CONFIG = CONFIG.environments[ENVIRONMENT] || CONFIG.environments.test;
+const N8N_WEBHOOK_URL = CURRENT_CONFIG.n8nWebhookUrl;
+const TEST_USER_ID = CURRENT_CONFIG.testUserId;
+
+Logger.info('🧪 Enhanced End-to-End Integration Test Suite');
+Logger.info('============================================');
+Logger.info('Environment Configuration:', {
+  environment: ENVIRONMENT,
+  webhookUrl: N8N_WEBHOOK_URL,
+  testUserId: TEST_USER_ID,
+  description: CURRENT_CONFIG.description
+});
 
 // Test scenarios
 const testScenarios = [
@@ -84,21 +101,55 @@ User: Absolutely. And someone who gets the mom guilt about spending time on my c
   }
 ];
 
+class TestRetryHelper {
+  static async withRetry(operation, context = '', maxAttempts = 3) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        Logger.debug(`Testing ${context} (attempt ${attempt}/${maxAttempts})`);
+        const result = await operation();
+        if (attempt > 1) {
+          Logger.success(`${context} succeeded after ${attempt} attempts`);
+        }
+        return result;
+      } catch (error) {
+        const isLastAttempt = attempt === maxAttempts;
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        
+        if (isLastAttempt) {
+          Logger.error(`${context} failed after ${maxAttempts} attempts`, { error: error.message });
+          throw error;
+        } else {
+          Logger.warn(`${context} failed (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms`, { error: error.message });
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+  }
+}
+
 async function testWebhookPayload(scenario) {
-  try {
-    console.log(`\n🎯 Testing Scenario: ${scenario.name}`);
-    console.log('=' .repeat(50 + scenario.name.length));
-    console.log(`📝 Description: ${scenario.description}`);
-    console.log(`🆔 Conversation ID: ${scenario.conversationId}`);
+  return TestRetryHelper.withRetry(async () => {
+    Logger.info(`🎯 Testing Scenario: ${scenario.name}`, {
+      description: scenario.description,
+      conversationId: scenario.conversationId,
+      environment: ENVIRONMENT
+    });
     
     // Create payload in the format expected by N8N webhook
     const payload = {
-      mode: 'ai_agent', // Use AI agent mode to test extraction capabilities
+      mode: 'e2e_test', // Enhanced mode for better tracking
+      environment: ENVIRONMENT,
       conversationId: scenario.conversationId,
       userId: TEST_USER_ID,
       transcript: scenario.transcript,
-      // Note: In real scenario, analysis would be extracted by ElevenLabs
-      // But for testing, we'll also include expected data to verify processing
+      testMetadata: {
+        scenarioName: scenario.name,
+        expectedGoals: scenario.expectedGoals?.length || 0,
+        expectedInsights: scenario.expectedInsights?.length || 0,
+        expectedConcerns: scenario.expectedConcerns?.length || 0,
+        timestamp: new Date().toISOString()
+      },
+      // Include expected data for validation
       analysis: {
         summary: scenario.description,
         goals: scenario.expectedGoals || [],
@@ -107,10 +158,12 @@ async function testWebhookPayload(scenario) {
       }
     };
     
-    console.log(`📊 Sending ${payload.transcript.split(' ').length} word transcript to N8N...`);
-    console.log(`📋 Expected goals: ${scenario.expectedGoals?.length || 0}`);
-    console.log(`💡 Expected insights: ${scenario.expectedInsights?.length || 0}`);
-    console.log(`⚠️  Expected concerns: ${scenario.expectedConcerns?.length || 0}`);
+    Logger.info('Sending test payload', {
+      transcriptLength: payload.transcript.split(' ').length,
+      expectedGoals: scenario.expectedGoals?.length || 0,
+      expectedInsights: scenario.expectedInsights?.length || 0,
+      expectedConcerns: scenario.expectedConcerns?.length || 0
+    });
     
     const startTime = Date.now();
     
@@ -118,10 +171,13 @@ async function testWebhookPayload(scenario) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Source': 'ElevenLabs-Agent-Test',
-        'X-Test-Scenario': scenario.name
+        'X-Source': 'LiveGuide-E2E-Test',
+        'X-Test-Scenario': scenario.name,
+        'X-Environment': ENVIRONMENT,
+        'X-Test-Suite-Version': '2.0.0'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(CONFIG.timeouts.request)
     });
     
     const duration = Date.now() - startTime;

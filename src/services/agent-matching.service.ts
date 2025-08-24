@@ -85,7 +85,7 @@ export class AgentMatchingService {
 
   /**
    * Find matching agents for the user based on current context and trigger
-   * Only performs matching during specific triggers to avoid overwhelming users
+   * Uses sophisticated scoring algorithm considering goals, learning preferences, and context
    */
   async findMatchingAgents(options: AgentMatchingOptions): Promise<AgentMatchingResult> {
     const {
@@ -114,6 +114,7 @@ export class AgentMatchingService {
     }
 
     let userContext = {};
+    let selectedGoalIds: string[] | null = null;
     
     // Get user context if requested
     if (includeContext) {
@@ -129,35 +130,42 @@ export class AgentMatchingService {
           user_state: fullContext.user_state,
           coaching_preferences: fullContext.coaching_preferences
         };
+
+        // Extract goal IDs if available
+        if (fullContext.active_goals && Array.isArray(fullContext.active_goals)) {
+          selectedGoalIds = fullContext.active_goals.map((goal: any) => goal.id).filter(Boolean);
+        }
       } catch (error) {
         console.warn('Failed to fetch user context for agent matching:', error);
         // Continue with empty context rather than failing
       }
     }
 
-    // Perform agent matching using database function
+    // Use the new sophisticated matching function
     const { data: matches, error } = await this.supabase
-      .rpc('match_agents_for_user', {
+      .rpc('find_matching_agents', {
         p_user_id: this.userId,
         p_trigger_type: trigger,
-        p_user_context: userContext,
-        p_limit: maxAgents
+        p_max_agents: maxAgents,
+        p_selected_goal_ids: selectedGoalIds
       });
 
     if (error) {
-      throw new Error(`Agent matching failed: ${error.message}`);
+      console.warn('Primary matching function failed, trying fallback:', error);
+      // Fallback to simpler matching if sophisticated function fails
+      return await this.fallbackMatching(options, userContext);
     }
 
-    // Filter by minimum score
+    // Process and format matches
     const filteredMatches: AgentMatch[] = (matches || [])
-      .filter((match: any) => match.matching_score >= minScore)
+      .filter((match: any) => match.total_score >= minScore)
       .map((match: any) => ({
         agent_id: match.agent_id,
         agent_name: match.agent_name,
-        speciality: match.speciality,
-        category: match.category,
-        matching_score: match.matching_score,
-        reasoning: match.reasoning
+        speciality: match.agent_specialty,
+        category: match.agent_category,
+        matching_score: match.total_score,
+        reasoning: this.formatReasoningText(match)
       }));
 
     // Determine priority and notification settings
@@ -167,8 +175,8 @@ export class AgentMatchingService {
       shouldPerformMatching.last_matching_hours_ago
     );
 
-    // Log the matching attempt
-    await this.logMatchingHistory(trigger, filteredMatches, userContext);
+    // Log the matching attempt with detailed scores
+    await this.logDetailedMatchingHistory(trigger, matches || [], userContext);
 
     const result: AgentMatchingResult = {
       matches: filteredMatches,
@@ -180,6 +188,146 @@ export class AgentMatchingService {
     };
 
     return result;
+  }
+
+  /**
+   * Format reasoning text from database match result
+   */
+  private formatReasoningText(match: any): string {
+    const reasoning = match.reasoning || {};
+    let text = `${match.agent_name} scored ${(match.total_score * 100).toFixed(0)}% based on `;
+    
+    const factors = [];
+    
+    if (reasoning.goal_category_match === 'direct_match') {
+      factors.push(`strong alignment with your ${match.goal_category} goals`);
+    }
+    
+    if (reasoning.learning_preference_alignment !== 'general_fit') {
+      const alignmentType = reasoning.learning_preference_alignment.replace('_match', '').replace('_', ' ');
+      factors.push(`${alignmentType} learning style compatibility`);
+    }
+    
+    if (reasoning.timeframe_compatibility) {
+      factors.push(`suitable for ${reasoning.timeframe_compatibility} timeframe`);
+    }
+    
+    if (match.agent_specialty) {
+      factors.push(`expertise in "${match.agent_specialty}"`);
+    }
+    
+    if (factors.length === 0) {
+      return `${match.agent_name} is a good general match for your coaching needs.`;
+    }
+    
+    return text + factors.join(', ') + '.';
+  }
+
+  /**
+   * Fallback matching when sophisticated function fails
+   */
+  private async fallbackMatching(options: AgentMatchingOptions, userContext: any): Promise<AgentMatchingResult> {
+    const { trigger, maxAgents = 3 } = options;
+    
+    // Simple fallback: get agents by category or random
+    const { data: agents, error } = await this.supabase
+      .from('agent_personae')
+      .select(`
+        uuid,
+        "Name",
+        "Speciality",
+        "Category",
+        "Goal Category",
+        "11labs_agentID"
+      `)
+      .not('"11labs_agentID"', 'is', null)
+      .not('"Name"', 'is', null)
+      .limit(maxAgents);
+
+    if (error || !agents) {
+      return {
+        matches: [],
+        trigger,
+        context_used: userContext,
+        matching_performed_at: new Date().toISOString(),
+        should_notify_user: false,
+        priority_level: 'low'
+      };
+    }
+
+    const matches: AgentMatch[] = agents.map(agent => ({
+      agent_id: agent.uuid,
+      agent_name: agent.Name,
+      speciality: agent.Speciality,
+      category: agent.Category,
+      matching_score: 0.5, // Default score for fallback
+      reasoning: `${agent.Name} was selected as a general match. Complete your onboarding for personalized recommendations.`
+    }));
+
+    return {
+      matches,
+      trigger,
+      context_used: userContext,
+      matching_performed_at: new Date().toISOString(),
+      should_notify_user: trigger === 'onboarding' || trigger === 'user_request',
+      priority_level: 'medium'
+    };
+  }
+
+  /**
+   * Log detailed matching history with component scores
+   */
+  private async logDetailedMatchingHistory(
+    trigger: TriggerType,
+    matches: any[],
+    userContext: Record<string, any>
+  ): Promise<void> {
+    try {
+      const matchingScore = {
+        total_matches: matches.length,
+        avg_score: matches.length > 0 ? matches.reduce((sum: number, m: any) => sum + m.total_score, 0) / matches.length : 0,
+        top_score: matches.length > 0 ? Math.max(...matches.map((m: any) => m.total_score)) : 0,
+        component_scores: matches.map((m: any) => ({
+          agent_id: m.agent_id,
+          total_score: m.total_score,
+          goal_match: m.goal_match_score,
+          learning_pref: m.learning_pref_score,
+          timeframe: m.timeframe_score,
+          experience: m.experience_score
+        })),
+        categories: matches.map((m: any) => m.agent_category)
+      };
+
+      await this.supabase
+        .from('agent_matching_history')
+        .insert({
+          user_id: this.userId,
+          trigger_type: trigger,
+          matched_agent_ids: matches.map((m: any) => m.agent_id),
+          matching_score: matchingScore,
+          context_data: userContext
+        });
+
+      // Log interaction for top match
+      if (matches.length > 0) {
+        await this.supabase
+          .from('agent_interaction_logs')
+          .insert({
+            user_id: this.userId,
+            agent_id: matches[0].agent_id,
+            interaction_type: 'match_generated',
+            context_data: {
+              trigger,
+              total_matches: matches.length,
+              top_score: matchingScore.top_score,
+              matching_algorithm: 'sophisticated_scoring'
+            }
+          });
+      }
+    } catch (error) {
+      console.error('Failed to log detailed matching history:', error);
+      // Don't throw - logging failures shouldn't break matching
+    }
   }
 
   /**
@@ -384,6 +532,65 @@ export class AgentMatchingService {
       console.error('Failed to log matching history:', error);
       // Don't throw - logging failures shouldn't break matching
     }
+  }
+
+  /**
+   * Simple interface for finding matching agents (as requested)
+   * Returns deterministic top-3 agents with clear reasoning
+   */
+  async getMatchingAgents(options: { trigger: string, maxAgents?: number }): Promise<{
+    matches: Array<{
+      agent_id: string;
+      agent_name: string;
+      agent_category: string;
+      elevenlabs_agent_id: string;
+      total_score: number;
+      reasoning: string;
+    }>;
+    reasoning: string;
+    priority: 'high' | 'medium' | 'low';
+  }> {
+    const matchingOptions: AgentMatchingOptions = {
+      trigger: options.trigger as TriggerType,
+      maxAgents: options.maxAgents || 3
+    };
+
+    const result = await this.findMatchingAgents(matchingOptions);
+    
+    return {
+      matches: result.matches.map(match => ({
+        agent_id: match.agent_id,
+        agent_name: match.agent_name,
+        agent_category: match.category,
+        elevenlabs_agent_id: '', // Would need to fetch from agent_personae if needed
+        total_score: match.matching_score,
+        reasoning: match.reasoning
+      })),
+      reasoning: this.generateOverallReasoning(result.matches, options.trigger),
+      priority: result.priority_level
+    };
+  }
+
+  /**
+   * Generate overall reasoning for the matching result
+   */
+  private generateOverallReasoning(matches: AgentMatch[], trigger: string): string {
+    if (matches.length === 0) {
+      return `No suitable agents found for ${trigger} trigger. Please complete your user questionnaire for better matching.`;
+    }
+
+    const topMatch = matches[0];
+    const scorePercentage = Math.round(topMatch.matching_score * 100);
+    
+    let reasoning = `For ${trigger} trigger, found ${matches.length} suitable agent${matches.length > 1 ? 's' : ''}. `;
+    reasoning += `Top match: ${topMatch.agent_name} (${scorePercentage}% compatibility) specializing in ${topMatch.category}.`;
+    
+    if (matches.length > 1) {
+      const otherAgents = matches.slice(1, 3).map(m => `${m.agent_name} (${Math.round(m.matching_score * 100)}%)`).join(', ');
+      reasoning += ` Additional matches: ${otherAgents}.`;
+    }
+
+    return reasoning;
   }
 
   /**

@@ -146,17 +146,19 @@ export class AnonymousUserService {
   // Sign in with anonymous user for Supabase
   async signInAnonymously(): Promise<string | null> {
     try {
-      // Temporarily disable anonymous sign-in to fix 500 error
-      console.log('Skipping anonymous sign-in due to server error')
-      return this.getAnonymousId()
+      // Skip Supabase anonymous sign-in due to captcha issues
+      // Just use client-side ID for now
+      console.log('Using client-side anonymous ID (Supabase anonymous sign-in disabled due to captcha)');
+      return this.getAnonymousId();
       
-      // Uncomment below when anonymous sign-ins are enabled in Supabase
-      /*
+      /* Commented out due to captcha verification issues
+      // Try to sign in anonymously with Supabase
       const { data, error } = await this.supabase.auth.signInAnonymously()
       
       if (error) {
-        console.error('Error signing in anonymously:', error)
-        return null
+        // If anonymous sign-in fails, fall back to client-side only
+        console.warn('Anonymous sign-in not available, using client-side ID:', error.message)
+        return this.getAnonymousId()
       }
       
       // Store mapping between anonymous ID and Supabase user ID
@@ -165,13 +167,14 @@ export class AnonymousUserService {
       
       if (supabaseUserId) {
         this.mapAnonymousToSupabase(anonymousId, supabaseUserId)
+        console.log('✅ Anonymous user created in Supabase:', supabaseUserId)
         return supabaseUserId
       }
       
-      return null
+      return this.getAnonymousId()
       */
     } catch (error) {
-      console.error('Error with anonymous sign in:', error)
+      console.warn('Error with anonymous sign in, using client-side ID:', error)
       return this.getAnonymousId()
     }
   }
@@ -211,21 +214,54 @@ export class AnonymousUserService {
       const anonymousData = this.getAnonymousUserData()
       if (!anonymousData) return false
 
-      // Migrate goals
+      // Migrate goals using the new user_goals schema
       for (const goal of anonymousData.goals) {
         await this.supabase
           .from('user_goals')
           .insert({
-            ...goal,
             user_id: authenticatedUserId,
             profile_id: authenticatedUserId,
+            goal_title: goal.goal_title || goal.title,
+            goal_description: goal.goal_description || goal.description,
+            category_id: goal.category_id,
+            goal_status: 'active',
+            target_date: goal.target_date,
             metadata: {
               ...goal.metadata,
               migrated_from_anonymous: true,
-              original_anonymous_id: anonymousData.id
+              original_anonymous_id: anonymousData.id,
+              selection_method: 'anonymous_migration'
             }
           })
       }
+
+      // Migrate preferences to user_questionnaire table
+      if (anonymousData.preferences && Object.keys(anonymousData.preferences).length > 0) {
+        const prefs = anonymousData.preferences
+        await this.supabase
+          .from('user_questionnaire')
+          .insert({
+            user_id: authenticatedUserId,
+            time_horizon: prefs.time_horizon || 'medium',
+            learning_prefs: prefs.learning_prefs || [],
+            preferred_categories: prefs.preferred_categories || [],
+            experience_level: prefs.experience_level || 'beginner',
+            motivation_factors: prefs.motivation_factors || []
+          })
+      }
+
+      // Record migration event
+      await this.supabase.rpc('record_interaction_event', {
+        p_user_id: authenticatedUserId,
+        p_source: 'anonymous_migration',
+        p_event_type: 'data_migrated',
+        p_payload: {
+          original_anonymous_id: anonymousData.id,
+          goals_migrated: anonymousData.goals.length,
+          preferences_migrated: !!anonymousData.preferences,
+          sessions_migrated: anonymousData.sessions?.length || 0
+        }
+      }).catch(err => console.warn('Could not record migration event:', err))
 
       // Clear anonymous data after successful migration
       this.clearAnonymousData()

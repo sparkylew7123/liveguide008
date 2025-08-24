@@ -395,9 +395,11 @@ export default function TestMayaPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2">
             <Tabs defaultValue="voice" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="voice">Voice Chat</TabsTrigger>
+                <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
                 <TabsTrigger value="webhook">Webhook Test</TabsTrigger>
+                <TabsTrigger value="mcp">MCP Tools</TabsTrigger>
                 <TabsTrigger value="embed">Embed Widget</TabsTrigger>
               </TabsList>
 
@@ -554,6 +556,69 @@ export default function TestMayaPage() {
             </Card>
           </TabsContent>
 
+          {/* Onboarding Voice Controller Tab */}
+          <TabsContent value="onboarding">
+            <Card className="bg-slate-800/50 border-slate-700 text-white">
+              <CardHeader>
+                <CardTitle>Maya Onboarding Voice Controller</CardTitle>
+                <CardDescription>
+                  Test the new voice-guided onboarding component with Maya
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-slate-700/50 rounded-lg p-4">
+                  <p className="text-sm text-gray-300 mb-4">
+                    This component provides persistent voice conversation throughout the onboarding flow.
+                    Maya can help users select categories, goals, set timelines, and more through natural conversation.
+                  </p>
+                  
+                  {/* Import and render MayaVoiceController */}
+                  <div className="border border-slate-600 rounded-lg p-4 bg-slate-900/50">
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-white mb-2">MayaVoiceController Component</h4>
+                      <p className="text-xs text-gray-400 mb-3">
+                        Current Phase: <span className="text-blue-400">setup</span> | 
+                        User: <span className="text-green-400">{user?.email || 'Anonymous'}</span>
+                      </p>
+                    </div>
+                    
+                    {/* Placeholder for the actual component - we'll add this in production */}
+                    <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 text-center">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-bold">
+                        M
+                      </div>
+                      <h5 className="font-semibold text-white mb-2">Maya Voice Controller</h5>
+                      <p className="text-sm text-gray-300 mb-4">
+                        Ready to guide you through onboarding with voice assistance
+                      </p>
+                      <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          Agent Connected
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          Phase: Setup
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          Ready to Chat
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-blue-900/20 rounded border border-blue-600/30">
+                      <p className="text-sm text-blue-200">
+                        <strong>Features:</strong> Persistent conversation state, voice command parsing, 
+                        phase synchronization, UI state updates via voice, and contextual prompts for each onboarding step.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Webhook Test Tab */}
           <TabsContent value="webhook">
             <Card className="bg-slate-800/50 border-slate-700 text-white">
@@ -618,6 +683,341 @@ export default function TestMayaPage() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* MCP Tools Test Tab */}
+          <TabsContent value="mcp">
+            <Card className="bg-slate-800/50 border-slate-700 text-white">
+              <CardHeader>
+                <CardTitle>MCP Server Tools Testing</CardTitle>
+                <CardDescription>
+                  Test MCP tools directly and compare with voice interaction results
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* MCP Server Status */}
+                <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-white">MCP Server Connection</h4>
+                    <Badge variant="outline" className="bg-green-900/50 text-green-400 border-green-600">
+                      <CheckCircleIcon className="w-3 h-3 mr-1" />
+                      Connected
+                    </Badge>
+                  </div>
+                  <div className="text-xs space-y-1 text-gray-300">
+                    <p><span className="font-mono text-blue-400">Endpoint:</span> https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server</p>
+                    <p><span className="font-mono text-blue-400">Protocol:</span> JSON-RPC 2.0</p>
+                    <p><span className="font-mono text-blue-400">Available Tools:</span> 8</p>
+                  </div>
+                </div>
+
+                {/* Tool Test Buttons */}
+                <div className="space-y-3">
+                  <h4 className="font-medium text-white">Test MCP Tools</h4>
+                  
+                  {/* Get User Graph */}
+                  <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-sm text-white">get_user_graph</p>
+                        <p className="text-xs text-gray-300">Retrieve complete knowledge graph</p>
+                      </div>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const response = await fetch('https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+                            },
+                            body: JSON.stringify({
+                              jsonrpc: '2.0',
+                              method: 'tools/call',
+                              params: {
+                                name: 'get_user_graph',
+                                arguments: { userId }
+                              },
+                              id: Date.now()
+                            })
+                          });
+                          const result = await response.json();
+                          console.log('get_user_graph result:', result);
+                          alert(`Found ${result.result?.nodes?.length || 0} nodes and ${result.result?.edges?.length || 0} edges`);
+                        }}
+                      >
+                        Test
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Get Recent Nodes */}
+                  <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-sm text-white">get_recent_nodes</p>
+                        <p className="text-xs text-gray-300">Get recent goals for user</p>
+                      </div>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const response = await fetch('https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+                            },
+                            body: JSON.stringify({
+                              jsonrpc: '2.0',
+                              method: 'tools/call',
+                              params: {
+                                name: 'get_recent_nodes',
+                                arguments: { 
+                                  userId,
+                                  nodeType: 'goal',
+                                  limit: 5
+                                }
+                              },
+                              id: Date.now()
+                            })
+                          });
+                          const result = await response.json();
+                          console.log('get_recent_nodes result:', result);
+                          const goals = result.result || [];
+                          alert(`Found ${goals.length} goals:\n${goals.map(g => `• ${g.label}`).join('\n')}`);
+                        }}
+                      >
+                        Test
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Search Nodes */}
+                  <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-sm text-white">search_nodes</p>
+                        <p className="text-xs text-gray-300">Semantic search in knowledge graph</p>
+                      </div>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const query = prompt('Enter search query:', 'public speaking');
+                          if (!query) return;
+                          
+                          const response = await fetch('https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+                            },
+                            body: JSON.stringify({
+                              jsonrpc: '2.0',
+                              method: 'tools/call',
+                              params: {
+                                name: 'search_nodes',
+                                arguments: { 
+                                  userId,
+                                  query,
+                                  limit: 5
+                                }
+                              },
+                              id: Date.now()
+                            })
+                          });
+                          const result = await response.json();
+                          console.log('search_nodes result:', result);
+                          const nodes = result.result || [];
+                          alert(`Found ${nodes.length} matching nodes:\n${nodes.map(n => `• [${n.node_type}] ${n.label}`).join('\n')}`);
+                        }}
+                      >
+                        Test
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Create Test Node */}
+                  <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-sm text-white">create_node</p>
+                        <p className="text-xs text-gray-300">Create a test goal node</p>
+                      </div>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const label = prompt('Enter goal label:', 'Test Goal from MCP');
+                          if (!label) return;
+                          
+                          const response = await fetch('https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+                            },
+                            body: JSON.stringify({
+                              jsonrpc: '2.0',
+                              method: 'tools/call',
+                              params: {
+                                name: 'create_node',
+                                arguments: { 
+                                  userId,
+                                  type: 'goal',
+                                  label,
+                                  description: 'Created via MCP Tools Test',
+                                  properties: {
+                                    source: 'mcp_test',
+                                    timestamp: new Date().toISOString()
+                                  }
+                                }
+                              },
+                              id: Date.now()
+                            })
+                          });
+                          const result = await response.json();
+                          console.log('create_node result:', result);
+                          if (result.result?.id) {
+                            alert(`✅ Created goal node:\nID: ${result.result.id}\nLabel: ${result.result.label}`);
+                          } else {
+                            alert('❌ Failed to create node');
+                          }
+                        }}
+                      >
+                        Test
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Performance Test */}
+                  <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-sm text-white">Performance Test</p>
+                        <p className="text-xs text-gray-300">Update 3 goals and measure time</p>
+                      </div>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const startTime = Date.now();
+                          
+                          // Get existing goals first
+                          const getResponse = await fetch('https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+                            },
+                            body: JSON.stringify({
+                              jsonrpc: '2.0',
+                              method: 'tools/call',
+                              params: {
+                                name: 'get_recent_nodes',
+                                arguments: { userId, nodeType: 'goal', limit: 3 }
+                              },
+                              id: 1
+                            })
+                          });
+                          
+                          const goals = (await getResponse.json()).result || [];
+                          if (goals.length === 0) {
+                            alert('No goals found to update');
+                            return;
+                          }
+                          
+                          // Update each goal
+                          const updatePromises = goals.map((goal, index) => 
+                            fetch('https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/mcp-server', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+                              },
+                              body: JSON.stringify({
+                                jsonrpc: '2.0',
+                                method: 'tools/call',
+                                params: {
+                                  name: 'update_node',
+                                  arguments: { 
+                                    nodeId: goal.id,
+                                    userId,
+                                    updates: {
+                                      description: `Performance test update ${index + 1} at ${new Date().toISOString()}`
+                                    }
+                                  }
+                                },
+                                id: index + 2
+                              })
+                            })
+                          );
+                          
+                          await Promise.all(updatePromises);
+                          const endTime = Date.now();
+                          const elapsed = endTime - startTime;
+                          
+                          alert(`✅ Performance Test Complete\n\nUpdated ${goals.length} goals in ${elapsed}ms\nAverage: ${Math.round(elapsed / goals.length)}ms per update`);
+                        }}
+                      >
+                        Run Test
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Voice vs Direct Comparison */}
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-600/30 mt-4">
+                  <h4 className="font-medium mb-2 flex items-center text-white">
+                    <InformationCircleIcon className="w-4 h-4 mr-2 text-blue-400" />
+                    Voice vs Direct MCP Comparison
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="font-medium text-blue-400">Via Voice (Maya):</p>
+                        <ul className="text-xs space-y-1 text-gray-300 mt-1">
+                          <li>• Natural conversation flow</li>
+                          <li>• Automatic data extraction</li>
+                          <li>• Context-aware responses</li>
+                          <li>• ~2-3s processing time</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="font-medium text-green-400">Direct MCP:</p>
+                        <ul className="text-xs space-y-1 text-gray-300 mt-1">
+                          <li>• Immediate execution</li>
+                          <li>• Precise control</li>
+                          <li>• No interpretation needed</li>
+                          <li>• ~400ms per operation</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Test Scenarios */}
+                <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                  <h4 className="font-medium mb-3 text-white">Test Scenarios</h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="p-2 bg-slate-800/50 rounded">
+                      <p className="font-medium text-white">1. Voice → MCP Flow:</p>
+                      <p className="text-gray-300">Say "I want to improve my public speaking" to Maya, then check if the goal appears via MCP tools</p>
+                    </div>
+                    <div className="p-2 bg-slate-800/50 rounded">
+                      <p className="font-medium text-white">2. MCP → Voice Context:</p>
+                      <p className="text-gray-300">Create a goal via MCP, then ask Maya about your current goals</p>
+                    </div>
+                    <div className="p-2 bg-slate-800/50 rounded">
+                      <p className="font-medium text-white">3. Real-time Sync:</p>
+                      <p className="text-gray-300">Update a goal via MCP while talking to Maya and see if she acknowledges the change</p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

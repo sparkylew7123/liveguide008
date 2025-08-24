@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { GoalDiscoveryFlow } from './GoalDiscoveryFlow';
 import TypeformGoalSelection from './TypeformGoalSelection';
 import VisualGoalMatching from './VisualGoalMatching';
@@ -10,24 +14,32 @@ import { CoachingStyleDiscovery } from './CoachingStyleDiscovery';
 import { AgentMatchingPresentation } from './AgentMatchingPresentation';
 import { OnboardingProgress } from './OnboardingProgress';
 import SoundCheckSetup from './SoundCheckSetup';
+import { CategorySelectionGrid } from './CategorySelectionGrid';
+import { GoalSelectionPicker } from './GoalSelectionPicker';
+import { TimeHorizonSlider } from './TimeHorizonSlider';
+import { LearningPreferences } from './LearningPreferences';
+import { SimpleVoiceOnboarding } from '../SimpleVoiceOnboarding';
+import { AICoachesShowcase } from './AICoachesShowcase';
 
-export type OnboardingPhase = 'setup' | 'goal_discovery' | 'coaching_style' | 'agent_matching' | 'completed';
+export type OnboardingPhase = 'agent_selection' | 'voice_onboarding' | 'goal_confirmation' | 'completed' | 'sound_check' | 'category_selection' | 'goal_selection' | 'time_horizon' | 'learning_preferences' | 'agent_matching' | 'agent_conversation';
 
 interface OnboardingData {
-  selectedGoals: string[];
-  userPreferences?: {
-    userName: string;
-    voicePreference: 'male' | 'female' | 'no-preference';
-    microphoneWorking: boolean;
-  };
-  coachingPreferences?: {
-    Energy?: any;
-    Information?: any;
-    Decisions?: any;
-    Structure?: any;
-  };
-  matchedAgents?: any[];
   selectedAgent?: any;
+  userName?: string;
+  userGoals: Array<{
+    userPhrase: string;
+    matchedGoal?: any;
+    preferredTerm?: string;
+    confirmed: boolean;
+    timeline?: 'short' | 'medium' | 'long';
+    category?: string;
+  }>;
+  learningPreferences?: {
+    style?: 'visual' | 'auditory' | 'hands-on';
+    pace?: 'fast' | 'moderate' | 'slow';
+    support?: 'high' | 'moderate' | 'minimal';
+  };
+  conversationComplete?: boolean;
 }
 
 interface VoiceGuidedOnboardingProps {
@@ -37,370 +49,367 @@ interface VoiceGuidedOnboardingProps {
 
 export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingProps) {
   const router = useRouter();
-  const [currentPhase, setCurrentPhase] = useState<OnboardingPhase>('setup');
+  const [currentPhase, setCurrentPhase] = useState<OnboardingPhase>('agent_selection');
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
-    selectedGoals: []
+    userGoals: [],
+    userName: userName
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [currentGoalIndex, setCurrentGoalIndex] = useState(0);
+  const [voiceSession, setVoiceSession] = useState<any>(null);
 
-  // Check if user has already completed onboarding
+  // Load agents and check onboarding status
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      // Skip profile check for anonymous users
-      if (user.id?.startsWith('anon_')) {
-        setLoading(false);
-        return;
-      }
+    const initialize = async () => {
+      setIsLoading(true);
       
-      const supabase = createClient();
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_completed_at, coaching_preferences')
-        .eq('id', user.id)
-        .single();
+      try {
+        const supabase = createClient();
+        
+        // Load agents with video URLs
+        const { data: agentsData, error: agentsError } = await supabase
+          .from('agent_personae')
+          .select('*')
+          .order('Name', { ascending: true });
+        
+        console.log('Loading agents:', { agentsData, agentsError });
+        
+        if (!agentsError && agentsData && agentsData.length > 0) {
+          setAgents(agentsData);
+        } else if (agentsError) {
+          console.error('Error loading agents:', agentsError);
+        }
+        
+        // Check if user has already completed onboarding
+        if (user?.id && !user.id.startsWith('anon_')) {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('onboarding_completed_at')
+            .eq('id', user.id)
+            .single();
 
-      if (profile?.onboarding_completed_at) {
-        // User has completed onboarding, redirect to agents
-        router.push('/agents');
+          if (!error && profile?.onboarding_completed_at) {
+            router.push('/agents');
+          }
+        }
+      } catch (err) {
+        console.error('Initialization error:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (user) {
-      checkOnboardingStatus();
-    }
+    initialize();
   }, [user, router]);
 
-  const handlePhaseComplete = async (phase: OnboardingPhase, data: any) => {
-    setIsLoading(true);
-    
-    try {
-      const supabase = createClient();
+  // Trigger save when all goals are confirmed
+  useEffect(() => {
+    if (currentPhase === 'goal_confirmation' && 
+        currentGoalIndex >= onboardingData.userGoals.length && 
+        onboardingData.userGoals.length > 0 &&
+        onboardingData.userGoals.some(g => g.confirmed)) { // At least one goal must be confirmed
+      saveOnboardingData();
+    }
+  }, [currentPhase, currentGoalIndex, onboardingData.userGoals.length]);
+
+  const handleAgentSelect = useCallback((agentWithData: any) => {
+    // Check if this includes conversation data from the voice call
+    if (agentWithData.conversationData) {
+      const { conversationData, ...agent } = agentWithData;
+      setOnboardingData(prev => ({ 
+        ...prev, 
+        selectedAgent: agent,
+        conversationComplete: true
+      }));
       
-      // Check if this is an anonymous user (declare once for the entire function)
-      const isAnonymousUser = user.id?.startsWith('anon_');
-      
-      // This function now integrates with both the traditional tables and the new graph model:
-      // 1. goal_discovery: Creates Goal nodes and tracks initial confidence as Emotion nodes
-      // 2. coaching_style: Tracks emotional state based on preferences (confident, motivated, anxious, uncertain)
-      // 3. Maintains backward compatibility with existing profile and user_goals tables
-      
-      switch (phase) {
-        case 'setup':
-          // Update onboarding data with user preferences
-          const withSetupData = {
-            ...onboardingData,
-            userPreferences: data
-          };
-          setOnboardingData(withSetupData);
-          
-          // Move to goal discovery
-          setCurrentPhase('goal_discovery');
-          break;
-          
-        case 'goal_discovery':
-          // Update onboarding data with selected goals
-          const updatedData = {
-            ...onboardingData,
-            selectedGoals: data.selectedGoals
-          };
-          setOnboardingData(updatedData);
-          
-          // Save selected goals to both profile and user_goals table
-          if (data.selectedGoals.length > 0) {
-            try {
-              // Extract goal information from the selected goals
-              const goalInfo = data.selectedGoals.map((goal: any) => ({
-                id: goal.id || goal,
-                title: goal.title || goal,
-                category: goal.category || 'Personal Growth',
-                timescale: goal.timescale || '3-months',
-                confidence: goal.confidence || 0.8
-              }));
-              
-              // Save goals to profile (for backward compatibility) - skip for anonymous users
-              if (!isAnonymousUser) {
-                await supabase
-                  .from('profiles')
-                  .update({
-                    selected_goals: goalInfo,
-                    goals_updated_at: new Date().toISOString()
-                  })
-                  .eq('id', user.id);
-              }
-              
-              // Save goals to user_goals table for the app to use
-              const goalInserts = data.selectedGoals.map((goal: any) => ({
-                user_id: user.id,
-                profile_id: user.id,
-                title: goal.title || goal,
-                category: goal.category || 'Personal Growth',
-                selection_method: 'voice',
-                voice_confidence: goal.confidence || 0.8,
-                selection_context: {
-                  timescale: goal.timescale || '3-months',
-                  original_id: goal.id || '',
-                  onboarding_phase: 'voice_guided',
-                  selected_at: new Date().toISOString()
-                }
-              }));
-              
-              // Skip the old user_goals table insert since we're using graph database now
-              // The old table doesn't exist in the new schema
-              console.log('Skipping old user_goals table insert, using graph database instead');
-              
-              // NEW: Create Goal nodes in graph model
-              const goalNodePromises = data.selectedGoals.map(async (goal: any) => {
-                try {
-                  // Skip creating goal nodes for anonymous users
-                  if (isAnonymousUser) {
-                    console.log('Skipping goal node creation for anonymous user');
-                    return null;
-                  }
-                  
-                  // Create goal node using the database function
-                  const { data: goalNode, error: goalNodeError } = await supabase
-                    .rpc('create_goal_node', {
-                      p_user_id: user.id,
-                      p_title: goal.title || goal,
-                      p_category: goal.category || 'Personal Growth',
-                      p_properties: {
-                        description: `Goal selected during voice-guided onboarding${goal.timescale ? ` with ${goal.timescale} timeline` : ''}`,
-                        target_date: goal.timescale === '3-months' 
-                          ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                          : goal.timescale === '6-months'
-                          ? new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                          : goal.timescale === '1-year'
-                          ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                          : null,
-                        priority: 'high' // Goals selected during onboarding are high priority
-                      }
-                    });
-                  
-                  if (goalNodeError) {
-                    console.error('Error creating goal node:', goalNodeError);
-                    return null;
-                  }
-                  
-                  // Track initial confidence as emotion (only for authenticated users)
-                  if (!isAnonymousUser) {
-                    const confidence = goal.confidence || 0.8;
-                    const emotionType = confidence >= 0.7 ? 'confident' : confidence >= 0.4 ? 'motivated' : 'uncertain';
-                    const emotionIntensity = confidence >= 0.7 ? confidence : confidence >= 0.4 ? 0.6 : 0.4;
-                    
-                    const { error: emotionError } = await supabase
-                      .rpc('track_emotion', {
-                        p_user_id: user.id,
-                        p_emotion: emotionType,
-                        p_intensity: emotionIntensity,
-                        p_context: `Initial confidence for goal: ${goal.title || goal}`
-                      });
-                    
-                    if (emotionError) {
-                      console.error('Error tracking emotion:', emotionError);
-                    }
-                  }
-                  
-                  return goalNode;
-                } catch (error) {
-                  console.error('Error in graph operations for goal:', goal, error);
-                  return null;
-                }
-              });
-              
-              // Wait for all graph operations to complete
-              const goalNodes = await Promise.all(goalNodePromises);
-              console.log('Created goal nodes:', goalNodes.filter(n => n !== null));
-                
-            } catch (error) {
-              console.error('Error saving goals:', error);
-              // Continue with onboarding even if goal saving fails
-            }
-          }
-          
-          // Move to coaching style discovery
-          setCurrentPhase('coaching_style');
-          break;
-          
-        case 'coaching_style':
-          // Update onboarding data with coaching preferences
-          const withCoachingData = {
-            ...onboardingData,
-            coachingPreferences: data.coachingPreferences
-          };
-          setOnboardingData(withCoachingData);
-          
-          // Save coaching preferences to profile (for backward compatibility) - skip for anonymous users
-          if (!isAnonymousUser) {
-            await supabase
-              .from('profiles')
-              .update({
-                coaching_preferences: data.coachingPreferences,
-                onboarding_method: 'voice'
-              })
-              .eq('id', user.id);
-          }
-          
-          // NEW: Track emotions based on coaching preferences
-          // Analyze preferences to determine initial emotional state
-          try {
-            const prefs = data.coachingPreferences;
-            
-            // Determine overall emotional state based on preferences
-            // High Energy + High Structure = Confident/Motivated
-            // Low Energy + Low Structure = Uncertain/Anxious
-            const energyLevel = prefs.Energy?.level || 'balanced';
-            const structureLevel = prefs.Structure?.level || 'balanced';
-            
-            let emotionType: string;
-            let emotionIntensity: number;
-            
-            if (energyLevel === 'high' && structureLevel === 'high') {
-              emotionType = 'confident';
-              emotionIntensity = 0.8;
-            } else if (energyLevel === 'high' && structureLevel === 'low') {
-              emotionType = 'motivated';
-              emotionIntensity = 0.7;
-            } else if (energyLevel === 'low' && structureLevel === 'high') {
-              emotionType = 'anxious';
-              emotionIntensity = 0.5;
-            } else if (energyLevel === 'low' && structureLevel === 'low') {
-              emotionType = 'uncertain';
-              emotionIntensity = 0.6;
-            } else {
-              // Balanced preferences
-              emotionType = 'motivated';
-              emotionIntensity = 0.7;
-            }
-            
-            // Track the initial emotional state (only for authenticated users)
-            if (!isAnonymousUser) {
-              const { error: emotionError } = await supabase
-                .rpc('track_emotion', {
-                  p_user_id: user.id,
-                  p_emotion: emotionType,
-                  p_intensity: emotionIntensity,
-                  p_context: `Initial emotional state based on coaching preferences: Energy=${energyLevel}, Structure=${structureLevel}`
-                });
-              
-              if (emotionError) {
-                console.error('Error tracking coaching preference emotion:', emotionError);
-              } else {
-                console.log(`Tracked initial emotion: ${emotionType} (${emotionIntensity})`);
-              }
-            }
-            
-            // Also track if user has specific concerns
-            if (prefs.Information?.level === 'high' && !isAnonymousUser) {
-              // User wants lots of information - might indicate uncertainty
-              await supabase
-                .rpc('track_emotion', {
-                  p_user_id: user.id,
-                  p_emotion: 'uncertain',
-                  p_intensity: 0.4,
-                  p_context: 'User prefers high information - may need extra clarity and guidance'
-                });
-            }
-          } catch (error) {
-            console.error('Error tracking coaching preference emotions:', error);
-            // Continue with onboarding even if emotion tracking fails
-          }
-          
-          // Move to agent matching
-          setCurrentPhase('agent_matching');
-          break;
-          
-        case 'agent_matching':
-          // Update onboarding data with selected agent
-          const finalData = {
-            ...onboardingData,
-            selectedAgent: data.selectedAgent
-          };
-          setOnboardingData(finalData);
-          
-          // Mark onboarding as completed (skip for anonymous users)
-          if (!isAnonymousUser) {
-            await supabase
-              .from('profiles')
-              .update({
-                onboarding_completed_at: new Date().toISOString()
-              })
-              .eq('id', user.id);
-            
-            // Create agent matching session record
-            await supabase
-              .from('agent_matching_sessions')
-              .insert({
-                user_id: user.id,
-                user_goals: finalData.selectedGoals,
-                coaching_preferences: finalData.coachingPreferences || {},
-                matched_agents: data.matchedAgents || [],
-                selected_agent_id: data.selectedAgent?.uuid,
-                matching_algorithm_version: '2.0'
-              });
-          }
-          
-          // Redirect to agent conversation
-          router.push('/agents');
-          break;
+      // Extract goals from conversation data
+      if (conversationData.goals && conversationData.goals.length > 0) {
+        const goals = conversationData.goals.map((g: any) => ({
+          userPhrase: g.original || g.text,
+          matchedGoal: g,
+          confirmed: false,
+          timeline: g.timeline || 'medium',
+          category: g.category || 'Personal Growth'
+        }));
+        setOnboardingData(prev => ({ ...prev, userGoals: goals }));
+        setCurrentGoalIndex(0);
+        setCurrentPhase('goal_confirmation');
+      } else {
+        // No goals captured, but conversation completed - move to completion
+        setCurrentPhase('completed');
       }
+    } else {
+      // Legacy flow - just agent selected without voice call
+      setOnboardingData(prev => ({ ...prev, selectedAgent: agentWithData }));
+      setIsLoading(true);
+      setTimeout(() => {
+        setCurrentPhase('voice_onboarding');
+        setIsLoading(false);
+      }, 500);
+    }
+  }, []);
+
+  const handleInitiateCall = async () => {
+    if (!onboardingData.selectedAgent) return;
+    
+    setIsLoading(true);
+    try {
+      // Initialize voice session with selected agent
+      // This will trigger the voice-guided goal collection
+      setCurrentPhase('voice_onboarding');
+      
+      // TODO: Initialize ElevenLabs conversation with selected agent
+      // The agent will:
+      // 1. Greet the user and get their name with pronunciation check
+      // 2. Guide them through selecting 1-5 goals
+      // 3. For each goal, seek confirmation on terminology
+      // 4. Capture timeline preferences
+      // 5. Learn about their learning style
+      
     } catch (error) {
-      console.error('Error completing onboarding phase:', error);
+      console.error('Error initiating call:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSkipPhase = async (phase: OnboardingPhase) => {
-    switch (phase) {
-      case 'coaching_style':
-        // Skip to agent matching with balanced algorithm
-        setCurrentPhase('agent_matching');
-        break;
-      default:
-        console.log('Skip not supported for this phase');
+  const handleGoalConfirmation = async (goalIndex: number, confirmed: boolean, preferredTerm?: string) => {
+    const updatedGoals = [...onboardingData.userGoals];
+    updatedGoals[goalIndex] = {
+      ...updatedGoals[goalIndex],
+      confirmed,
+      preferredTerm: preferredTerm || updatedGoals[goalIndex].userPhrase
+    };
+    
+    setOnboardingData(prev => ({ ...prev, userGoals: updatedGoals }));
+    
+    // Move to next goal or complete
+    if (goalIndex < updatedGoals.length - 1) {
+      setCurrentGoalIndex(goalIndex + 1);
+    } else {
+      // All goals confirmed, save to database
+      await saveOnboardingData();
+    }
+  };
+
+  const saveOnboardingData = async () => {
+    setIsLoading(true);
+    try {
+      const supabase = createClient();
+      const isAnonymousUser = user?.id?.startsWith('anon_');
+      
+      // Save confirmed goals to database
+      if (!isAnonymousUser && onboardingData.userGoals.length > 0) {
+        // Save to goal_translations table
+        for (const goal of onboardingData.userGoals) {
+          if (goal.confirmed) {
+            await supabase
+              .from('goal_translations')
+              .insert({
+                user_id: user.id,
+                user_phrase: goal.userPhrase,
+                matched_goal_id: goal.matchedGoal?.id,
+                user_confirmed: true,
+                user_preferred_term: goal.preferredTerm,
+                confidence_score: 0.95
+              });
+            
+            // Create goal node in graph
+            await supabase.rpc('create_goal_node', {
+              p_user_id: user.id,
+              p_title: goal.preferredTerm || goal.userPhrase,
+              p_category: goal.category || 'Personal Growth',
+              p_properties: {
+                description: `Goal: ${goal.preferredTerm || goal.userPhrase}`,
+                timeline: goal.timeline,
+                source: 'voice_onboarding',
+                agent_id: onboardingData.selectedAgent?.uuid
+              }
+            });
+          }
+        }
+        
+        // Mark onboarding complete
+        await supabase
+          .from('profiles')
+          .update({
+            onboarding_completed_at: new Date().toISOString(),
+            selected_agent_id: onboardingData.selectedAgent?.uuid
+          })
+          .eq('id', user.id);
+      }
+      
+      setCurrentPhase('completed');
+      router.push('/agents');
+    } catch (error) {
+      console.error('Error saving onboarding data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle voice conversation events
+  const handleVoiceEvent = (event: any) => {
+    console.log('Voice event:', event);
+    
+    if (event.type === 'goal_captured') {
+      // Add captured goal to list for confirmation
+      const newGoal = {
+        userPhrase: event.userPhrase,
+        matchedGoal: event.matchedGoal,
+        confirmed: false,
+        timeline: event.timeline,
+        category: event.category
+      };
+      
+      setOnboardingData(prev => ({
+        ...prev,
+        userGoals: [...prev.userGoals, newGoal]
+      }));
+    } else if (event.type === 'conversation_complete') {
+      // Voice conversation finished, move to confirmation
+      setCurrentPhase('goal_confirmation');
+      setCurrentGoalIndex(0);
+    } else if (event.type === 'user_name_captured') {
+      setOnboardingData(prev => ({
+        ...prev,
+        userName: event.userName
+      }));
     }
   };
 
   const renderCurrentPhase = () => {
     switch (currentPhase) {
-      case 'setup':
+      case 'agent_selection':
         return (
-          <SoundCheckSetup
-            onComplete={(preferences) => handlePhaseComplete('setup', preferences)}
+          <AICoachesShowcase 
+            onSelectCoach={handleAgentSelect}
+            selectedCoachId={onboardingData.selectedAgent?.uuid}
           />
         );
-        
-      case 'goal_discovery':
+
+      case 'voice_onboarding':
         return (
-          <TypeformGoalSelection
-            onComplete={(selectedGoals) => handlePhaseComplete('goal_discovery', { selectedGoals })}
-            onSkip={() => handleSkipPhase('goal_discovery')}
-            userPreferences={onboardingData.userPreferences}
-          />
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="text-center space-y-4">
+              <h1 className="text-3xl font-bold text-gray-900">
+                Let's Get to Know You
+              </h1>
+              <p className="text-lg text-gray-600">
+                {onboardingData.selectedAgent?.Name} will guide you through a brief conversation to understand your goals
+              </p>
+            </div>
+            
+            <SimpleVoiceOnboarding
+              agentId={onboardingData.selectedAgent?.['11labs_agentID']}
+              agentDetails={onboardingData.selectedAgent}
+              userName={onboardingData.userName || userName}
+              onComplete={(data) => {
+                // Extract goals from conversation data
+                if (data.goals && data.goals.length > 0) {
+                  const goals = data.goals.map((g: any) => ({
+                    userPhrase: g.original || g.text,
+                    matchedGoal: g,
+                    confirmed: false,
+                    timeline: g.timeline || 'medium',
+                    category: g.category || 'Personal Growth'
+                  }));
+                  setOnboardingData(prev => ({ ...prev, userGoals: goals }));
+                  setCurrentGoalIndex(0); // Reset index for confirmation
+                  setCurrentPhase('goal_confirmation');
+                } else {
+                  // No goals captured, stay in voice onboarding to try again
+                  console.warn('No goals captured in voice conversation');
+                  alert('No goals were captured. Please try speaking about your goals again, or refresh to restart.');
+                  // Don't change phase - stay in voice_onboarding
+                }
+              }}
+            />
+          </div>
         );
+
+      case 'goal_confirmation':
+        const currentGoal = onboardingData.userGoals[currentGoalIndex];
+        if (!currentGoal) {
+          // Check if we have any confirmed goals
+          const hasConfirmedGoals = onboardingData.userGoals.some(g => g.confirmed);
+          if (hasConfirmedGoals) {
+            // All goals processed and at least one confirmed, return loading state
+            // saveOnboardingData will be triggered by useEffect
+            return (
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
+                <p className="text-lg text-gray-600">Saving your preferences...</p>
+              </div>
+            );
+          } else {
+            // No goals confirmed, return to voice onboarding
+            return (
+              <div className="text-center space-y-4">
+                <p className="text-lg text-gray-600">No goals were confirmed. Please try again.</p>
+                <Button onClick={() => setCurrentPhase('voice_onboarding')}>
+                  Try Again
+                </Button>
+              </div>
+            );
+          }
+        }
         
-      case 'coaching_style':
         return (
-          <CoachingStyleDiscovery
-            user={user}
-            userName={userName}
-            selectedGoals={onboardingData.selectedGoals}
-            onComplete={(data) => handlePhaseComplete('coaching_style', data)}
-            onSkip={() => handleSkipPhase('coaching_style')}
-            isLoading={isLoading}
-          />
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Goal {currentGoalIndex + 1} of {onboardingData.userGoals.length}
+              </h2>
+            </div>
+            
+            <Card className="max-w-2xl mx-auto">
+              <CardHeader>
+                <CardTitle>Confirm Your Goal</CardTitle>
+                <CardDescription>
+                  We heard: "{currentGoal.userPhrase}"
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-600">
+                  Is this what you meant? You can adjust the wording if needed.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => handleGoalConfirmation(currentGoalIndex, true)}
+                    disabled={isLoading}
+                  >
+                    Yes, that's right
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleGoalConfirmation(currentGoalIndex, false)}
+                    disabled={isLoading}
+                  >
+                    Skip this goal
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         );
-        
-      case 'agent_matching':
+
+      case 'completed':
         return (
-          <AgentMatchingPresentation
-            user={user}
-            userName={userName}
-            selectedGoals={onboardingData.selectedGoals}
-            coachingPreferences={onboardingData.coachingPreferences}
-            onComplete={(data) => handlePhaseComplete('agent_matching', data)}
-            isLoading={isLoading}
-          />
+          <div className="text-center space-y-6">
+            <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome to LiveGuide!
+            </h1>
+            <p className="text-lg text-gray-600">
+              Your personalized onboarding is complete. Let's start your journey!
+            </p>
+          </div>
         );
         
       default:
@@ -408,19 +417,48 @@ export function VoiceGuidedOnboarding({ user, userName }: VoiceGuidedOnboardingP
     }
   };
 
+  const getProgressInfo = () => {
+    const completedSteps = [];
+    if (onboardingData.selectedAgent) completedSteps.push('Agent Selected');
+    if (onboardingData.userGoals.length > 0) completedSteps.push(`${onboardingData.userGoals.length} Goals Captured`);
+    if (onboardingData.userGoals.some(g => g.confirmed)) completedSteps.push('Goals Confirmed');
+    return completedSteps;
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Progress Indicator */}
-      <OnboardingProgress 
-        currentPhase={currentPhase}
-        completedGoals={onboardingData.selectedGoals.length}
-        hasCoachingPreferences={!!onboardingData.coachingPreferences}
-      />
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header with Step Indicator */}
+      <div className="bg-white shadow-sm px-4 py-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-end mb-4">
+            <div className="flex items-center space-x-2">
+              {getProgressInfo().map((step, idx) => (
+                <Badge key={idx} variant="secondary">{step}</Badge>
+              ))}
+            </div>
+          </div>
+          <OnboardingProgress
+            currentPhase={currentPhase}
+            onStepClick={(step) => {
+              // Allow navigation to completed steps
+              if (step === 'select_agent') setCurrentPhase('agent_selection');
+              else if (step === 'select_goals' && onboardingData.selectedAgent) setCurrentPhase('voice_onboarding');
+            }}
+          />
+        </div>
+      </div>
       
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-4xl">
-          {renderCurrentPhase()}
+        <div className="w-full max-w-7xl">
+          {isLoading && agents.length === 0 ? (
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
+              <p className="text-lg text-gray-600">Loading onboarding experience...</p>
+            </div>
+          ) : (
+            renderCurrentPhase()
+          )}
         </div>
       </div>
     </div>

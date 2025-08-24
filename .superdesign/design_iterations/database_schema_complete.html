@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveGuide Database Explorer - Complete Edition</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #2a2a2a;
+            color: #e8e8e8;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(circle at center, #1e1e1e 0%, #0a0a0a 100%);
+        }
+
+        /* Tab Content Areas */
+        .tab-content {
+            display: none;
+            position: absolute;
+            left: 60px;
+            top: 50px;
+            right: 0;
+            bottom: 30px;
+            overflow: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #diagram {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 60px;
+            height: 100%;
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            z-index: 1000;
+        }
+
+        .sidebar-item {
+            width: 40px;
+            height: 40px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .sidebar-item:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        .sidebar-item.active {
+            background: #444;
+            color: #4fc3f7;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 60px;
+            right: 0;
+            height: 50px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 999;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+            margin-left: 20px;
+        }
+
+        .nav-tab {
+            padding: 8px 20px;
+            background: transparent;
+            color: #888;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .nav-tab.active {
+            color: #4fc3f7;
+            border-bottom-color: #4fc3f7;
+            background: rgba(79, 195, 247, 0.1);
+        }
+
+        .nav-tab:hover {
+            color: #fff;
+        }
+
+        /* Search Box */
+        .search-container {
+            margin-left: auto;
+            position: relative;
+        }
+
+        .search-box {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #e8e8e8;
+            padding: 8px 16px 8px 36px;
+            border-radius: 20px;
+            width: 250px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            background: #333;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        /* Retrieval Tab Styles */
+        .retrieval-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .retrieval-left {
+            flex: 1;
+            padding: 30px;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .retrieval-right {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .query-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 12px;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #e8e8e8;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            background: #2a2a2a;
+        }
+
+        .query-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #4fc3f7 0%, #3a9fd1 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
+        }
+
+        .btn-secondary {
+            background: #444;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        .sample-queries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .sample-chip {
+            padding: 6px 12px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sample-chip:hover {
+            background: #444;
+            border-color: #4fc3f7;
+            color: #4fc3f7;
+        }
+
+        .results-area {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .result-item {
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .result-item:hover {
+            background: #2a2a2a;
+            border-color: #4fc3f7;
+        }
+
+        .result-score {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(79, 195, 247, 0.2);
+            color: #4fc3f7;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* API Tab Styles */
+        .api-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .api-sidebar {
+            width: 250px;
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .api-main {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .endpoint-group {
+            margin-bottom: 20px;
+        }
+
+        .endpoint-group-title {
+            padding: 10px 15px;
+            background: #222;
+            color: #888;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .endpoint-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .endpoint-item:hover {
+            background: #2a2a2a;
+            color: #4fc3f7;
+        }
+
+        .endpoint-item.active {
+            background: #333;
+            color: #4fc3f7;
+            border-left: 3px solid #4fc3f7;
+        }
+
+        .method-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .method-get { background: #10b981; color: white; }
+        .method-post { background: #4fc3f7; color: white; }
+        .method-put { background: #fbbf24; color: #000; }
+        .method-delete { background: #ef4444; color: white; }
+
+        .endpoint-doc {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 25px;
+        }
+
+        .endpoint-title {
+            font-size: 24px;
+            color: #4fc3f7;
+            margin-bottom: 10px;
+        }
+
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            background: #222;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 15px 0;
+            color: #4ade80;
+        }
+
+        .params-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .params-table th {
+            text-align: left;
+            padding: 10px;
+            background: #222;
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .params-table td {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .param-name {
+            color: #4fc3f7;
+            font-family: 'Courier New', monospace;
+        }
+
+        .param-required {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #ef4444;
+            color: white;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        .code-block {
+            background: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        pre {
+            margin: 0;
+            color: #e8e8e8;
+        }
+
+        .copy-btn {
+            float: right;
+            padding: 4px 10px;
+            background: #444;
+            border: none;
+            border-radius: 4px;
+            color: #e8e8e8;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: #555;
+        }
+
+        /* Right Info Panel */
+        .info-panel {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 350px;
+            height: calc(100% - 80px);
+            background: #1a1a1a;
+            border-left: 1px solid #333;
+            z-index: 998;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .info-panel.active {
+            display: block;
+        }
+
+        .info-header {
+            padding: 20px;
+            background: #222;
+            border-bottom: 1px solid #333;
+        }
+
+        .info-title {
+            font-size: 18px;
+            color: #4fc3f7;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .node-type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(79, 195, 247, 0.2);
+            color: #4fc3f7;
+        }
+
+        .info-content {
+            padding: 20px;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+        }
+
+        .info-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .field-item {
+            padding: 10px;
+            background: #222;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .field-item:hover {
+            background: #2a2a2a;
+        }
+
+        .field-name {
+            color: #e8e8e8;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-type {
+            color: #666;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .field-icon {
+            width: 16px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .relation-item {
+            padding: 10px;
+            background: #222;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .relation-item:hover {
+            background: #2a2a2a;
+            border: 1px solid #4fc3f7;
+        }
+
+        .relation-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .relation-target {
+            color: #4fc3f7;
+            font-size: 14px;
+        }
+
+        /* Graph Styles */
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node-circle {
+            stroke-width: 2;
+            transition: all 0.3s ease;
+        }
+
+        .node:hover .node-circle {
+            stroke-width: 3;
+            filter: brightness(1.3);
+        }
+
+        .node-selected .node-circle {
+            stroke: #fff !important;
+            stroke-width: 3;
+        }
+
+        .node-label {
+            fill: #e8e8e8;
+            font-size: 12px;
+            font-weight: 500;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        .node-sublabel {
+            fill: #888;
+            font-size: 10px;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        .link {
+            stroke: #444;
+            stroke-opacity: 0.6;
+            stroke-width: 1.5;
+            transition: all 0.3s ease;
+        }
+
+        .link:hover {
+            stroke-opacity: 1;
+            stroke-width: 2.5;
+        }
+
+        .link-highlighted {
+            stroke: #4fc3f7 !important;
+            stroke-opacity: 1 !important;
+            stroke-width: 2.5 !important;
+        }
+
+        .link-dimmed {
+            stroke-opacity: 0.1 !important;
+        }
+
+        /* Node Categories */
+        .node-graph-core {
+            fill: #ff6b6b;
+            stroke: #ff6b6b;
+        }
+
+        .node-user-mgmt {
+            fill: #4fc3f7;
+            stroke: #4fc3f7;
+        }
+
+        .node-knowledge-rag {
+            fill: #4ade80;
+            stroke: #4ade80;
+        }
+
+        .node-voice-convo {
+            fill: #fbbf24;
+            stroke: #fbbf24;
+        }
+
+        .node-goal-tracking {
+            fill: #e879f9;
+            stroke: #e879f9;
+        }
+
+        .node-processing {
+            fill: #94a3b8;
+            stroke: #94a3b8;
+        }
+
+        /* Bottom Status Bar */
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 60px;
+            right: 0;
+            height: 30px;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: #666;
+            z-index: 998;
+        }
+
+        .status-item {
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4fc3f7;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-item active" onclick="setLayout('force')" title="Force Layout">
+                ⚡
+            </div>
+            <div class="sidebar-item" onclick="setLayout('circular')" title="Circular Layout">
+                ⭕
+            </div>
+            <div class="sidebar-item" onclick="setLayout('hierarchical')" title="Hierarchical Layout">
+                🔺
+            </div>
+            <div class="sidebar-item" onclick="setLayout('random')" title="Random Layout">
+                🎲
+            </div>
+            <div style="flex: 1;"></div>
+            <div class="sidebar-item" onclick="resetZoom()" title="Reset View">
+                🔄
+            </div>
+            <div class="sidebar-item" onclick="toggleFullscreen()" title="Fullscreen">
+                ⛶
+            </div>
+            <div class="sidebar-item" onclick="exportDiagram()" title="Export">
+                💾
+            </div>
+        </div>
+
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div style="color: #4fc3f7; font-weight: bold; font-size: 16px;">
+                🗄️ LiveGuide
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('graph')">Knowledge Graph</button>
+                <button class="nav-tab" onclick="showTab('retrieval')">Retrieval</button>
+                <button class="nav-tab" onclick="showTab('api')">API</button>
+            </div>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-box" id="globalSearch" placeholder="Search" onkeyup="handleGlobalSearch(this.value)">
+            </div>
+        </div>
+
+        <!-- Knowledge Graph Tab -->
+        <div class="tab-content active" id="graphTab">
+            <svg id="diagram"></svg>
+            <!-- Right Info Panel -->
+            <div class="info-panel" id="infoPanel">
+                <div class="info-header">
+                    <h3 class="info-title">
+                        <span id="nodeTitle">Node</span>
+                        <span class="node-type-badge" id="nodeTypeBadge"></span>
+                    </h3>
+                </div>
+                <div class="info-content">
+                    <div class="info-section">
+                        <div class="info-section-title">Properties</div>
+                        <div id="nodeProperties"></div>
+                    </div>
+                    <div class="info-section">
+                        <div class="info-section-title">Relations (within subgraph)</div>
+                        <div id="nodeRelations"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Retrieval Tab -->
+        <div class="tab-content" id="retrievalTab">
+            <div class="retrieval-container">
+                <div class="retrieval-left">
+                    <div class="query-section">
+                        <h2 class="section-title">
+                            ⚡ Vector Search Query
+                        </h2>
+                        <textarea class="query-input" id="vectorQuery" placeholder="Enter your semantic search query...
+Example: 'Find all goals related to career development'"></textarea>
+                        <div class="query-controls">
+                            <button class="btn" onclick="executeVectorSearch()">Execute Search</button>
+                            <button class="btn btn-secondary" onclick="clearVectorSearch()">Clear</button>
+                            <select class="btn btn-secondary" id="searchScope">
+                                <option value="all">All Tables</option>
+                                <option value="graph_nodes">Graph Nodes</option>
+                                <option value="knowledge_base">Knowledge Base</option>
+                                <option value="conversations">Conversations</option>
+                            </select>
+                        </div>
+                        <div class="sample-queries">
+                            <div class="sample-chip" onclick="setSampleQuery('career goals and skills')">career goals</div>
+                            <div class="sample-chip" onclick="setSampleQuery('emotional intelligence development')">emotional growth</div>
+                            <div class="sample-chip" onclick="setSampleQuery('productivity and time management')">productivity</div>
+                            <div class="sample-chip" onclick="setSampleQuery('leadership coaching strategies')">leadership</div>
+                            <div class="sample-chip" onclick="setSampleQuery('personal accomplishments')">achievements</div>
+                        </div>
+                    </div>
+
+                    <div class="query-section">
+                        <h2 class="section-title">
+                            📊 Embedding Statistics
+                        </h2>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">75</div>
+                                <div class="stat-label">Total Embeddings</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">1536</div>
+                                <div class="stat-label">Vector Dimensions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">100%</div>
+                                <div class="stat-label">Coverage</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">12ms</div>
+                                <div class="stat-label">Avg Query Time</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="query-section">
+                        <h2 class="section-title">
+                            🔄 RAG Pipeline Status
+                        </h2>
+                        <div class="results-area">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <span style="color: #4ade80;">● Document Ingestion</span>
+                                <span style="color: #888;">Active</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <span style="color: #4ade80;">● Chunking Service</span>
+                                <span style="color: #888;">Ready</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <span style="color: #4ade80;">● Embedding Generator</span>
+                                <span style="color: #888;">OpenAI text-embedding-3-small</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #4ade80;">● Vector Index</span>
+                                <span style="color: #888;">IVFFlat (pgvector)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="retrieval-right">
+                    <div class="query-section">
+                        <h2 class="section-title">
+                            🔍 Search Results
+                        </h2>
+                        <div class="results-area" id="searchResults">
+                            <div style="color: #666; text-align: center; padding: 40px;">
+                                Enter a query to see semantic search results
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Tab -->
+        <div class="tab-content" id="apiTab">
+            <div class="api-container">
+                <div class="api-sidebar">
+                    <div class="endpoint-group">
+                        <div class="endpoint-group-title">Graph Operations</div>
+                        <div class="endpoint-item" onclick="showEndpoint('getNodes')">
+                            <span class="method-badge method-get">GET</span>
+                            <span>/graph/nodes</span>
+                        </div>
+                        <div class="endpoint-item" onclick="showEndpoint('createNode')">
+                            <span class="method-badge method-post">POST</span>
+                            <span>/graph/nodes</span>
+                        </div>
+                        <div class="endpoint-item" onclick="showEndpoint('updateNode')">
+                            <span class="method-badge method-put">PUT</span>
+                            <span>/graph/nodes/:id</span>
+                        </div>
+                        <div class="endpoint-item" onclick="showEndpoint('deleteNode')">
+                            <span class="method-badge method-delete">DEL</span>
+                            <span>/graph/nodes/:id</span>
+                        </div>
+                        <div class="endpoint-item" onclick="showEndpoint('getEdges')">
+                            <span class="method-badge method-get">GET</span>
+                            <span>/graph/edges</span>
+                        </div>
+                        <div class="endpoint-item" onclick="showEndpoint('createEdge')">
+                            <span class="method-badge method-post">POST</span>
+                            <span>/graph/edges</span>
+                        </div>
+                    </div>
+
+                    <div class="endpoint-group">
+                        <div class="endpoint-group-title">Vector Search</div>
+                        <div class="endpoint-item" onclick="showEndpoint('vectorSearch')">
+                            <span class="method-badge method-post">POST</span>
+                            <span>/search/semantic</span>
+                        </div>
+                        <div class="endpoint-item" onclick="showEndpoint('generateEmbedding')">
+                            <span class="method-badge method-post">POST</span>
+                            <span>/embeddings/generate</span>
+                        </div>
+                    </div>
+
+                    <div class="endpoint-group">
+                        <div class="endpoint-group-title">Knowledge Base</div>
+                        <div class="endpoint-item" onclick="showEndpoint('ingestDocument')">
+                            <span class="method-badge method-post">POST</span>
+                            <span>/knowledge/ingest</span>
+                        </div>
+                        <div class="endpoint-item" onclick="showEndpoint('queryKnowledge')">
+                            <span class="method-badge method-post">POST</span>
+                            <span>/knowledge/query</span>
+                        </div>
+                    </div>
+
+                    <div class="endpoint-group">
+                        <div class="endpoint-group-title">Real-time</div>
+                        <div class="endpoint-item" onclick="showEndpoint('websocket')">
+                            <span class="method-badge method-get">WS</span>
+                            <span>/realtime</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="api-main" id="apiContent">
+                    <div class="endpoint-doc">
+                        <h1 class="endpoint-title">LiveGuide API Documentation</h1>
+                        <p style="color: #888; margin: 20px 0;">
+                            The LiveGuide API provides programmatic access to the knowledge graph, vector search, and real-time features.
+                            Select an endpoint from the sidebar to view detailed documentation.
+                        </p>
+                        
+                        <h3 style="color: #4fc3f7; margin-top: 30px;">🔐 Authentication</h3>
+                        <p style="margin: 15px 0;">All API requests require authentication using a Bearer token:</p>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+                        </div>
+
+                        <h3 style="color: #4fc3f7; margin-top: 30px;">🌐 Base URL</h3>
+                        <div class="endpoint-path">https://hlwxmfwrksflvcacjafg.supabase.co</div>
+
+                        <h3 style="color: #4fc3f7; margin-top: 30px;">📦 Response Format</h3>
+                        <p style="margin: 15px 0;">All responses are returned in JSON format:</p>
+                        <div class="code-block">
+                            <pre><code>{
+  "data": { ... },
+  "error": null,
+  "status": 200,
+  "timestamp": "2025-08-13T16:00:00Z"
+}</code></pre>
+                        </div>
+
+                        <h3 style="color: #4fc3f7; margin-top: 30px;">⚡ Rate Limits</h3>
+                        <ul style="margin: 15px 0; line-height: 1.8;">
+                            <li>100 requests per minute for standard endpoints</li>
+                            <li>10 requests per minute for embedding generation</li>
+                            <li>1000 real-time connections per project</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-dot"></span>
+                <span id="nodeCount">0 nodes</span>
+            </div>
+            <div class="status-item">
+                <span id="edgeCount">0 relationships</span>
+            </div>
+            <div class="status-item">
+                <span>v1.3.7/p170</span>
+            </div>
+            <div class="status-item" style="margin-left: auto;">
+                Connected
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database Schema Data
+        const nodes = [
+            // Graph Core
+            { id: 'graph_nodes', label: 'graph_nodes', category: 'graph-core', degree: 8, 
+              fields: ['id:UUID', 'user_id:UUID', 'label:TEXT', 'description:TEXT', 'node_type:ENUM', 
+                       'embedding:VECTOR', 'properties:JSONB', 'first_mentioned_at:TIMESTAMP'] },
+            { id: 'graph_edges', label: 'graph_edges', category: 'graph-core', degree: 6,
+              fields: ['id:UUID', 'source_node_id:UUID', 'target_node_id:UUID', 'edge_type:ENUM', 
+                       'valid_from:TIMESTAMP', 'valid_to:TIMESTAMP'] },
+            { id: 'graph_events', label: 'graph_events', category: 'graph-core', degree: 4,
+              fields: ['id:UUID', 'node_id:UUID', 'event_type:TEXT', 'event_data:JSONB'] },
+            
+            // User Management
+            { id: 'users', label: 'users', category: 'user-mgmt', degree: 3,
+              fields: ['id:UUID', 'email:TEXT', 'created_at:TIMESTAMP'] },
+            { id: 'profiles', label: 'profiles', category: 'user-mgmt', degree: 7,
+              fields: ['id:UUID', 'display_name:TEXT', 'preferences:JSONB'] },
+            { id: 'subscriptions', label: 'subscriptions', category: 'user-mgmt', degree: 2,
+              fields: ['id:UUID', 'stripe_customer_id:TEXT', 'status:TEXT'] },
+            
+            // Knowledge & RAG
+            { id: 'knowledge_base', label: 'knowledge_base', category: 'knowledge-rag', degree: 4,
+              fields: ['id:UUID', 'title:TEXT', 'content:TEXT', 'embedding:VECTOR'] },
+            { id: 'knowledge_documents', label: 'knowledge_documents', category: 'knowledge-rag', degree: 3,
+              fields: ['id:UUID', 'title:TEXT', 'source_type:TEXT'] },
+            { id: 'knowledge_chunks', label: 'knowledge_chunks', category: 'knowledge-rag', degree: 3,
+              fields: ['id:UUID', 'document_id:UUID', 'content:TEXT', 'embedding:VECTOR'] },
+            { id: 'agent_knowledge_bases', label: 'agent_knowledge_bases', category: 'knowledge-rag', degree: 2,
+              fields: ['id:UUID', 'agent_id:UUID', 'knowledge_base_id:UUID'] },
+            
+            // Voice & Conversation
+            { id: 'elevenlabs_conversations', label: 'elevenlabs_conversations', category: 'voice-convo', degree: 5,
+              fields: ['id:UUID', 'conversation_id:TEXT', 'transcript:TEXT', 'started_at:TIMESTAMP'] },
+            { id: 'agent_personae', label: 'agent_personae', category: 'voice-convo', degree: 3,
+              fields: ['id:UUID', 'name:TEXT', 'system_prompt:TEXT', 'voice_settings:JSONB'] },
+            { id: 'conversation_insights', label: 'conversation_insights', category: 'voice-convo', degree: 2,
+              fields: ['id:UUID', 'insight_type:TEXT', 'content:TEXT', 'confidence:FLOAT'] },
+            
+            // Goal Tracking
+            { id: 'user_goals', label: 'user_goals', category: 'goal-tracking', degree: 4,
+              fields: ['id:UUID', 'title:TEXT', 'status:ENUM', 'target_date:DATE'] },
+            { id: 'goal_categories', label: 'goal_categories', category: 'goal-tracking', degree: 2,
+              fields: ['id:UUID', 'name:TEXT', 'color:TEXT'] },
+            { id: 'goal_progress', label: 'goal_progress', category: 'goal-tracking', degree: 2,
+              fields: ['id:UUID', 'goal_id:UUID', 'progress_value:FLOAT'] },
+            
+            // Processing
+            { id: 'embedding_queue', label: 'embedding_queue', category: 'processing', degree: 2,
+              fields: ['id:UUID', 'node_id:UUID', 'status:ENUM', 'priority:INTEGER'] },
+            { id: 'embedding_queue_log', label: 'embedding_queue_log', category: 'processing', degree: 1,
+              fields: ['id:UUID', 'processed_count:INTEGER', 'timestamp:TIMESTAMP'] }
+        ];
+
+        const links = [
+            // Core relationships
+            { source: 'graph_edges', target: 'graph_nodes', type: 'references' },
+            { source: 'graph_events', target: 'graph_nodes', type: 'tracks' },
+            { source: 'graph_events', target: 'graph_edges', type: 'tracks' },
+            
+            // User relationships
+            { source: 'graph_nodes', target: 'profiles', type: 'owned_by' },
+            { source: 'subscriptions', target: 'profiles', type: 'belongs_to' },
+            { source: 'user_goals', target: 'profiles', type: 'owned_by' },
+            
+            // Knowledge relationships
+            { source: 'knowledge_chunks', target: 'knowledge_documents', type: 'part_of' },
+            { source: 'knowledge_documents', target: 'profiles', type: 'owned_by' },
+            { source: 'agent_knowledge_bases', target: 'knowledge_base', type: 'uses' },
+            
+            // Conversation relationships
+            { source: 'elevenlabs_conversations', target: 'profiles', type: 'belongs_to' },
+            { source: 'conversation_insights', target: 'elevenlabs_conversations', type: 'extracted_from' },
+            { source: 'elevenlabs_conversations', target: 'agent_personae', type: 'uses' },
+            
+            // Goal relationships
+            { source: 'goal_progress', target: 'user_goals', type: 'tracks' },
+            { source: 'user_goals', target: 'goal_categories', type: 'categorized_as' },
+            
+            // Processing relationships
+            { source: 'embedding_queue', target: 'graph_nodes', type: 'processes' }
+        ];
+
+        // Initialize D3 for Knowledge Graph
+        let simulation, node, link, g, svg, zoom;
+
+        function initializeGraph() {
+            const width = window.innerWidth - 60;
+            const height = window.innerHeight - 80;
+            
+            svg = d3.select('#diagram')
+                .attr('width', width)
+                .attr('height', height)
+                .style('position', 'absolute')
+                .style('left', '60px')
+                .style('top', '50px');
+
+            zoom = d3.zoom()
+                .scaleExtent([0.3, 5])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+            g = svg.append('g');
+
+            simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(150))
+                .force('charge', d3.forceManyBody().strength(-500))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(40));
+
+            link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .enter().append('line')
+                .attr('class', 'link')
+                .attr('stroke', '#444');
+
+            node = g.append('g')
+                .selectAll('.node')
+                .data(nodes)
+                .enter().append('g')
+                .attr('class', 'node')
+                .on('click', selectNode)
+                .on('mouseenter', highlightNode)
+                .on('mouseleave', unhighlightNode)
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+            node.append('circle')
+                .attr('class', d => `node-circle node-${d.category}`)
+                .attr('r', d => 10 + Math.sqrt(d.degree) * 5)
+                .attr('fill', d => getNodeColor(d.category))
+                .attr('stroke', d => getNodeColor(d.category))
+                .attr('stroke-width', 2)
+                .attr('fill-opacity', 0.8);
+
+            node.append('text')
+                .attr('class', 'node-label')
+                .attr('y', d => 25 + Math.sqrt(d.degree) * 5)
+                .text(d => d.label);
+
+            node.append('text')
+                .attr('class', 'node-sublabel')
+                .attr('y', d => 38 + Math.sqrt(d.degree) * 5)
+                .text(d => d.category.replace('-', ' '));
+
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            // Update status bar
+            document.getElementById('nodeCount').textContent = `${nodes.length} nodes`;
+            document.getElementById('edgeCount').textContent = `${links.length} relationships`;
+        }
+
+        // Tab Management
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            // Hide info panel when switching tabs
+            if (tabName !== 'graph') {
+                document.getElementById('infoPanel').classList.remove('active');
+            }
+        }
+
+        // Graph Helper Functions
+        function getNodeColor(category) {
+            const colors = {
+                'graph-core': '#ff6b6b',
+                'user-mgmt': '#4fc3f7',
+                'knowledge-rag': '#4ade80',
+                'voice-convo': '#fbbf24',
+                'goal-tracking': '#e879f9',
+                'processing': '#94a3b8'
+            };
+            return colors[category] || '#666';
+        }
+
+        function selectNode(event, d) {
+            d3.selectAll('.node').classed('node-selected', false);
+            d3.select(this).classed('node-selected', true);
+            showNodeInfo(d);
+        }
+
+        function showNodeInfo(nodeData) {
+            const panel = document.getElementById('infoPanel');
+            panel.classList.add('active');
+            
+            document.getElementById('nodeTitle').textContent = nodeData.label;
+            document.getElementById('nodeTypeBadge').textContent = nodeData.category.replace('-', ' ');
+            
+            const propsHtml = nodeData.fields.map(field => {
+                const [name, type] = field.split(':');
+                const icon = type.includes('UUID') ? '🔑' : 
+                            type.includes('VECTOR') ? '⚡' :
+                            type.includes('JSONB') ? '📦' :
+                            type.includes('TIMESTAMP') ? '🕒' : '○';
+                return `
+                    <div class="field-item">
+                        <div class="field-name">
+                            <span class="field-icon">${icon}</span>
+                            ${name}
+                        </div>
+                        <div class="field-type">${type}</div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('nodeProperties').innerHTML = propsHtml;
+            
+            const relations = links.filter(l => l.source.id === nodeData.id || l.target.id === nodeData.id);
+            const relHtml = relations.map(rel => {
+                const target = rel.source.id === nodeData.id ? rel.target : rel.source;
+                const direction = rel.source.id === nodeData.id ? '→' : '←';
+                return `
+                    <div class="relation-item" onclick="focusNode('${target.id}')">
+                        <div class="relation-label">${rel.type} ${direction}</div>
+                        <div class="relation-target">${target.label}</div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('nodeRelations').innerHTML = relHtml || '<div style="color: #666;">No direct relations</div>';
+        }
+
+        function highlightNode(event, d) {
+            link.classed('link-highlighted', l => l.source.id === d.id || l.target.id === d.id)
+                .classed('link-dimmed', l => l.source.id !== d.id && l.target.id !== d.id);
+        }
+
+        function unhighlightNode() {
+            link.classed('link-highlighted', false)
+                .classed('link-dimmed', false);
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function handleGlobalSearch(query) {
+            const activeTab = document.querySelector('.tab-content.active').id;
+            if (activeTab === 'graphTab') {
+                searchNodes(query);
+            }
+        }
+
+        function searchNodes(query) {
+            const lowerQuery = query.toLowerCase();
+            node.style('opacity', d => {
+                if (!query) return 1;
+                return d.label.toLowerCase().includes(lowerQuery) ? 1 : 0.2;
+            });
+            link.style('opacity', !query ? 0.6 : 0.1);
+        }
+
+        function focusNode(nodeId) {
+            const targetNode = nodes.find(n => n.id === nodeId);
+            if (targetNode) {
+                const width = window.innerWidth - 60;
+                const height = window.innerHeight - 80;
+                const scale = 1.5;
+                const translate = [width / 2 - scale * targetNode.x, height / 2 - scale * targetNode.y];
+                svg.transition()
+                    .duration(750)
+                    .call(zoom.transform, d3.zoomIdentity
+                        .translate(translate[0], translate[1])
+                        .scale(scale));
+                selectNode(null, targetNode);
+            }
+        }
+
+        function setLayout(type) {
+            const width = window.innerWidth - 60;
+            const height = window.innerHeight - 80;
+            
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            switch(type) {
+                case 'circular':
+                    const radius = Math.min(width, height) / 3;
+                    nodes.forEach((d, i) => {
+                        const angle = (i / nodes.length) * 2 * Math.PI;
+                        d.fx = width / 2 + radius * Math.cos(angle);
+                        d.fy = height / 2 + radius * Math.sin(angle);
+                    });
+                    simulation.alpha(0.5).restart();
+                    setTimeout(() => {
+                        nodes.forEach(d => { d.fx = null; d.fy = null; });
+                    }, 2000);
+                    break;
+                    
+                case 'hierarchical':
+                    const categories = [...new Set(nodes.map(n => n.category))];
+                    const ySpacing = height / (categories.length + 1);
+                    categories.forEach((cat, catIndex) => {
+                        const catNodes = nodes.filter(n => n.category === cat);
+                        const xSpacing = width / (catNodes.length + 1);
+                        catNodes.forEach((node, nodeIndex) => {
+                            node.fx = xSpacing * (nodeIndex + 1);
+                            node.fy = ySpacing * (catIndex + 1);
+                        });
+                    });
+                    simulation.alpha(0.5).restart();
+                    setTimeout(() => {
+                        nodes.forEach(d => { d.fx = null; d.fy = null; });
+                    }, 2000);
+                    break;
+                    
+                case 'random':
+                    nodes.forEach(d => {
+                        d.x = Math.random() * width;
+                        d.y = Math.random() * height;
+                    });
+                    simulation.alpha(1).restart();
+                    break;
+                    
+                default:
+                    simulation.alpha(1).restart();
+            }
+        }
+
+        function resetZoom() {
+            svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.zoomIdentity);
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function exportDiagram() {
+            const svgData = document.getElementById('diagram').outerHTML;
+            const blob = new Blob([svgData], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'liveguide-database.svg';
+            a.click();
+        }
+
+        // Retrieval Tab Functions
+        function executeVectorSearch() {
+            const query = document.getElementById('vectorQuery').value;
+            const scope = document.getElementById('searchScope').value;
+            
+            if (!query) return;
+            
+            // Simulate search results
+            const results = [
+                {
+                    title: 'Career Development Goal',
+                    content: 'Advance to senior engineering position within 2 years through skill development and leadership training',
+                    score: 0.95,
+                    table: 'graph_nodes',
+                    type: 'goal'
+                },
+                {
+                    title: 'Leadership Skills Node',
+                    content: 'Building team management and communication skills for career advancement',
+                    score: 0.89,
+                    table: 'graph_nodes',
+                    type: 'skill'
+                },
+                {
+                    title: 'Professional Growth Insight',
+                    content: 'Key insight: Focus on both technical excellence and soft skills for career progression',
+                    score: 0.85,
+                    table: 'conversation_insights',
+                    type: 'insight'
+                }
+            ];
+            
+            const resultsHtml = results.map(r => `
+                <div class="result-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <h4 style="margin: 0; color: #4fc3f7;">${r.title}</h4>
+                        <span class="result-score">Score: ${r.score}</span>
+                    </div>
+                    <p style="margin: 10px 0; color: #e8e8e8;">${r.content}</p>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <span style="font-size: 12px; color: #666;">Table: ${r.table}</span>
+                        <span style="font-size: 12px; color: #666;">Type: ${r.type}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('searchResults').innerHTML = resultsHtml;
+        }
+
+        function clearVectorSearch() {
+            document.getElementById('vectorQuery').value = '';
+            document.getElementById('searchResults').innerHTML = `
+                <div style="color: #666; text-align: center; padding: 40px;">
+                    Enter a query to see semantic search results
+                </div>
+            `;
+        }
+
+        function setSampleQuery(query) {
+            document.getElementById('vectorQuery').value = query;
+        }
+
+        // API Tab Functions
+        const apiEndpoints = {
+            getNodes: {
+                title: 'Get Graph Nodes',
+                method: 'GET',
+                path: '/rest/v1/graph_nodes',
+                description: 'Retrieve graph nodes with optional filtering and pagination',
+                params: [
+                    { name: 'user_id', type: 'UUID', required: false, description: 'Filter by user ID' },
+                    { name: 'node_type', type: 'string', required: false, description: 'Filter by node type (goal, skill, emotion, etc.)' },
+                    { name: 'limit', type: 'integer', required: false, description: 'Number of results to return (default: 100)' },
+                    { name: 'offset', type: 'integer', required: false, description: 'Pagination offset' }
+                ],
+                example: `curl -X GET \\
+  'https://hlwxmfwrksflvcacjafg.supabase.co/rest/v1/graph_nodes?node_type=eq.goal&limit=10' \\
+  -H 'Authorization: Bearer YOUR_API_KEY' \\
+  -H 'apikey: YOUR_API_KEY'`,
+                response: `{
+  "data": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "user_id": "987fcdeb-51a2-43d1-9012-345678901234",
+      "label": "Learn Machine Learning",
+      "description": "Master ML fundamentals and build projects",
+      "node_type": "goal",
+      "embedding": "[0.123, -0.456, ...]",
+      "created_at": "2025-08-13T10:00:00Z"
+    }
+  ]
+}`
+            },
+            createNode: {
+                title: 'Create Graph Node',
+                method: 'POST',
+                path: '/rest/v1/graph_nodes',
+                description: 'Create a new node in the knowledge graph',
+                params: [
+                    { name: 'user_id', type: 'UUID', required: true, description: 'User who owns this node' },
+                    { name: 'label', type: 'string', required: true, description: 'Node label/title' },
+                    { name: 'description', type: 'string', required: false, description: 'Detailed description' },
+                    { name: 'node_type', type: 'enum', required: true, description: 'Type: goal, skill, emotion, session, accomplishment' },
+                    { name: 'properties', type: 'JSON', required: false, description: 'Additional metadata' }
+                ],
+                example: `curl -X POST \\
+  'https://hlwxmfwrksflvcacjafg.supabase.co/rest/v1/graph_nodes' \\
+  -H 'Authorization: Bearer YOUR_API_KEY' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "user_id": "987fcdeb-51a2-43d1-9012-345678901234",
+    "label": "Learn React",
+    "description": "Master React framework",
+    "node_type": "goal"
+  }'`
+            },
+            vectorSearch: {
+                title: 'Semantic Vector Search',
+                method: 'POST',
+                path: '/functions/v1/vector-search',
+                description: 'Perform semantic search using vector embeddings',
+                params: [
+                    { name: 'query', type: 'string', required: true, description: 'Search query text' },
+                    { name: 'table', type: 'string', required: false, description: 'Table to search (default: all)' },
+                    { name: 'limit', type: 'integer', required: false, description: 'Maximum results (default: 10)' },
+                    { name: 'threshold', type: 'float', required: false, description: 'Similarity threshold (0-1)' }
+                ],
+                example: `curl -X POST \\
+  'https://hlwxmfwrksflvcacjafg.supabase.co/functions/v1/vector-search' \\
+  -H 'Authorization: Bearer YOUR_API_KEY' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "query": "career development goals",
+    "limit": 5,
+    "threshold": 0.7
+  }'`,
+                response: `{
+  "results": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "content": "Advance to senior position",
+      "similarity": 0.95,
+      "metadata": { ... }
+    }
+  ]
+}`
+            },
+            websocket: {
+                title: 'Real-time Subscriptions',
+                method: 'WebSocket',
+                path: '/realtime/v1',
+                description: 'Subscribe to real-time changes in the database',
+                params: [
+                    { name: 'channel', type: 'string', required: true, description: 'Channel name for subscription' },
+                    { name: 'event', type: 'string', required: true, description: 'Event type: INSERT, UPDATE, DELETE, *' },
+                    { name: 'schema', type: 'string', required: false, description: 'Database schema (default: public)' },
+                    { name: 'table', type: 'string', required: true, description: 'Table to monitor' }
+                ],
+                example: `const client = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+const subscription = client
+  .channel('graph-changes')
+  .on('postgres_changes', 
+    { 
+      event: '*', 
+      schema: 'public', 
+      table: 'graph_nodes' 
+    },
+    (payload) => {
+      console.log('Change received:', payload)
+    }
+  )
+  .subscribe()`
+            }
+        };
+
+        function showEndpoint(endpointKey) {
+            const endpoint = apiEndpoints[endpointKey] || apiEndpoints.getNodes;
+            
+            document.querySelectorAll('.endpoint-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            const methodColors = {
+                'GET': 'method-get',
+                'POST': 'method-post',
+                'PUT': 'method-put',
+                'DELETE': 'method-delete',
+                'WebSocket': 'method-get'
+            };
+            
+            const paramsHtml = endpoint.params ? `
+                <h3 style="color: #4fc3f7; margin-top: 30px;">📝 Parameters</h3>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${endpoint.params.map(p => `
+                            <tr>
+                                <td><span class="param-name">${p.name}</span></td>
+                                <td style="color: #888;">${p.type}</td>
+                                <td>${p.required ? '<span class="param-required">Required</span>' : 'Optional'}</td>
+                                <td style="color: #e8e8e8;">${p.description}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            ` : '';
+            
+            const responseHtml = endpoint.response ? `
+                <h3 style="color: #4fc3f7; margin-top: 30px;">📤 Response Example</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code>${endpoint.response}</code></pre>
+                </div>
+            ` : '';
+            
+            document.getElementById('apiContent').innerHTML = `
+                <div class="endpoint-doc">
+                    <h1 class="endpoint-title">
+                        <span class="method-badge ${methodColors[endpoint.method]}">${endpoint.method}</span>
+                        ${endpoint.title}
+                    </h1>
+                    <div class="endpoint-path">${endpoint.path}</div>
+                    <p style="color: #e8e8e8; margin: 20px 0; line-height: 1.6;">
+                        ${endpoint.description}
+                    </p>
+                    
+                    ${paramsHtml}
+                    
+                    <h3 style="color: #4fc3f7; margin-top: 30px;">💻 Example Request</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code>${endpoint.example}</code></pre>
+                    </div>
+                    
+                    ${responseHtml}
+                </div>
+            `;
+        }
+
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('code');
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Initialize on load
+        initializeGraph();
+    </script>
+</body>
+</html>

@@ -1,0 +1,607 @@
+'use client';
+
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  PhoneIcon,
+  PhoneArrowDownLeftIcon,
+  MicrophoneIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  SparklesIcon,
+  ChatBubbleLeftEllipsisIcon
+} from '@heroicons/react/24/outline';
+import { MicrophoneIcon as MicrophoneOffIcon } from '@heroicons/react/24/solid';
+import { useElevenLabsConversation, formatMetadata, generateCallId } from '@/hooks/useElevenLabsConversation';
+import { createClient } from '@/utils/supabase/client';
+
+interface OnboardingAgentProps {
+  user: any;
+  userName: string;
+  selectedAgent: any;
+  onboardingData: {
+    mode?: 'voice_guided' | 'standard';
+    selectedCategories?: string[];
+    selectedGoals?: string[];
+    captureGoals?: boolean;
+    minGoals?: number;
+    maxGoals?: number;
+    timeHorizon?: 'short' | 'medium' | 'long';
+    learningPreferences?: {
+      style?: 'visual' | 'auditory' | 'hands-on';
+      pace?: 'fast' | 'moderate' | 'slow';
+      support?: 'high' | 'moderate' | 'minimal';
+    };
+  };
+  onVoiceEvent?: (event: any) => void;
+  onConversationComplete?: (insights: any) => void;
+  className?: string;
+}
+
+interface TranscriptMessage {
+  id: string;
+  speaker: 'user' | 'agent';
+  text: string;
+  timestamp: Date;
+  emotions?: string[];
+  confidence?: number;
+}
+
+interface EmotionIndicator {
+  emotion: string;
+  intensity: number;
+  timestamp: Date;
+}
+
+/**
+ * OnboardingAgent provides an integrated ElevenLabs conversation experience
+ * within the onboarding flow, allowing users to have voice conversations with
+ * their matched agent to explore goals and provide additional context.
+ */
+export const OnboardingAgent: React.FC<OnboardingAgentProps> = ({
+  user,
+  userName,
+  selectedAgent,
+  onboardingData,
+  onVoiceEvent,
+  onConversationComplete,
+  className = ""
+}) => {
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended'>('idle');
+  const [transcript, setTranscript] = useState<TranscriptMessage[]>([]);
+  const [emotionIndicators, setEmotionIndicators] = useState<EmotionIndicator[]>([]);
+  const [conversationStartTime, setConversationStartTime] = useState<Date | null>(null);
+  const [hasPermissionError, setHasPermissionError] = useState(false);
+
+  const supabase = createClient();
+
+  // Generate dynamic agent prompt based on onboarding data
+  const agentPrompt = useMemo(() => {
+    // Check if this is voice-guided mode (initial onboarding)
+    const isVoiceGuided = onboardingData.mode === 'voice_guided';
+    
+    if (isVoiceGuided) {
+      // For voice-guided onboarding, we're discovering goals through conversation
+      return `I'm ${selectedAgent?.Name || 'your onboarding guide'}. I'm here to help you get started with LiveGuide and understand what you'd like to achieve. 
+
+Let's have a brief conversation about your goals - what brings you here today? I'll help you identify 1 to 5 specific goals we can work on together. Just speak naturally about what you'd like to accomplish or improve in your life.`;
+    }
+    
+    // For regular onboarding with pre-selected goals
+    const goalSummary = onboardingData.selectedGoals?.length > 0 
+      ? onboardingData.selectedGoals.map(goal => typeof goal === 'string' ? goal : goal.title || goal).join(', ')
+      : 'personal growth';
+    
+    const categorySummary = onboardingData.selectedCategories?.length > 0
+      ? onboardingData.selectedCategories.join(' and ')
+      : 'various areas';
+
+    const timeHorizonText = onboardingData.timeHorizon === 'short' ? 'short-term (next 3 months)'
+      : onboardingData.timeHorizon === 'medium' ? 'medium-term (3-6 months)'
+      : onboardingData.timeHorizon === 'long' ? 'long-term (6+ months)'
+      : 'flexible timeline';
+
+    const learningStyleText = onboardingData.learningPreferences?.style 
+      ? `with a preference for ${onboardingData.learningPreferences.style} learning`
+      : '';
+
+    return `I'm ${selectedAgent?.Name || 'your onboarding guide'}, and I can see you've selected goals around ${goalSummary} focused on ${categorySummary} with a ${timeHorizonText} ${learningStyleText}. 
+
+Let's briefly explore what success looks like for you and any specific challenges you're facing. I'll keep this conversational and focused - just share what feels important to you about these goals. What draws you to work on ${goalSummary} right now?`;
+  }, [selectedAgent, onboardingData]);
+
+  // Generate first message
+  const firstMessage = useMemo(() => {
+    const isVoiceGuided = onboardingData.mode === 'voice_guided';
+    
+    if (isVoiceGuided) {
+      return `Hi ${userName}! I'm ${selectedAgent?.Name || 'your guide'}. Let's chat about what you'd like to achieve with LiveGuide.`;
+    }
+    
+    const goalCount = onboardingData.selectedGoals?.length || 0;
+    const mainGoal = onboardingData.selectedGoals?.[0];
+    const goalText = typeof mainGoal === 'string' ? mainGoal : mainGoal?.title || 'your goals';
+
+    return `Hi ${userName}! I'm ${selectedAgent?.Name || 'your coaching guide'}. I can see you've selected ${goalCount} ${goalCount === 1 ? 'goal' : 'goals'} including ${goalText}. I'd love to learn more about what's driving these choices and what success looks like for you. What brought you to focus on ${goalText} right now?`;
+  }, [userName, selectedAgent, onboardingData.selectedGoals]);
+
+  // ElevenLabs conversation setup
+  // Debug log to see what's in selectedAgent
+  console.log('Selected agent data:', {
+    fullAgent: selectedAgent,
+    agentId: selectedAgent?.['11labs_agentID'],
+    agentKeys: selectedAgent ? Object.keys(selectedAgent) : [],
+    fallbackId: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID
+  });
+  
+  const agentId = selectedAgent?.['11labs_agentID'] || process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'SuIlXQ4S6dyjrNViOrQ8';
+  console.log('Using agent ID:', agentId);
+  
+  const conversation = useElevenLabsConversation(
+    {
+      agentId: agentId,
+      userId: user?.id,
+      customCallId: generateCallId(user?.id || 'anonymous', 'onboarding'),
+      metadata: formatMetadata({
+        userId: user?.id,
+        userName,
+        sessionType: 'onboarding',
+        agentName: selectedAgent?.Name || 'Coach',
+        selectedGoals: JSON.stringify(onboardingData.selectedGoals),
+        selectedCategories: JSON.stringify(onboardingData.selectedCategories),
+        timeHorizon: onboardingData.timeHorizon,
+        learningPreferences: JSON.stringify(onboardingData.learningPreferences),
+        onboardingPhase: 'agent_conversation',
+        timestamp: new Date().toISOString()
+      }),
+      ragContext: JSON.stringify({
+        user_goals: onboardingData.selectedGoals,
+        user_categories: onboardingData.selectedCategories,
+        time_horizon: onboardingData.timeHorizon,
+        learning_preferences: onboardingData.learningPreferences,
+        agent_context: selectedAgent?.Backstory || selectedAgent?.Personality || ''
+      })
+    },
+    {
+      onConnect: () => {
+        console.log('✅ Onboarding Agent: Connected');
+        setCallStatus('connected');
+        setConversationStartTime(new Date());
+        logInteractionEvent('conversation_start', {
+          agent_id: selectedAgent?.uuid,
+          agent_name: selectedAgent?.Name,
+          goals_count: onboardingData.selectedGoals?.length || 0,
+          categories: onboardingData.selectedCategories || [],
+          mode: onboardingData.mode || 'standard'
+        });
+      },
+      onDisconnect: () => {
+        console.log('👋 Onboarding Agent: Disconnected');
+        setCallStatus('ended');
+        setIsCallActive(false);
+        
+        // Log conversation end and analyze
+        const duration = conversationStartTime 
+          ? Math.round((new Date().getTime() - conversationStartTime.getTime()) / 1000)
+          : 0;
+        
+        logInteractionEvent('conversation_end', {
+          duration_seconds: duration,
+          message_count: transcript.length,
+          emotions_detected: emotionIndicators.map(e => e.emotion),
+          final_transcript: transcript.slice(-5) // Last 5 messages for context
+        });
+
+        // Trigger completion callback with insights
+        onConversationComplete?.({
+          duration,
+          messageCount: transcript.length,
+          emotions: emotionIndicators,
+          transcript: transcript,
+          insights: extractConversationInsights()
+        });
+      },
+      onMessage: (message) => {
+        console.log('💬 Onboarding Agent: Message', message);
+        
+        if (message.message) {
+          const newMessage: TranscriptMessage = {
+            id: crypto.randomUUID(),
+            speaker: message.source === 'ai' ? 'agent' : 'user',
+            text: message.message,
+            timestamp: new Date(),
+            emotions: message.emotions || [],
+            confidence: message.confidence || 1.0
+          };
+          
+          setTranscript(prev => [...prev, newMessage]);
+          
+          // Extract emotions if available
+          if (message.emotions && message.emotions.length > 0) {
+            const emotions = message.emotions.map(emotion => ({
+              emotion: emotion.name || emotion,
+              intensity: emotion.intensity || 0.7,
+              timestamp: new Date()
+            }));
+            setEmotionIndicators(prev => [...prev, ...emotions]);
+          }
+          
+          // Log the message
+          logInteractionEvent('message_received', {
+            speaker: newMessage.speaker,
+            message_length: message.message.length,
+            emotions: message.emotions,
+            confidence: message.confidence
+          });
+        }
+      },
+      onError: (error) => {
+        console.error('❌ Onboarding Agent: Error', error);
+        const errorMessage = typeof error === 'string' ? error : error?.message || 'Connection failed';
+        setCallStatus('ended');
+        setIsCallActive(false);
+        
+        logInteractionEvent('conversation_error', {
+          error: errorMessage,
+          error_type: typeof error,
+          duration_before_error: conversationStartTime 
+            ? Math.round((new Date().getTime() - conversationStartTime.getTime()) / 1000)
+            : 0
+        });
+      }
+    },
+    {
+      agent: {
+        firstMessage,
+        language: "en",
+        prompt: agentPrompt
+      },
+      conversation: {
+        textOnly: false,
+      }
+    }
+  );
+
+  // Log interaction events to database
+  const logInteractionEvent = useCallback(async (eventType: string, payload: any) => {
+    try {
+      // Skip logging for anonymous users
+      if (!user?.id || user.id.startsWith('anon_')) {
+        console.log('Skipping event log for anonymous user:', eventType);
+        return;
+      }
+
+      await supabase
+        .from('interaction_events')
+        .insert({
+          user_id: user.id,
+          source: 'elevenlabs',
+          event_type: eventType,
+          payload,
+          session_id: conversation.status === 'connected' ? 'onboarding-session' : undefined,
+          conversation_id: conversation.status === 'connected' ? generateCallId(user.id, 'onboarding') : undefined
+        });
+    } catch (error) {
+      console.error('Failed to log interaction event:', error);
+    }
+  }, [user?.id, supabase, conversation.status]);
+
+  // Extract insights from conversation
+  const extractConversationInsights = useCallback(() => {
+    const userMessages = transcript.filter(msg => msg.speaker === 'user');
+    const totalWords = userMessages.reduce((total, msg) => total + msg.text.split(' ').length, 0);
+    const avgMessageLength = userMessages.length > 0 ? totalWords / userMessages.length : 0;
+    
+    const dominantEmotions = emotionIndicators.reduce((acc, indicator) => {
+      acc[indicator.emotion] = (acc[indicator.emotion] || 0) + indicator.intensity;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      engagement_level: avgMessageLength > 10 ? 'high' : avgMessageLength > 5 ? 'medium' : 'low',
+      conversation_tone: Object.keys(dominantEmotions).sort((a, b) => dominantEmotions[b] - dominantEmotions[a])[0] || 'neutral',
+      topics_mentioned: extractTopics(userMessages),
+      goal_clarity: assessGoalClarity(userMessages),
+      next_steps_suggested: extractNextSteps(transcript)
+    };
+  }, [transcript, emotionIndicators]);
+
+  // Helper functions for insight extraction
+  const extractTopics = (messages: TranscriptMessage[]) => {
+    const commonTopics = ['career', 'health', 'relationships', 'learning', 'finance', 'personal growth'];
+    const mentionedTopics = [];
+    const allText = messages.map(m => m.text.toLowerCase()).join(' ');
+    
+    for (const topic of commonTopics) {
+      if (allText.includes(topic)) {
+        mentionedTopics.push(topic);
+      }
+    }
+    
+    return mentionedTopics;
+  };
+
+  const assessGoalClarity = (messages: TranscriptMessage[]) => {
+    const clarityIndicators = ['specific', 'measurable', 'timeline', 'plan', 'steps'];
+    const uncertaintyIndicators = ['maybe', 'not sure', 'unclear', 'confused'];
+    
+    const allText = messages.map(m => m.text.toLowerCase()).join(' ');
+    const clarityScore = clarityIndicators.filter(indicator => allText.includes(indicator)).length;
+    const uncertaintyScore = uncertaintyIndicators.filter(indicator => allText.includes(indicator)).length;
+    
+    return clarityScore > uncertaintyScore ? 'high' : clarityScore === uncertaintyScore ? 'medium' : 'low';
+  };
+
+  const extractNextSteps = (messages: TranscriptMessage[]) => {
+    const agentMessages = messages.filter(msg => msg.speaker === 'agent');
+    const lastAgentMessages = agentMessages.slice(-3);
+    
+    const actionWords = ['try', 'start', 'consider', 'focus', 'practice', 'explore'];
+    const nextSteps = [];
+    
+    for (const message of lastAgentMessages) {
+      const sentences = message.text.split('.').filter(s => s.trim().length > 10);
+      for (const sentence of sentences) {
+        if (actionWords.some(word => sentence.toLowerCase().includes(word))) {
+          nextSteps.push(sentence.trim());
+        }
+      }
+    }
+    
+    return nextSteps.slice(0, 3); // Limit to 3 suggestions
+  };
+
+  // Start conversation
+  const startCall = useCallback(async () => {
+    try {
+      setCallStatus('connecting');
+      setIsCallActive(true);
+      setTranscript([]);
+      setEmotionIndicators([]);
+      setHasPermissionError(false);
+      
+      // Request microphone permission
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (permError) {
+        setHasPermissionError(true);
+        throw new Error('Microphone permission required for voice conversation');
+      }
+      
+      // Start conversation
+      await conversation.startSession();
+      
+    } catch (error) {
+      console.error('Failed to start onboarding conversation:', error);
+      setCallStatus('ended');
+      setIsCallActive(false);
+      
+      logInteractionEvent('conversation_start_failed', {
+        error: error?.message || 'Unknown error',
+        has_permission_error: hasPermissionError
+      });
+    }
+  }, [conversation, hasPermissionError, logInteractionEvent]);
+
+  // End conversation
+  const endCall = useCallback(async () => {
+    try {
+      await conversation.endSession();
+      setCallStatus('ended');
+      setIsCallActive(false);
+      setTimeout(() => setCallStatus('idle'), 2000);
+    } catch (error) {
+      console.error('Error ending onboarding call:', error);
+    }
+  }, [conversation]);
+
+  // Toggle mute (note: ElevenLabs doesn't directly support muting)
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    logInteractionEvent('mute_toggled', { muted: !isMuted });
+  };
+
+  return (
+    <Card className={`w-full ${className}`}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Avatar className="w-12 h-12">
+              <AvatarImage src={selectedAgent?.Image || selectedAgent?.avatar_url} alt={selectedAgent?.Name} />
+              <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+                {(selectedAgent?.Name || 'C').split(' ').filter(n => n).map((n: string) => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <SparklesIcon className="w-5 h-5 text-purple-500" />
+                Chat with {selectedAgent?.Name || 'Your Coach'}
+              </CardTitle>
+              <CardDescription>
+                Voice conversation to explore your goals and preferences
+              </CardDescription>
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            {isCallActive && (
+              <Badge variant="default" className="bg-green-100 text-green-800">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1" />
+                Live
+              </Badge>
+            )}
+            {transcript.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                <ChatBubbleLeftEllipsisIcon className="w-3 h-3 mr-1" />
+                {transcript.length} messages
+              </Badge>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {/* Microphone Permission Error */}
+        {hasPermissionError && (
+          <Alert className="bg-red-50 border-red-200">
+            <ExclamationTriangleIcon className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800 text-sm">
+              Microphone access is required for voice conversations. Please enable microphone permissions and try again.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Conversation Preview */}
+        <div className="bg-blue-50 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <InformationCircleIcon className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-900">What to Expect</span>
+          </div>
+          <p className="text-sm text-blue-800">
+            {selectedAgent?.Name || 'Your coach'} will {onboardingData.mode === 'voice_guided' 
+              ? 'help you identify 1-5 goals that matter most to you right now' 
+              : onboardingData.selectedGoals?.length > 0 
+                ? `ask about your goals: ${onboardingData.selectedGoals.slice(0, 2).map(goal => 
+                    typeof goal === 'string' ? goal : goal.title || goal
+                  ).join(' and ')}${onboardingData.selectedGoals.length > 2 ? ` and ${onboardingData.selectedGoals.length - 2} more` : ''}`
+                : 'help you explore your goals'}.
+            This conversation helps personalize your coaching experience.
+          </p>
+        </div>
+
+        {/* Main Interface */}
+        <div className="flex flex-col items-center space-y-4">
+          {/* Avatar with Status */}
+          <div className="relative">
+            <Avatar className="w-24 h-24">
+              <AvatarImage src={selectedAgent?.Image || selectedAgent?.avatar_url} alt={selectedAgent?.Name} />
+              <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+                {(selectedAgent?.Name || 'C').split(' ').filter(n => n).map((n: string) => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+            {callStatus === 'connected' && (
+              <div className="absolute inset-0 rounded-full animate-ping bg-green-400 opacity-25" />
+            )}
+          </div>
+
+          {/* Status Display */}
+          <div className="text-center">
+            <p className="text-lg font-medium">
+              {callStatus === 'idle' && `Ready to chat with ${selectedAgent?.Name || 'your coach'}`}
+              {callStatus === 'connecting' && 'Connecting...'}
+              {callStatus === 'connected' && 'Listening - speak naturally!'}
+              {callStatus === 'ended' && 'Conversation ended'}
+            </p>
+            {callStatus === 'connected' && (
+              <p className="text-sm text-gray-500 mt-1">
+                {selectedAgent?.Name || 'Your coach'} can see your selected goals and will ask follow-up questions
+              </p>
+            )}
+          </div>
+
+          {/* Emotion Indicators */}
+          {emotionIndicators.length > 0 && callStatus === 'connected' && (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {emotionIndicators.slice(-3).map((emotion, index) => (
+                <Badge 
+                  key={index}
+                  variant="secondary" 
+                  className="text-xs animate-pulse"
+                  style={{ 
+                    backgroundColor: emotion.emotion === 'confident' ? '#dcfce7' : 
+                                   emotion.emotion === 'excited' ? '#fef3c7' : 
+                                   emotion.emotion === 'uncertain' ? '#fee2e2' : '#f3f4f6',
+                    color: emotion.emotion === 'confident' ? '#166534' : 
+                           emotion.emotion === 'excited' ? '#92400e' : 
+                           emotion.emotion === 'uncertain' ? '#991b1b' : '#374151'
+                  }}
+                >
+                  {emotion.emotion} ({Math.round(emotion.intensity * 100)}%)
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Controls */}
+          <div className="flex gap-3">
+            {!isCallActive ? (
+              <Button
+                onClick={startCall}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                size="lg"
+              >
+                <PhoneIcon className="w-5 h-5 mr-2" />
+                Start Voice Chat
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant={isMuted ? "destructive" : "secondary"}
+                  onClick={toggleMute}
+                  size="lg"
+                >
+                  {isMuted ? 
+                    <MicrophoneOffIcon className="w-5 h-5" /> : 
+                    <MicrophoneIcon className="w-5 h-5" />
+                  }
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={endCall}
+                  size="lg"
+                >
+                  <PhoneArrowDownLeftIcon className="w-5 h-5 mr-2" />
+                  End Chat
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Live Transcript Preview */}
+          {transcript.length > 0 && callStatus === 'connected' && (
+            <div className="w-full bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
+              <div className="text-xs font-medium text-gray-700 mb-2">Live Transcript</div>
+              {transcript.slice(-3).map((message, index) => (
+                <div key={message.id} className="text-sm mb-2">
+                  <span className={`font-medium ${
+                    message.speaker === 'agent' ? 'text-purple-600' : 'text-blue-600'
+                  }`}>
+                    {message.speaker === 'agent' ? selectedAgent?.Name || 'Coach' : 'You'}:
+                  </span>
+                  <span className="text-gray-700 ml-2">
+                    {message.text.length > 100 ? `${message.text.substring(0, 100)}...` : message.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Conversation Summary */}
+        {callStatus === 'ended' && transcript.length > 0 && (
+          <div className="bg-green-50 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <InformationCircleIcon className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium text-green-900">Conversation Complete</span>
+            </div>
+            <div className="text-sm text-green-800">
+              <p>Duration: {conversationStartTime ? Math.round((new Date().getTime() - conversationStartTime.getTime()) / 1000 / 60) : 0} minutes</p>
+              <p>Messages exchanged: {transcript.length}</p>
+              {emotionIndicators.length > 0 && (
+                <p>Emotions detected: {[...new Set(emotionIndicators.map(e => e.emotion))].join(', ')}</p>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default OnboardingAgent;

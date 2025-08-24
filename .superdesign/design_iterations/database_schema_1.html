@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveGuide Database Schema - Interactive Diagram</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        #diagram {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Control Panel */
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .controls h2 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .controls button {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            margin: 8px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .legend h3 {
+            color: #fff;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .legend-symbol {
+            width: 30px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .info-panel.active {
+            display: block;
+        }
+
+        .info-panel h3 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .info-panel .field {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .info-panel .field-name {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .info-panel .field-type {
+            color: #888;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        /* Search Box */
+        .search-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 20px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .search-box input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            width: 300px;
+            font-size: 14px;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* SVG Styles */
+        .node-group {
+            cursor: pointer;
+        }
+
+        .node-rect {
+            stroke-width: 2;
+            transition: all 0.3s ease;
+        }
+
+        .node-group:hover .node-rect {
+            filter: brightness(1.2);
+            stroke-width: 3;
+        }
+
+        .node-label {
+            fill: white;
+            font-size: 14px;
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .node-type {
+            fill: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+            pointer-events: none;
+        }
+
+        .relationship-line {
+            fill: none;
+            stroke-width: 2;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .relationship-line:hover {
+            opacity: 1;
+            stroke-width: 3;
+        }
+
+        .relationship-label {
+            fill: rgba(255, 255, 255, 0.6);
+            font-size: 10px;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(26, 26, 46, 0.98);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Functional Area Colors */
+        .graph-core { fill: #8b5cf6; }
+        .user-mgmt { fill: #3b82f6; }
+        .knowledge-rag { fill: #10b981; }
+        .voice-convo { fill: #f59e0b; }
+        .goal-tracking { fill: #ec4899; }
+        .processing { fill: #6b7280; }
+
+        /* Special Indicators */
+        .vector-indicator {
+            fill: #fbbf24;
+            font-size: 16px;
+        }
+
+        .temporal-indicator {
+            fill: #06b6d4;
+            font-size: 16px;
+        }
+
+        .jsonb-indicator {
+            fill: #a78bfa;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <svg id="diagram"></svg>
+        
+        <!-- Control Panel -->
+        <div class="controls">
+            <h2>🎛️ Controls</h2>
+            <button onclick="resetZoom()">Reset View</button>
+            <button onclick="toggleRelationships()">Toggle Relationships</button>
+            <button onclick="expandAll()">Expand All Tables</button>
+            <button onclick="collapseAll()">Collapse All Tables</button>
+            <button onclick="exportDiagram()">Export as SVG</button>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search tables..." onkeyup="searchTables(this.value)">
+        </div>
+
+        <!-- Info Panel -->
+        <div class="info-panel" id="infoPanel">
+            <h3 id="tableName">Select a table</h3>
+            <div id="tableDetails"></div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <h3>📊 Legend</h3>
+            <div class="legend-item">
+                <div class="legend-symbol graph-core"></div>
+                <span>Graph Core</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol user-mgmt"></div>
+                <span>User Management</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol knowledge-rag"></div>
+                <span>Knowledge & RAG</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol voice-convo"></div>
+                <span>Voice & Conversation</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol goal-tracking"></div>
+                <span>Goal Tracking</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol processing"></div>
+                <span>Processing Queues</span>
+            </div>
+            <div class="legend-item">
+                <span>⚡</span>
+                <span style="margin-left: 10px;">Vector Embeddings</span>
+            </div>
+            <div class="legend-item">
+                <span>🕒</span>
+                <span style="margin-left: 10px;">Temporal Tracking</span>
+            </div>
+            <div class="legend-item">
+                <span>📦</span>
+                <span style="margin-left: 10px;">JSONB Fields</span>
+            </div>
+        </div>
+
+        <!-- Tooltip -->
+        <div class="tooltip" id="tooltip"></div>
+    </div>
+
+    <script>
+        // Database Schema Data
+        const schemaData = {
+            nodes: [
+                // Graph Core
+                {
+                    id: 'graph_nodes',
+                    label: 'graph_nodes',
+                    category: 'graph-core',
+                    x: 0,
+                    y: 0,
+                    isCore: true,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'user_id', type: 'UUID', isFK: true },
+                        { name: 'label', type: 'TEXT' },
+                        { name: 'description', type: 'TEXT' },
+                        { name: 'node_type', type: 'ENUM' },
+                        { name: 'node_status', type: 'ENUM' },
+                        { name: 'embedding', type: 'VECTOR(1536)', special: 'vector' },
+                        { name: 'properties', type: 'JSONB', special: 'jsonb' },
+                        { name: 'first_mentioned_at', type: 'TIMESTAMP', special: 'temporal' },
+                        { name: 'last_discussed_at', type: 'TIMESTAMP', special: 'temporal' },
+                        { name: 'deleted_at', type: 'TIMESTAMP' }
+                    ]
+                },
+                {
+                    id: 'graph_edges',
+                    label: 'graph_edges',
+                    category: 'graph-core',
+                    x: 150,
+                    y: 0,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'user_id', type: 'UUID', isFK: true },
+                        { name: 'source_node_id', type: 'UUID', isFK: true },
+                        { name: 'target_node_id', type: 'UUID', isFK: true },
+                        { name: 'edge_type', type: 'ENUM' },
+                        { name: 'label', type: 'TEXT' },
+                        { name: 'valid_from', type: 'TIMESTAMP', special: 'temporal' },
+                        { name: 'valid_to', type: 'TIMESTAMP', special: 'temporal' },
+                        { name: 'strength_history', type: 'JSONB', special: 'jsonb' },
+                        { name: 'properties', type: 'JSONB', special: 'jsonb' }
+                    ]
+                },
+                {
+                    id: 'graph_events',
+                    label: 'graph_events',
+                    category: 'graph-core',
+                    x: -150,
+                    y: 0,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'user_id', type: 'UUID', isFK: true },
+                        { name: 'node_id', type: 'UUID', isFK: true },
+                        { name: 'edge_id', type: 'UUID', isFK: true },
+                        { name: 'event_type', type: 'TEXT' },
+                        { name: 'event_data', type: 'JSONB', special: 'jsonb' },
+                        { name: 'timestamp', type: 'TIMESTAMP', special: 'temporal' }
+                    ]
+                },
+                
+                // User Management
+                {
+                    id: 'users',
+                    label: 'users',
+                    category: 'user-mgmt',
+                    x: 0,
+                    y: -300,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'email', type: 'TEXT' },
+                        { name: 'created_at', type: 'TIMESTAMP' }
+                    ]
+                },
+                {
+                    id: 'profiles',
+                    label: 'profiles',
+                    category: 'user-mgmt',
+                    x: -100,
+                    y: -250,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'email', type: 'TEXT' },
+                        { name: 'display_name', type: 'TEXT' },
+                        { name: 'preferences', type: 'JSONB', special: 'jsonb' },
+                        { name: 'created_at', type: 'TIMESTAMP' }
+                    ]
+                },
+                {
+                    id: 'subscriptions',
+                    label: 'subscriptions',
+                    category: 'user-mgmt',
+                    x: 100,
+                    y: -250,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'user_id', type: 'UUID', isFK: true },
+                        { name: 'stripe_customer_id', type: 'TEXT' },
+                        { name: 'stripe_subscription_id', type: 'TEXT' },
+                        { name: 'status', type: 'TEXT' },
+                        { name: 'current_period_end', type: 'TIMESTAMP', special: 'temporal' }
+                    ]
+                },
+                
+                // Knowledge & RAG
+                {
+                    id: 'knowledge_base',
+                    label: 'knowledge_base',
+                    category: 'knowledge-rag',
+                    x: -400,
+                    y: -100,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'title', type: 'TEXT' },
+                        { name: 'content', type: 'TEXT' },
+                        { name: 'embedding', type: 'VECTOR(1536)', special: 'vector' },
+                        { name: 'metadata', type: 'JSONB', special: 'jsonb' },
+                        { name: 'created_at', type: 'TIMESTAMP' }
+                    ]
+                },
+                {
+                    id: 'knowledge_documents',
+                    label: 'knowledge_documents',
+                    category: 'knowledge-rag',
+                    x: -400,
+                    y: 0,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'user_id', type: 'UUID', isFK: true },
+                        { name: 'title', type: 'TEXT' },
+                        { name: 'source_type', type: 'TEXT' },
+                        { name: 'metadata', type: 'JSONB', special: 'jsonb' }
+                    ]
+                },
+                {
+                    id: 'knowledge_chunks',
+                    label: 'knowledge_chunks',
+                    category: 'knowledge-rag',
+                    x: -400,
+                    y: 100,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'document_id', type: 'UUID', isFK: true },
+                        { name: 'content', type: 'TEXT' },
+                        { name: 'embedding', type: 'VECTOR(1536)', special: 'vector' },
+                        { name: 'chunk_index', type: 'INTEGER' }
+                    ]
+                },
+                
+                // Voice & Conversation
+                {
+                    id: 'elevenlabs_conversations',
+                    label: 'elevenlabs_conversations',
+                    category: 'voice-convo',
+                    x: 400,
+                    y: -100,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'user_id', type: 'UUID', isFK: true },
+                        { name: 'conversation_id', type: 'TEXT' },
+                        { name: 'agent_id', type: 'TEXT' },
+                        { name: 'transcript', type: 'TEXT' },
+                        { name: 'metadata', type: 'JSONB', special: 'jsonb' },
+                        { name: 'started_at', type: 'TIMESTAMP', special: 'temporal' },
+                        { name: 'ended_at', type: 'TIMESTAMP', special: 'temporal' }
+                    ]
+                },
+                {
+                    id: 'agent_personae',
+                    label: 'agent_personae',
+                    category: 'voice-convo',
+                    x: 400,
+                    y: 0,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'name', type: 'TEXT' },
+                        { name: 'description', type: 'TEXT' },
+                        { name: 'system_prompt', type: 'TEXT' },
+                        { name: 'voice_settings', type: 'JSONB', special: 'jsonb' },
+                        { name: 'personality_traits', type: 'JSONB', special: 'jsonb' }
+                    ]
+                },
+                {
+                    id: 'conversation_insights',
+                    label: 'conversation_insights',
+                    category: 'voice-convo',
+                    x: 400,
+                    y: 100,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'conversation_id', type: 'UUID', isFK: true },
+                        { name: 'insight_type', type: 'TEXT' },
+                        { name: 'content', type: 'TEXT' },
+                        { name: 'confidence', type: 'FLOAT' },
+                        { name: 'extracted_at', type: 'TIMESTAMP', special: 'temporal' }
+                    ]
+                },
+                
+                // Goal Tracking
+                {
+                    id: 'user_goals',
+                    label: 'user_goals',
+                    category: 'goal-tracking',
+                    x: -200,
+                    y: 250,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'user_id', type: 'UUID', isFK: true },
+                        { name: 'title', type: 'TEXT' },
+                        { name: 'description', type: 'TEXT' },
+                        { name: 'category_id', type: 'UUID', isFK: true },
+                        { name: 'status', type: 'ENUM' },
+                        { name: 'target_date', type: 'DATE', special: 'temporal' },
+                        { name: 'metadata', type: 'JSONB', special: 'jsonb' }
+                    ]
+                },
+                {
+                    id: 'goal_categories',
+                    label: 'goal_categories',
+                    category: 'goal-tracking',
+                    x: -300,
+                    y: 200,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'name', type: 'TEXT' },
+                        { name: 'description', type: 'TEXT' },
+                        { name: 'color', type: 'TEXT' },
+                        { name: 'icon', type: 'TEXT' }
+                    ]
+                },
+                {
+                    id: 'goal_progress',
+                    label: 'goal_progress',
+                    category: 'goal-tracking',
+                    x: -100,
+                    y: 200,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'goal_id', type: 'UUID', isFK: true },
+                        { name: 'progress_value', type: 'FLOAT' },
+                        { name: 'notes', type: 'TEXT' },
+                        { name: 'recorded_at', type: 'TIMESTAMP', special: 'temporal' }
+                    ]
+                },
+                
+                // Processing Queues
+                {
+                    id: 'embedding_queue',
+                    label: 'embedding_queue',
+                    category: 'processing',
+                    x: 200,
+                    y: 250,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'node_id', type: 'UUID', isFK: true },
+                        { name: 'status', type: 'ENUM' },
+                        { name: 'priority', type: 'INTEGER' },
+                        { name: 'attempts', type: 'INTEGER' },
+                        { name: 'last_error', type: 'TEXT' },
+                        { name: 'created_at', type: 'TIMESTAMP' },
+                        { name: 'processed_at', type: 'TIMESTAMP', special: 'temporal' }
+                    ]
+                },
+                {
+                    id: 'embedding_queue_log',
+                    label: 'embedding_queue_log',
+                    category: 'processing',
+                    x: 300,
+                    y: 200,
+                    fields: [
+                        { name: 'id', type: 'UUID', isPK: true },
+                        { name: 'status', type: 'TEXT' },
+                        { name: 'processed_count', type: 'INTEGER' },
+                        { name: 'total_count', type: 'INTEGER' },
+                        { name: 'error_message', type: 'TEXT' },
+                        { name: 'timestamp', type: 'TIMESTAMP', special: 'temporal' }
+                    ]
+                }
+            ],
+            relationships: [
+                // Graph Core relationships
+                { source: 'graph_edges', target: 'graph_nodes', type: 'many-to-one', label: 'source_node' },
+                { source: 'graph_edges', target: 'graph_nodes', type: 'many-to-one', label: 'target_node' },
+                { source: 'graph_events', target: 'graph_nodes', type: 'many-to-one', label: 'references' },
+                { source: 'graph_events', target: 'graph_edges', type: 'many-to-one', label: 'references' },
+                
+                // User relationships
+                { source: 'graph_nodes', target: 'profiles', type: 'many-to-one', label: 'owned_by' },
+                { source: 'graph_edges', target: 'profiles', type: 'many-to-one', label: 'owned_by' },
+                { source: 'subscriptions', target: 'profiles', type: 'one-to-one', label: 'belongs_to' },
+                
+                // Knowledge relationships
+                { source: 'knowledge_documents', target: 'profiles', type: 'many-to-one', label: 'owned_by' },
+                { source: 'knowledge_chunks', target: 'knowledge_documents', type: 'many-to-one', label: 'part_of' },
+                
+                // Conversation relationships
+                { source: 'elevenlabs_conversations', target: 'profiles', type: 'many-to-one', label: 'belongs_to' },
+                { source: 'conversation_insights', target: 'elevenlabs_conversations', type: 'many-to-one', label: 'extracted_from' },
+                
+                // Goal relationships
+                { source: 'user_goals', target: 'profiles', type: 'many-to-one', label: 'owned_by' },
+                { source: 'user_goals', target: 'goal_categories', type: 'many-to-one', label: 'categorized_as' },
+                { source: 'goal_progress', target: 'user_goals', type: 'many-to-one', label: 'tracks' },
+                
+                // Processing relationships
+                { source: 'embedding_queue', target: 'graph_nodes', type: 'one-to-one', label: 'processes' }
+            ]
+        };
+
+        // Initialize D3.js diagram
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        const svg = d3.select('#diagram')
+            .attr('width', width)
+            .attr('height', height);
+
+        // Create zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.3, 3])
+            .on('zoom', (event) => {
+                g.attr('transform', event.transform);
+            });
+
+        svg.call(zoom);
+
+        // Create main group for zooming
+        const g = svg.append('g');
+
+        // Position nodes in radial layout
+        function positionNodes() {
+            const categories = {
+                'graph-core': { angle: 0, radius: 0 },
+                'user-mgmt': { angle: -Math.PI/2, radius: 350 },
+                'knowledge-rag': { angle: Math.PI, radius: 400 },
+                'voice-convo': { angle: 0, radius: 400 },
+                'goal-tracking': { angle: Math.PI/2 - 0.5, radius: 350 },
+                'processing': { angle: Math.PI/2 + 0.5, radius: 350 }
+            };
+
+            schemaData.nodes.forEach(node => {
+                if (node.isCore) {
+                    node.x = centerX;
+                    node.y = centerY;
+                } else {
+                    const cat = categories[node.category];
+                    const baseAngle = cat.angle;
+                    const angleOffset = (Math.random() - 0.5) * 0.3;
+                    const radiusOffset = (Math.random() - 0.5) * 50;
+                    
+                    node.x = centerX + Math.cos(baseAngle + angleOffset) * (cat.radius + radiusOffset) + (node.x || 0) * 0.3;
+                    node.y = centerY + Math.sin(baseAngle + angleOffset) * (cat.radius + radiusOffset) + (node.y || 0) * 0.3;
+                }
+            });
+        }
+
+        positionNodes();
+
+        // Draw relationships
+        const relationships = g.append('g')
+            .attr('class', 'relationships');
+
+        schemaData.relationships.forEach(rel => {
+            const source = schemaData.nodes.find(n => n.id === rel.source);
+            const target = schemaData.nodes.find(n => n.id === rel.target);
+            
+            if (source && target) {
+                const line = relationships.append('line')
+                    .attr('class', 'relationship-line')
+                    .attr('x1', source.x)
+                    .attr('y1', source.y)
+                    .attr('x2', target.x)
+                    .attr('y2', target.y)
+                    .attr('stroke', '#444')
+                    .attr('stroke-dasharray', rel.type === 'one-to-one' ? '5,5' : '0');
+            }
+        });
+
+        // Draw nodes
+        const nodes = g.append('g')
+            .attr('class', 'nodes');
+
+        const nodeGroups = nodes.selectAll('.node-group')
+            .data(schemaData.nodes)
+            .enter()
+            .append('g')
+            .attr('class', 'node-group')
+            .attr('transform', d => `translate(${d.x}, ${d.y})`)
+            .on('click', showTableInfo)
+            .on('mouseenter', highlightConnections)
+            .on('mouseleave', unhighlightConnections);
+
+        // Draw node rectangles
+        nodeGroups.append('rect')
+            .attr('class', d => `node-rect ${d.category}`)
+            .attr('x', -80)
+            .attr('y', -30)
+            .attr('width', 160)
+            .attr('height', 60)
+            .attr('rx', 8)
+            .attr('stroke', 'rgba(255,255,255,0.2)');
+
+        // Add node labels
+        nodeGroups.append('text')
+            .attr('class', 'node-label')
+            .attr('text-anchor', 'middle')
+            .attr('y', -5)
+            .text(d => d.label);
+
+        // Add node types
+        nodeGroups.append('text')
+            .attr('class', 'node-type')
+            .attr('text-anchor', 'middle')
+            .attr('y', 15)
+            .text(d => `${d.fields.length} fields`);
+
+        // Add special indicators
+        nodeGroups.each(function(d) {
+            const group = d3.select(this);
+            let indicatorX = -70;
+            
+            if (d.fields.some(f => f.special === 'vector')) {
+                group.append('text')
+                    .attr('class', 'vector-indicator')
+                    .attr('x', indicatorX)
+                    .attr('y', -15)
+                    .text('⚡');
+                indicatorX += 20;
+            }
+            
+            if (d.fields.some(f => f.special === 'temporal')) {
+                group.append('text')
+                    .attr('class', 'temporal-indicator')
+                    .attr('x', indicatorX)
+                    .attr('y', -15)
+                    .text('🕒');
+                indicatorX += 20;
+            }
+            
+            if (d.fields.some(f => f.special === 'jsonb')) {
+                group.append('text')
+                    .attr('class', 'jsonb-indicator')
+                    .attr('x', indicatorX)
+                    .attr('y', -15)
+                    .text('📦');
+            }
+        });
+
+        // Control functions
+        let expandedState = false;
+        
+        function resetZoom() {
+            svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.zoomIdentity);
+        }
+
+        function toggleRelationships() {
+            const rels = d3.select('.relationships');
+            rels.style('display', rels.style('display') === 'none' ? 'block' : 'none');
+        }
+
+        function expandAll() {
+            expandedState = true;
+            
+            // Remove existing field lists
+            nodeGroups.selectAll('.field-list').remove();
+            
+            // Add field details to each node
+            nodeGroups.each(function(d) {
+                const group = d3.select(this);
+                const fieldList = group.append('g')
+                    .attr('class', 'field-list');
+                
+                // Background for fields
+                fieldList.append('rect')
+                    .attr('x', -80)
+                    .attr('y', 35)
+                    .attr('width', 160)
+                    .attr('height', d.fields.length * 18 + 10)
+                    .attr('rx', 4)
+                    .attr('fill', 'rgba(0, 0, 0, 0.8)')
+                    .attr('stroke', 'rgba(255, 255, 255, 0.1)');
+                
+                // Add each field
+                d.fields.forEach((field, i) => {
+                    const fieldY = 50 + i * 18;
+                    
+                    fieldList.append('text')
+                        .attr('x', -70)
+                        .attr('y', fieldY)
+                        .attr('font-size', '11px')
+                        .attr('fill', field.isPK ? '#fbbf24' : field.isFK ? '#60a5fa' : '#e5e7eb')
+                        .text(`${field.isPK ? '🔑 ' : field.isFK ? '🔗 ' : ''}${field.name}`);
+                    
+                    fieldList.append('text')
+                        .attr('x', 70)
+                        .attr('y', fieldY)
+                        .attr('font-size', '10px')
+                        .attr('fill', '#9ca3af')
+                        .attr('text-anchor', 'end')
+                        .text(field.type.substring(0, 12));
+                    
+                    // Add special indicators
+                    if (field.special) {
+                        fieldList.append('text')
+                            .attr('x', 75)
+                            .attr('y', fieldY)
+                            .attr('font-size', '12px')
+                            .text(
+                                field.special === 'vector' ? '⚡' :
+                                field.special === 'temporal' ? '🕒' :
+                                field.special === 'jsonb' ? '📦' : ''
+                            );
+                    }
+                });
+            });
+            
+            // Adjust zoom to fit expanded view
+            setTimeout(() => {
+                const bounds = g.node().getBBox();
+                const fullWidth = width;
+                const fullHeight = height;
+                const widthScale = fullWidth / bounds.width;
+                const heightScale = fullHeight / bounds.height;
+                const scale = 0.5 * Math.min(widthScale, heightScale);
+                
+                const translate = [
+                    fullWidth / 2 - scale * (bounds.x + bounds.width / 2),
+                    fullHeight / 2 - scale * (bounds.y + bounds.height / 2)
+                ];
+                
+                svg.transition()
+                    .duration(750)
+                    .call(zoom.transform, d3.zoomIdentity
+                        .translate(translate[0], translate[1])
+                        .scale(scale));
+            }, 100);
+        }
+
+        function collapseAll() {
+            expandedState = false;
+            
+            // Remove all field lists
+            nodeGroups.selectAll('.field-list').remove();
+            
+            // Reset zoom to normal view
+            resetZoom();
+        }
+
+        function exportDiagram() {
+            const svgData = document.getElementById('diagram').outerHTML;
+            const blob = new Blob([svgData], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'liveguide-database-schema.svg';
+            a.click();
+        }
+
+        function showTableInfo(event, d) {
+            const panel = document.getElementById('infoPanel');
+            const tableName = document.getElementById('tableName');
+            const tableDetails = document.getElementById('tableDetails');
+            
+            panel.classList.add('active');
+            tableName.textContent = d.label;
+            
+            let detailsHTML = '<h4>Fields:</h4>';
+            d.fields.forEach(field => {
+                detailsHTML += `
+                    <div class="field">
+                        <span class="field-name">
+                            ${field.isPK ? '🔑 ' : ''}
+                            ${field.isFK ? '🔗 ' : ''}
+                            ${field.name}
+                        </span>
+                        <span class="field-type">${field.type}</span>
+                        ${field.special ? `<span style="margin-left: 8px;">${
+                            field.special === 'vector' ? '⚡' :
+                            field.special === 'temporal' ? '🕒' :
+                            field.special === 'jsonb' ? '📦' : ''
+                        }</span>` : ''}
+                    </div>
+                `;
+            });
+            
+            tableDetails.innerHTML = detailsHTML;
+        }
+
+        function highlightConnections(event, d) {
+            // Highlight related tables
+            d3.selectAll('.relationship-line')
+                .style('opacity', line => {
+                    const sourceMatch = schemaData.relationships.some(
+                        rel => (rel.source === d.id || rel.target === d.id)
+                    );
+                    return sourceMatch ? 1 : 0.2;
+                });
+        }
+
+        function unhighlightConnections() {
+            d3.selectAll('.relationship-line')
+                .style('opacity', 0.6);
+        }
+
+        function searchTables(query) {
+            const lowerQuery = query.toLowerCase();
+            
+            d3.selectAll('.node-group')
+                .style('opacity', d => {
+                    if (!query) return 1;
+                    return d.label.toLowerCase().includes(lowerQuery) ? 1 : 0.3;
+                });
+        }
+
+        // Initial zoom to fit
+        setTimeout(() => {
+            const bounds = g.node().getBBox();
+            const fullWidth = width;
+            const fullHeight = height;
+            const widthScale = fullWidth / bounds.width;
+            const heightScale = fullHeight / bounds.height;
+            const scale = 0.8 * Math.min(widthScale, heightScale);
+            
+            const translate = [
+                fullWidth / 2 - scale * (bounds.x + bounds.width / 2),
+                fullHeight / 2 - scale * (bounds.y + bounds.height / 2)
+            ];
+            
+            svg.call(zoom.transform, d3.zoomIdentity
+                .translate(translate[0], translate[1])
+                .scale(scale));
+        }, 100);
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 import { useConversation } from '@elevenlabs/react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface ElevenLabsConfig {
   agentId: string;
@@ -74,6 +74,7 @@ export function useElevenLabsConversation(
     onError: handlers.onError,
     // Pass userId and RAG context as dynamic variables for webhooks/tools
     dynamicVariables: {
+      name: config.metadata?.userName || 'User', // Add 'name' as required by agent
       userId: config.userId || '',
       userName: config.metadata?.userName || '',
       sessionType: config.metadata?.sessionType || '',
@@ -88,30 +89,64 @@ export function useElevenLabsConversation(
   }
 
   const conversation = useConversation(conversationConfig);
+  
+  // Store conversation in a ref for cleanup
+  const conversationRef = useRef(conversation);
+  useEffect(() => {
+    conversationRef.current = conversation;
+  }, [conversation]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Ensure proper cleanup when component unmounts
+      const conv = conversationRef.current;
+      if (conv && (conv.status === 'connected' || conv.status === 'connecting')) {
+        console.log('useElevenLabsConversation: Cleaning up WebSocket connection on unmount');
+        conv.endSession?.().catch((error: any) => {
+          if (!error?.message?.includes('WebSocket is already in CLOSING or CLOSED state')) {
+            console.warn('Cleanup error:', error);
+          }
+        });
+      }
+    };
+  }, []); // Empty dependency array - only run cleanup on unmount
 
   // Enhanced startSession that properly formats the WebSocket connection
   const startSession = async () => {
     try {
+      // Ensure we have an agent ID at minimum
+      const agentId = config?.agentId || process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'SuIlXQ4S6dyjrNViOrQ8';
+      
+      const requestBody = {
+        agentId: agentId,
+        userId: config?.userId || 'anonymous',
+        customCallId: config?.customCallId || `session_${Date.now()}`,
+        metadata: config?.metadata || {},
+        ragContext: config?.ragContext || ''
+      };
+      
+      console.log('Starting ElevenLabs session with:', requestBody);
+      console.log('Current URL before fetch:', window.location.href);
+      console.log('Current conversation status:', conversation.status);
+      
       // Get signed URL from server for authentication with all user details
       const response = await fetch('/api/elevenlabs/signed-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          agentId: config.agentId,
-          userId: config.userId,
-          customCallId: config.customCallId,
-          metadata: config.metadata,
-          ragContext: config.ragContext,
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      console.log('After fetch, current URL:', window.location.href);
 
       if (!response.ok) {
         throw new Error('Failed to get signed URL');
       }
 
       const { signedUrl } = await response.json();
+      console.log('Got signed URL, current URL:', window.location.href);
       
       console.log('🔐 Got signed URL with user details:', {
         userId: config.userId,
@@ -120,11 +155,26 @@ export function useElevenLabsConversation(
       });
       
       // Start session with signed URL for authentication
-      await conversation.startSession({
+      console.log('About to start conversation.startSession, current URL:', window.location.href);
+      console.log('Conversation status before startSession:', conversation.status);
+      
+      const sessionResult = await conversation.startSession({
         signedUrl: signedUrl,
       });
+      
+      console.log('✅ startSession completed successfully');
+      console.log('After conversation.startSession, current URL:', window.location.href);
+      console.log('Conversation status after startSession:', conversation.status);
+      console.log('Session result:', sessionResult);
+      
+      return sessionResult;
     } catch (error) {
       console.error('Failed to start ElevenLabs session:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        conversationStatus: conversation.status
+      });
       throw error;
     }
   };
@@ -132,19 +182,37 @@ export function useElevenLabsConversation(
   // Safe endSession that checks connection state before closing
   const endSession = async () => {
     try {
-      if (conversation.status === 'connected') {
+      // Only attempt to end session if we're in a valid state
+      if (conversation.status === 'connected' || conversation.status === 'connecting') {
         await conversation.endSession();
       }
     } catch (error) {
-      console.warn('Error ending ElevenLabs session:', error);
+      // Ignore WebSocket closing errors - they're expected during cleanup
+      if (!error?.message?.includes('WebSocket is already in CLOSING or CLOSED state')) {
+        console.warn('Error ending ElevenLabs session:', error);
+      }
       // Don't throw - session cleanup should be non-blocking
+    }
+  };
+
+  // Safe sendMessage wrapper that checks WebSocket state
+  const sendMessage = (message: any) => {
+    try {
+      if (conversation.status === 'connected') {
+        return conversation.sendMessage?.(message);
+      }
+    } catch (error) {
+      if (!error?.message?.includes('WebSocket is already in CLOSING or CLOSED state')) {
+        console.error('Error sending message:', error);
+      }
     }
   };
 
   // Safe wrapper for any conversation methods that might send messages
   const safeConversation = {
     ...conversation,
-    endSession
+    endSession,
+    sendMessage: conversation.sendMessage ? sendMessage : undefined
   };
 
   return {

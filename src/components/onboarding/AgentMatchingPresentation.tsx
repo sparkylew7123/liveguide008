@@ -12,6 +12,13 @@ interface AgentMatchingPresentationProps {
   user: any;
   userName: string;
   selectedGoals: string[];
+  selectedCategories?: string[];
+  timeHorizon?: 'short' | 'medium' | 'long';
+  learningPreferences?: {
+    style?: 'visual' | 'auditory' | 'hands-on';
+    pace?: 'fast' | 'moderate' | 'slow';
+    support?: 'high' | 'moderate' | 'minimal';
+  };
   coachingPreferences?: any;
   onComplete: (data: { selectedAgent: any, matchedAgents: any[] }) => void;
   isLoading: boolean;
@@ -27,6 +34,9 @@ export function AgentMatchingPresentation({
   user,
   userName,
   selectedGoals,
+  selectedCategories,
+  timeHorizon,
+  learningPreferences,
   coachingPreferences,
   onComplete,
   isLoading
@@ -38,7 +48,7 @@ export function AgentMatchingPresentation({
 
   useEffect(() => {
     performAgentMatching();
-  }, [selectedGoals, coachingPreferences]);
+  }, [selectedGoals, selectedCategories, timeHorizon, learningPreferences, coachingPreferences]);
 
   const performAgentMatching = async () => {
     setIsMatching(true);

@@ -254,48 +254,128 @@ async function handleMessage(supabase: any, event: WebhookEvent) {
 async function handleAnalysisCompleted(supabase: any, event: WebhookEvent) {
   const { conversation_id, data } = event
 
-  // Extract insights from analysis
+  console.log('📊 Analysis completed for conversation:', conversation_id);
+  console.log('Analysis data:', JSON.stringify(data, null, 2));
+
+  // Get conversation details
+  const { data: conversation } = await supabase
+    .from('elevenlabs_conversations')
+    .select('user_id, metadata')
+    .eq('conversation_id', conversation_id)
+    .single()
+
+  if (!conversation?.user_id) {
+    console.error('No user_id found for conversation:', conversation_id);
+    return;
+  }
+
+  const userId = conversation.user_id;
+
+  // Extract goals from ElevenLabs analysis data
+  const extractedGoals = [];
+  
+  // Check for User_Goals in the analysis data (configured in Analysis tab)
+  if (data.User_Goals && Array.isArray(data.User_Goals)) {
+    console.log('Found User_Goals in analysis:', data.User_Goals);
+    
+    for (const goalData of data.User_Goals) {
+      if (goalData.original_text) {
+        extractedGoals.push({
+          original_text: goalData.original_text,
+          category: goalData.goal_category || 'personal',
+          timeline: goalData.timeline || 'medium_term',
+          confidence: goalData.confidence_level || 0.8,
+          source: 'elevenlabs_analysis'
+        });
+      }
+    }
+  }
+
+  // Fallback: extract from transcript if no structured goals found
+  if (extractedGoals.length === 0 && data.transcript) {
+    console.log('No structured goals found, extracting from transcript');
+    const transcriptGoals = extractGoals(data.transcript);
+    extractedGoals.push(...transcriptGoals.map(g => ({
+      original_text: g.title,
+      category: g.category,
+      timeline: 'medium_term',
+      confidence: 0.7,
+      source: 'transcript_extraction'
+    })));
+  }
+
+  // Create graph nodes for extracted goals
+  const createdNodes = [];
+  for (const goal of extractedGoals) {
+    try {
+      // Create goal node using graph operations
+      const { data: nodeResult, error } = await supabase
+        .rpc('create_goal_node', {
+          p_user_id: userId,
+          p_title: goal.original_text.substring(0, 100), // Limit title length
+          p_description: `Goal from voice onboarding: "${goal.original_text}"`,
+          p_category: goal.category,
+          p_properties: {
+            source: goal.source,
+            confidence: goal.confidence,
+            timeline: goal.timeline,
+            conversation_id: conversation_id,
+            extracted_at: new Date().toISOString()
+          }
+        });
+
+      if (error) {
+        console.error('Error creating goal node:', error);
+      } else {
+        console.log('Created goal node:', nodeResult);
+        createdNodes.push(nodeResult);
+      }
+    } catch (error) {
+      console.error('Failed to create goal node:', error);
+    }
+  }
+
+  // Update conversation with comprehensive analysis
   const insights = {
     summary: data.summary,
     topics: data.topics || [],
     sentiment: data.sentiment,
     action_items: data.action_items || [],
-    goals_mentioned: extractGoals(data.transcript),
-    coaching_areas: identifyCoachingAreas(data.transcript)
+    goals_extracted: extractedGoals,
+    created_nodes: createdNodes.map(n => n.id),
+    coaching_areas: identifyCoachingAreas(data.transcript || ''),
+    user_name: data.User_Name || null,
+    learning_style: data.Learning_Style || null,
+    time_commitment: data.Time_Commitment || null,
   }
 
-  // Update conversation with analysis
   await supabase
     .from('elevenlabs_conversations')
     .update({
       analysis: data,
-      insights: insights
+      insights: insights,
+      ended_at: new Date().toISOString(),
+      status: 'completed'
     })
     .eq('conversation_id', conversation_id)
 
-  // Create or update user goals based on conversation
-  if (insights.goals_mentioned.length > 0) {
-    const { data: conversation } = await supabase
-      .from('elevenlabs_conversations')
-      .select('user_id')
-      .eq('conversation_id', conversation_id)
-      .single()
+  // Update user questionnaire if we got onboarding data
+  if (data.User_Name || data.Learning_Style || data.Time_Commitment) {
+    const updateData = {};
+    if (data.User_Name) updateData.preferred_name = data.User_Name;
+    if (data.Learning_Style) updateData.learning_prefs = data.Learning_Style;
+    if (data.Time_Commitment) updateData.time_commitment = data.Time_Commitment;
 
-    if (conversation?.user_id) {
-      for (const goal of insights.goals_mentioned) {
-        await supabase
-          .from('user_goals')
-          .upsert({
-            user_id: conversation.user_id,
-            title: goal.title,
-            description: goal.description,
-            category: goal.category,
-            source: 'conversation',
-            source_id: conversation_id
-          })
-      }
-    }
+    await supabase
+      .from('user_questionnaire')
+      .upsert({
+        user_id: userId,
+        ...updateData,
+        updated_at: new Date().toISOString()
+      });
   }
+
+  console.log(`✅ Processed analysis for conversation ${conversation_id}: ${extractedGoals.length} goals extracted, ${createdNodes.length} nodes created`);
 }
 
 function extractGoals(transcript: string): any[] {

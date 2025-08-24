@@ -19,7 +19,12 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
-    "test:e2e:install": "playwright install"
+    "test:e2e:install": "playwright install",
+    "test:onboarding": "playwright test --config=playwright.onboarding.config.ts",
+    "test:onboarding:ui": "playwright test --config=playwright.onboarding.config.ts --ui",
+    "test:onboarding:debug": "playwright test --config=playwright.onboarding.config.ts --debug",
+    "test:onboarding:headed": "playwright test --config=playwright.onboarding.config.ts --headed",
+    "test:onboarding:report": "playwright show-report test-results/onboarding-html-report"
   },
   "dependencies": {
     "@elevenlabs/client": "^0.3.0",
@@ -30,6 +35,7 @@
     "@plasmicapp/react-web": "^0.2.396",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-scroll-area": "^1.2.9",
@@ -71,6 +77,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
+    "node-fetch": "^2.7.0",
     "postcss": "^8.4.31",
     "tailwindcss": "^4.1.11",
     "typescript": "^5"

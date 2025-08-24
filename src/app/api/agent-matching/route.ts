@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create matching service and find agents
+    // Create matching service and find agents using sophisticated algorithm
     const matchingService = new AgentMatchingService(supabase, user.id);
     const result = await matchingService.findMatchingAgents({
       trigger,
@@ -66,13 +66,21 @@ export async function POST(request: NextRequest) {
       minScore: min_score
     });
 
+    // Also provide the simple interface format in the response
+    const simpleResult = await matchingService.getMatchingAgents({
+      trigger,
+      maxAgents: max_agents
+    });
+
     return NextResponse.json({
       success: true,
       data: result,
+      simple_format: simpleResult, // Include the requested simple format
       metadata: {
         user_id: user.id,
         timestamp: new Date().toISOString(),
-        request_id: crypto.randomUUID()
+        request_id: crypto.randomUUID(),
+        algorithm: 'sophisticated_goal_learning_context_scoring'
       }
     });
 
