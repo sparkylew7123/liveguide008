@@ -273,6 +273,33 @@ supabase functions logs elevenlabs-webhook --project-ref hlwxmfwrksflvcacjafg
 
 See `docs/elevenlabs-liveguide-integration.md` for complete implementation details.
 
+## 📚 Archon Knowledge Base Integration
+
+### ElevenLabs Agent Requirements
+When using the `elevenlabs-voice-expert` agent, it MUST:
+1. **Query Archon knowledge base** before code review
+2. **Reference official documentation** from `elevenlabs.io`
+3. **Check existing patterns** in `github.com` repository
+4. **Cite sources** in all responses
+
+### Available Knowledge Sources
+- `elevenlabs.io` - Official ElevenLabs documentation (112K+ words)
+- `file_elevenlabs-liveguide-integration_md` - LiveGuide integration patterns
+- `github.com` - Current codebase implementation (377K+ words)
+- `modelcontextprotocol.io` - MCP protocol standards
+- `nextjs.org` - Frontend framework patterns (1M+ words)
+
+### Agent Invocation Protocol
+```bash
+# When reviewing ElevenLabs code, the agent should:
+# 1. Query Archon knowledge base for relevant docs
+# 2. Search for existing code patterns
+# 3. Validate against official specifications
+# 4. Include citations in response
+```
+
+See `docs/elevenlabs-agent-archon-integration.md` for complete configuration.
+
 When asked to design UI & frontend interface
 When asked to design UI & frontend interface
 # Role
